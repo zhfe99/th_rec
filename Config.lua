@@ -10,12 +10,12 @@ end
 
 return
 {
-    TRAINING_PATH = '/home/ehoffer/Datasets/ImageNet/train/',
-    VALIDATION_PATH = '/home/ehoffer/Datasets/ImageNet/validation/',
-    VALIDATION_DIR = '/home/ehoffer/Datasets/ImageNet/LMDB/validation/',
-    TRAINING_DIR = '/home/ehoffer/Datasets/ImageNet/LMDB/train/',
+    TRAINING_PATH = '/home/ma/feng/data/imgnet/v2/train/',
+    VALIDATION_PATH = '/home/ma/feng/data/imgnet/v2/val/',
+    VALIDATION_DIR = '/home/ma/feng/data/imgnet/torch/data/val2/',
+    TRAINING_DIR = '/home/ma/feng/data/imgnet/torch/data/train2/',
     ImageSize = 256,
-    SampleSize = {3,224,224},
+    SampleSize = {3, 224, 224},
     ValidationLabels = torch.load('./ValidationLabels'),
     ImageNetClasses = ImageNetClasses,
     DataMean = 118.380948,
