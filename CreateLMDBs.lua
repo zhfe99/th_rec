@@ -7,7 +7,6 @@ local gm = require 'graphicsmagick'
 local ffi = require 'ffi'
 local config = require 'Config'
 
-
 -------------------------------Settings----------------------------------------------
 
 local PreProcess = function(Img)
@@ -25,9 +24,8 @@ local PreProcess = function(Img)
   return im
 end
 
-
 local LoadImgData = function(filename)
-  local img = gm.Image(filename):toTensor('float','RGB','DHW')
+  local img = gm.Image(filename):toTensor('float', 'RGB', 'DHW')
   if img == nil then
     print('Image is buggy')
     print(filename)
@@ -54,7 +52,10 @@ function NameFile(filename)
 
 end
 
-function LMDBFromFilenames(charTensor,env)
+function LMDBFromFilenames(charTensor, env)
+  local debugger = require('fb.debugger')
+  debugger.enter()
+
   env:open()
   local txn = env:txn()
   local cursor = txn:cursor()
@@ -74,7 +75,6 @@ function LMDBFromFilenames(charTensor,env)
   end
   txn:commit()
   env:close()
-
 end
 
 local TrainingFiles = FileSearcher {
