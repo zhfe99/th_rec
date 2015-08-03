@@ -15,8 +15,7 @@ local dbe = params.dbe
 local ver = params.ver
 
 -- data
-local ThDat = torch.class('ThDat')
-dat = th.ThDat(dbe, ver)
+dat = ThDat(dbe, ver)
 
 -- config
 confPath = string.format('Models/Config_%s_%s', dbe, ver)
