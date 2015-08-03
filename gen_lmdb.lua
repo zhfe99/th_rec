@@ -18,10 +18,10 @@ cmd = torch.CmdLine()
 cmd:option('-dbe', 'car', 'database name')
 cmd:option('-ver', 'v1c', 'version')
 local params = cmd:parse(arg)
-local dbe = params.dbe
-local ver = params.ver
 
 -- data
+local dbe = params.dbe
+local ver = params.ver
 dat = ThDat(dbe, ver)
 
 -- config
@@ -46,6 +46,7 @@ local ValidationFiles = FileSearcher {
   CachePrefix = config.VALIDATION_DIR,
   MaxNumItems = 1e8,
   PathList = {config.VALIDATION_PATH},
+  SubFolders = true,
   MaxFilenameLength = 200
 }
 
@@ -89,12 +90,15 @@ end
 -- Input
 --   filename  -  file path
 local LoadImgData = function(filename)
-  local img = gm.Image(filename):toTensor('float', 'RGB', 'DHW')
-  if img == nil then
+  local ok, img = pcall(gm.Image, filename)
+  if not ok or img == nil then
     print('Image is buggy')
     print(filename)
+    local debugger = require('fb.debugger')
+    debugger.enter()
     os.exit()
   end
+  img = img:toTensor('float', 'RGB', 'DHW')
   img = PreProcess(img)
   if config.Compressed then
     return image.compressJPG(img)
@@ -143,7 +147,7 @@ function LMDBFromFilenames(charTensor, env)
       txn = env:txn()
       cursor = txn:cursor()
     end
-    xlua.progress(i,charTensor:size(1))
+    xlua.progress(i, charTensor:size(1))
   end
   txn:commit()
   env:close()
