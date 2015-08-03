@@ -4,6 +4,7 @@ require 'xlua'
 require 'lmdb'
 local gm = require 'graphicsmagick'
 local ffi = require 'ffi'
+local th = require 'lua_th'
 
 -- argument
 cmd = torch.CmdLine()
@@ -12,6 +13,9 @@ cmd:option('-ver', 'v1c', 'version')
 local params = cmd:parse(arg)
 local dbe = params.dbe
 local ver = params.ver
+
+-- data
+dat = th.ThDat(dbe, ver)
 
 -- config
 confPath = string.format('Models/Config_%s_%s', dbe, ver)
