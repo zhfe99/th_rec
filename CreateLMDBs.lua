@@ -103,5 +103,5 @@ local ValDB= lmdb.env {
 }
 
 TrainingFiles:ShuffleItems()
-LMDBFromFilenames(ValidationFiles.Data, ValDB)
 LMDBFromFilenames(TrainingFiles.Data, TrainDB)
+LMDBFromFilenames(ValidationFiles.Data, ValDB)
