@@ -15,6 +15,7 @@ local dbe = params.dbe
 local ver = params.ver
 
 -- data
+local ThDat = torch.class('ThDat')
 dat = th.ThDat(dbe, ver)
 
 -- config
