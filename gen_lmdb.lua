@@ -5,17 +5,20 @@ require 'lmdb'
 local gm = require 'graphicsmagick'
 local ffi = require 'ffi'
 
+-- argument
 cmd = torch.CmdLine()
 cmd:option('-dbe', 'car', 'database name')
 cmd:option('-ver', 'v1c', 'version')
-params = cmd:parse(arg)
+local params = cmd:parse(arg)
+local dbe = params.dbe
+local ver = params.ver
+
+-- config
+confPath = string.format('Config/Config_%s_%s', dbe, ver)
+local config = require(confPath)
 
 local debugger = require('fb.debugger')
 debugger.enter()
-
-local config = require 'Config'
-
--------------------------------Settings----------------------------------------------
 
 local PreProcess = function(Img)
   local im = image.scale(Img, '^' .. config.ImageSize) --minimum side of ImageSize
