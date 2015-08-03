@@ -2,9 +2,17 @@ require 'eladtools'
 require 'image'
 require 'xlua'
 require 'lmdb'
-
 local gm = require 'graphicsmagick'
 local ffi = require 'ffi'
+
+cmd = torch.CmdLine()
+cmd:option('-dbe', 'car', 'database name')
+cmd:option('-ver', 'v1c', 'version')
+params = cmd:parse(arg)
+
+local debugger = require('fb.debugger')
+debugger.enter()
+
 local config = require 'Config'
 
 -------------------------------Settings----------------------------------------------

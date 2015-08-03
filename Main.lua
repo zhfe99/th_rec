@@ -5,8 +5,6 @@ require 'pl'
 require 'eladtools'
 require 'trepl'
 
-----------------------------------------------------------------------
-
 cmd = torch.CmdLine()
 cmd:addTime()
 cmd:text()
@@ -101,8 +99,6 @@ if opt.type =='cuda' then
     TensorType = 'torch.CudaTensor'
 end
 
-
-
 ---Support for multiple GPUs - currently data parallel scheme
 if opt.nGPU > 1 then
     local net = model
@@ -115,7 +111,7 @@ if opt.nGPU > 1 then
 end
 
 -- Optimization configuration
-local Weights,Gradients = model:getParameters()
+local Weights, Gradients = model:getParameters()
 
 local savedModel --savedModel - lower footprint model to save
 if opt.nGPU > 1 then
@@ -133,7 +129,6 @@ print('==>' .. Weights:nElement() ..  ' Parameters')
 print '==> Loss'
 print(loss)
 
-
 ------------------Optimization Configuration--------------------------
 
 local optimState = {
@@ -143,7 +138,7 @@ local optimState = {
     learningRateDecay = opt.LRDecay
 }
 
-local optimizer = Optimizer{
+local optimizer = Optimizer {
     Model = model,
     Loss = loss,
     OptFunction = _G.optim[opt.optimization],
@@ -153,7 +148,7 @@ local optimizer = Optimizer{
 
 ----------------------------------------------------------------------
 local function ExtractSampleFunc(data, label)
-    return Normalize(data),label
+    return Normalize(data), label
 end
 
 ----------------------------------------------------------------------
@@ -161,7 +156,9 @@ local function Forward(DB, train)
     confusion:zero()
 
     local SizeData = DB:size()
-    if not AllowVarBatch then SizeData = math.floor(SizeData/opt.batchSize)*opt.batchSize end
+    if not AllowVarBatch then
+      SizeData = math.floor(SizeData / opt.batchSize) * opt.batchSize
+    end
     local dataIndices = torch.range(1, SizeData, opt.bufferSize):long()
     if train and opt.shuffle then --shuffle batches from LMDB
         dataIndices = dataIndices:index(1, torch.randperm(dataIndices:size(1)):long())
@@ -171,8 +168,8 @@ local function Forward(DB, train)
     local currBuffer = 1
     local BufferSources = {}
     for i=1,numBuffers do
-        BufferSources[i] = DataProvider{
-            Source = {torch.ByteTensor(),torch.IntTensor()}
+        BufferSources[i] = DataProvider {
+            Source = {torch.ByteTensor(), torch.IntTensor()}
         }
     end
 
@@ -180,23 +177,25 @@ local function Forward(DB, train)
     local currBatch = 1
 
     local BufferNext = function()
-        currBuffer = currBuffer%numBuffers +1
-        if currBatch > dataIndices:size(1) then BufferSources[currBuffer] = nil return end
-        local sizeBuffer = math.min(opt.bufferSize, SizeData - dataIndices[currBatch]+1)
+        currBuffer = currBuffer % numBuffers + 1
+        if currBatch > dataIndices:size(1) then
+          BufferSources[currBuffer] = nil
+          return
+        end
+        local sizeBuffer = math.min(opt.bufferSize, SizeData - dataIndices[currBatch] + 1)
         BufferSources[currBuffer].Data:resize(sizeBuffer ,unpack(config.SampleSize))
         BufferSources[currBuffer].Labels:resize(sizeBuffer)
         DB:AsyncCacheSeq(config.Key(dataIndices[currBatch]), sizeBuffer, BufferSources[currBuffer].Data, BufferSources[currBuffer].Labels)
         currBatch = currBatch + 1
     end
 
-    local MiniBatch = DataProvider{
+    local MiniBatch = DataProvider {
         Name = 'GPU_Batch',
         MaxNumItems = opt.batchSize,
         Source = BufferSources[currBuffer],
         ExtractFunction = ExtractSampleFunc,
         TensorType = TensorType
     }
-
 
     local yt = MiniBatch.Labels
     local y = torch.Tensor()
@@ -215,7 +214,6 @@ local function Forward(DB, train)
         if train and opt.shuffle then MiniBatch.Source:ShuffleItems() end
         BufferNext()
 
-
         while MiniBatch:GetNextBatch() do
             if train then
                 if opt.nGPU > 1 then
@@ -232,10 +230,10 @@ local function Forward(DB, train)
                 y = y[1]
             end
             confusion:batchAdd(y,yt)
-            NumSamples = NumSamples+x:size(1)
+            NumSamples = NumSamples + x:size(1)
             xlua.progress(NumSamples, SizeData)
         end
-        if train and opt.checkpoint >0 and (currBatch % math.ceil(opt.checkpoint/opt.bufferSize) == 0) then
+        if train and opt.checkpoint > 0 and (currBatch % math.ceil(opt.checkpoint/opt.bufferSize) == 0) then
             print(NumSamples)
             confusion:updateValids()
             print('\nAfter ' .. NumSamples .. ' samples, current error is: ' .. 1-confusion.totalValid .. '\n')
@@ -261,7 +259,6 @@ end
 data.ValDB:Threads()
 data.TrainDB:Threads()
 
-
 if opt.testonly then opt.epoch = 2 end
 local epoch = 1
 
@@ -275,7 +272,7 @@ while epoch ~= opt.epoch do
             torch.save(optStateFilename .. '_epoch_' .. epoch .. '.t7', optimState)
         end
         confusion:updateValids()
-        ErrTrain = (1-confusion.totalValid)
+        ErrTrain = (1 - confusion.totalValid)
         print('\nTraining Loss: ' .. LossTrain)
         print('Training Classification Error: ' .. ErrTrain)
     end
@@ -283,7 +280,6 @@ while epoch ~= opt.epoch do
     local LossVal = Test(data.ValDB)
     confusion:updateValids()
     local ErrVal = (1-confusion.totalValid)
-
 
     print('\nValidation Loss: ' .. LossVal)
     print('Validation Classification Error = ' .. ErrVal)
@@ -294,5 +290,5 @@ while epoch ~= opt.epoch do
         Log:plot()
     end
 
-    epoch = epoch+1
+    epoch = epoch + 1
 end
