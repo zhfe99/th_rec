@@ -14,7 +14,7 @@ local dbe = params.dbe
 local ver = params.ver
 
 -- config
-confPath = string.format('Config/Config_%s_%s', dbe, ver)
+confPath = string.format('Models/Config_%s_%s', dbe, ver)
 local config = require(confPath)
 
 local debugger = require('fb.debugger')
