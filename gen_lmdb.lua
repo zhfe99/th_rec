@@ -1,3 +1,10 @@
+#!/usr/bin/env th
+-- Generate lmdb.
+--
+-- History
+--   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
+
 require 'eladtools'
 require 'image'
 require 'xlua'
@@ -30,14 +37,16 @@ local TrainingFiles = FileSearcher {
   MaxNumItems = 1e8,
   CacheFiles = true,
   PathList = {config.TRAINING_PATH},
-  SubFolders = true
+  SubFolders = true,
+  MaxFilenameLength = 200
 }
 
 local ValidationFiles = FileSearcher {
   Name = 'ValidationFilenames',
   CachePrefix = config.VALIDATION_DIR,
   MaxNumItems = 1e8,
-  PathList = {config.VALIDATION_PATH}
+  PathList = {config.VALIDATION_PATH},
+  MaxFilenameLength = 200
 }
 
 local TrainDB = lmdb.env {
@@ -49,10 +58,6 @@ local ValDB = lmdb.env {
   Path = config.VALIDATION_DIR,
   Name = 'ValDB'
 }
-
-TrainingFiles:ShuffleItems()
-LMDBFromFilenames(TrainingFiles.Data, TrainDB)
-LMDBFromFilenames(ValidationFiles.Data, ValDB)
 
 ----------------------------------------------------------------------
 -- Pre-process image.
@@ -103,16 +108,17 @@ end
 --
 -- Input
 --   filename  -  file path
+--
+-- Output
+--   name      -  key used in lmdb
 function NameFile(filename)
-  local name = paths.basename(filename, 'JPEG')
-  local substring = string.split(name, '_')
-
-  if substring[1] == 'ILSVRC2012' then -- Validation file
-    local num = tonumber(substring[3])
-    return config.ImageNetClasses.ClassNum2Wnid[config.ValidationLabels[num]] .. '_' .. num
-  else -- Training file
-    return name
-  end
+  local ext = paths.extname(filename)
+  local foldPath = paths.dirname(filename)
+  local parts = string.split(foldPath, '/')
+  local foldNm = parts[#parts]
+  local imgNm = paths.basename(filename, ext)
+  local name = string.format('%s/%s', foldNm, imgNm)
+  return name
 end
 
 ----------------------------------------------------------------------
@@ -142,3 +148,7 @@ function LMDBFromFilenames(charTensor, env)
   txn:commit()
   env:close()
 end
+
+TrainingFiles:ShuffleItems()
+LMDBFromFilenames(TrainingFiles.Data, TrainDB)
+LMDBFromFilenames(ValidationFiles.Data, ValDB)
