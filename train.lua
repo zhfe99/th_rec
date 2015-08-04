@@ -23,43 +23,43 @@ cmd:option('-dbe', 'car', 'database name')
 cmd:option('-ver', 'v1c', 'version')
 
 cmd:text('===>Model And Training Regime')
-cmd:option('-modelsFolder',       './Models/',              'Models Folder')
-cmd:option('-network',            'AlexNet',                'Model file - must return valid network.')
-cmd:option('-LR',                 0.01,                     'learning rate')
-cmd:option('-LRDecay',            0,                        'learning rate decay (in # samples)')
-cmd:option('-weightDecay',        5e-4,                     'L2 penalty on the weights')
-cmd:option('-momentum',           0.9,                      'momentum')
-cmd:option('-batchSize',          128,                      'batch size')
-cmd:option('-optimization',       'sgd',                    'optimization method')
-cmd:option('-epoch',              -1,                       'number of epochs to train, -1 for unbounded')
-cmd:option('-testonly',           false,                    'Just test loaded net on validation set')
+cmd:option('-modelsFolder', './Models/', 'Models Folder')
+cmd:option('-network', 'AlexNet', 'Model file - must return valid network.')
+cmd:option('-LR', 0.01, 'learning rate')
+cmd:option('-LRDecay', 0, 'learning rate decay (in # samples)')
+cmd:option('-weightDecay', 5e-4, 'L2 penalty on the weights')
+cmd:option('-momentum', 0.9, 'momentum')
+cmd:option('-batchSize', 128, 'batch size')
+cmd:option('-optimization', 'sgd', 'optimization method')
+cmd:option('-epoch', -1, 'number of epochs to train, -1 for unbounded')
+cmd:option('-testonly', false, 'Just test loaded net on validation set')
 
 cmd:text('===>Platform Optimization')
-cmd:option('-threads',            8,                        'number of threads')
-cmd:option('-type',               'cuda',                   'float or cuda')
-cmd:option('-bufferSize',         1280,                     'buffer size')
-cmd:option('-devid',              1,                        'device ID (if using CUDA)')
-cmd:option('-nGPU',               1,                        'num of gpu devices used')
-cmd:option('-constBatchSize',     false,                    'do not allow varying batch sizes - e.g for ccn2 kernel')
+cmd:option('-threads', 8, 'number of threads')
+cmd:option('-type', 'cuda', 'float or cuda')
+cmd:option('-bufferSize', 1280, 'buffer size')
+cmd:option('-devid', 1, 'device ID (if using CUDA)')
+cmd:option('-nGPU', 1, 'num of gpu devices used')
+cmd:option('-constBatchSize', false, 'do not allow varying batch sizes - e.g for ccn2 kernel')
 
 cmd:text('===>Save/Load Options')
-cmd:option('-load',               '',                       'load existing net weights')
-cmd:option('-save',               os.date():gsub(' ',''),   'save directory')
-cmd:option('-optState',           false,                    'Save optimization state every epoch')
-cmd:option('-checkpoint',         0,                        'Save a weight check point every n samples. 0 for off')
+cmd:option('-load', '', 'load existing net weights')
+cmd:option('-save', os.date():gsub(' ',''), 'save directory')
+cmd:option('-optState', false, 'Save optimization state every epoch')
+cmd:option('-checkpoint', 0, 'Save a weight check point every n samples. 0 for off')
 
 cmd:text('===>Data Options')
-cmd:option('-shuffle',            true,                     'shuffle training samples')
+cmd:option('-shuffle', true, 'shuffle training samples')
 
 opt = cmd:parse(arg or {})
-opt.network = opt.modelsFolder .. paths.basename(opt.network, '.lua')
+local dbe = opt.dbe
+local ver = opt.ver
+opt.network = opt.modelsFolder .. paths.basename(opt.network, '.lua') .. '_' .. dbe .. '_' .. ver
 opt.save = paths.concat('./save/imgnet/torch/log', opt.save)
 torch.setnumthreads(opt.threads)
 cutorch.setDevice(opt.devid)
 
 -- data
-local dbe = opt.dbe
-local ver = opt.ver
 dat = ThDat(dbe, ver)
 
 torch.setdefaulttensortype('torch.FloatTensor')
@@ -86,7 +86,8 @@ confPath = string.format('Models/Config_%s_%s', dbe, ver)
 local config = require(confPath)
 config.InputSize = model.InputSize or 224
 
-local data = require 'Data'
+dataPath = string.format('data_%s_%s', dbe, ver)
+local data = require(dataPath)
 local classes = dat.DATA.cNms
 
 -- This matrix records the current confusion across classes
@@ -217,7 +218,6 @@ local function Forward(DB, train)
     BufferNext()
 
     while NumSamples < SizeData do
-
         DB:Synchronize()
         MiniBatch:Reset()
         MiniBatch.Source = BufferSources[currBuffer]
@@ -233,13 +233,14 @@ local function Forward(DB, train)
                 y, currLoss = optimizer:optimize(x, yt)
             else
                 y = model:forward(x)
-                currLoss = loss:forward(y,yt)
+                currLoss = loss:forward(y, yt)
             end
             loss_val = currLoss + loss_val
             if type(y) == 'table' then --table results - always take first prediction
                 y = y[1]
             end
-            confusion:batchAdd(y,yt)
+
+            confusion:batchAdd(y, yt)
             NumSamples = NumSamples + x:size(1)
             xlua.progress(NumSamples, SizeData)
         end
@@ -297,7 +298,7 @@ while epoch ~= opt.epoch do
     if not opt.testonly then
         Log:add{['Training Error']= ErrTrain, ['Validation Error'] = ErrVal}
         Log:style{['Training Error'] = '-', ['Validation Error'] = '-'}
-        Log:plot()
+        -- Log:plot()
     end
 
     epoch = epoch + 1

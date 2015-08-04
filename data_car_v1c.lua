@@ -4,27 +4,27 @@ require 'lmdb'
 
 local Threads = require 'threads'
 local ffi = require 'ffi'
-local config = require 'Config'
+local config = require 'Models/Config_car_v1c'
 
 function Normalize(data)
   return data:float():add(-config.DataMean):div(config.DataStd)
 end
 
 function ExtractFromLMDBTrain(key, data)
-  local debugger = require('fb.debugger')
-  debugger.enter()
+  -- local debugger = require('fb.debugger')
+  -- debugger.enter()
 
-  local wnid = string.split(data.Name, '_')[1]
-  local class = config.ImageNetClasses.Wnid2ClassNum[wnid]
+  local wnid = string.split(data.Name, '/')[1]
+  local class = config.info.cNm2Ids[wnid]
   local img = data.Data
   if config.Compressed then
-    img = image.decompressJPG(img,3,'byte')
+    img = image.decompressJPG(img, 3, 'byte')
   end
   local nDim = img:dim()
   local start_x = math.random(img:size(nDim) - config.InputSize)
-  local start_y = math.random(img:size(nDim-1) - config.InputSize)
-  img = img:narrow(nDim,start_x,config.InputSize):narrow(nDim-1,start_y,config.InputSize)
-  local hflip = math.random(2)==1
+  local start_y = math.random(img:size(nDim - 1) - config.InputSize)
+  img = img:narrow(nDim, start_x, config.InputSize):narrow(nDim - 1, start_y, config.InputSize)
+  local hflip = math.random(2) == 1
   if hflip then
     img = image.hflip(img)
   end
@@ -33,8 +33,8 @@ function ExtractFromLMDBTrain(key, data)
 end
 
 function ExtractFromLMDBTest(key, data)
-  local wnid = string.split(data.Name,'_')[1]
-  local class = config.ImageNetClasses.Wnid2ClassNum[wnid]
+  local wnid = string.split(data.Name, '/')[1]
+  local class = config.info.cNm2Ids[wnid]
   local img = data.Data
   if config.Compressed then
     img = image.decompressJPG(img,3,'byte')
