@@ -46,4 +46,3 @@ fillBias(classifier)
 model:add(features):add(classifier)
 
 return model
-

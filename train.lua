@@ -21,7 +21,7 @@ cmd:text()
 cmd:text('==>Options')
 cmd:option('-dbe', 'car', 'database name')
 cmd:option('-ver', 'v1c', 'version')
-
+cmd:option('-con', 'caf', 'configuration')
 cmd:text('===>Model And Training Regime')
 cmd:option('-modelsFolder', './Models/', 'Models Folder')
 cmd:option('-network', 'AlexNet', 'Model file - must return valid network.')
@@ -44,7 +44,6 @@ cmd:option('-constBatchSize', false, 'do not allow varying batch sizes - e.g for
 
 cmd:text('===>Save/Load Options')
 cmd:option('-load', '', 'load existing net weights')
-cmd:option('-save', os.date():gsub(' ',''), 'save directory')
 cmd:option('-optState', false, 'Save optimization state every epoch')
 cmd:option('-checkpoint', 0, 'Save a weight check point every n samples. 0 for off')
 
@@ -54,8 +53,9 @@ cmd:option('-shuffle', true, 'shuffle training samples')
 opt = cmd:parse(arg or {})
 local dbe = opt.dbe
 local ver = opt.ver
+local con = opt.con
 opt.network = opt.modelsFolder .. paths.basename(opt.network, '.lua') .. '_' .. dbe .. '_' .. ver
-opt.save = paths.concat('./save/imgnet/torch/log', opt.save)
+opt.save = string.format('./save/%s/torch/log/ver_con', dbe, ver, con)
 torch.setnumthreads(opt.threads)
 cutorch.setDevice(opt.devid)
 
