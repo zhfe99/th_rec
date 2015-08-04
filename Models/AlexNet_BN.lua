@@ -1,4 +1,3 @@
-
 require 'cudnn'
 require 'cunn'
 local SpatialConvolution = cudnn.SpatialConvolution--lib[1]
@@ -54,4 +53,3 @@ end
 model:add(features):add(classifier)
 
 return model
-

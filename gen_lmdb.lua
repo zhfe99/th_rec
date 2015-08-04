@@ -25,7 +25,7 @@ local ver = params.ver
 dat = ThDat(dbe, ver)
 
 -- config
-confPath = string.format('Models/Config_%s_%s', dbe, ver)
+confPath = string.format('Models/%s_%s_config', dbe, ver)
 local config = require(confPath)
 
 local debugger = require('fb.debugger')
@@ -73,13 +73,13 @@ local PreProcess = function(Img)
   local im = image.scale(Img, '^' .. config.ImageSize)
 
   if im:dim() == 2 then
-    im = im:reshape(1,im:size(1), im:size(2))
+    im = im:reshape(1, im:size(1), im:size(2))
   end
   if im:size(1) == 1 then
-    im=torch.repeatTensor(im, 3, 1, 1)
+    im = torch.repeatTensor(im, 3, 1, 1)
   end
   if im:size(1) > 3 then
-    im = im[{{1,3},{},{}}]
+    im = im[{{1, 3}, {}, {}}]
   end
   return im
 end

@@ -17,6 +17,7 @@ return {
   TRAINING_DIR = 'save/car/torch/data/car_v1c_train/',
   VALIDATION_DIR = 'save/car/torch/data/car_v1c_test/',
   ImageSize = 256,
+  InputSize = 224,
   SampleSize = {3, 224, 224},
   info = info,
   DataMean = 118.380948,
