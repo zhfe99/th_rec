@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-04-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-05-2015
 
 require 'eladtools'
 require 'image'
@@ -112,7 +112,7 @@ end
 --
 -- Output
 --   name      -  key used in lmdb
-function NameFile(filename)
+function Na\\\\\\\\\\meFile(filename)
   local ext = paths.extname(filename)
   local foldPath = paths.dirname(filename)
   local parts = string.split(foldPath, '/')
