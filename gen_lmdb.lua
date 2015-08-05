@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-04-2015
 
 require 'eladtools'
 require 'image'
@@ -25,11 +25,8 @@ local ver = params.ver
 dat = ThDat(dbe, ver)
 
 -- config
-confPath = string.format('Models/%s_%s_config', dbe, ver)
+confPath = string.format('Models/%s_%s_conf', dbe, ver)
 local config = require(confPath)
-
-local debugger = require('fb.debugger')
-debugger.enter()
 
 local TrainingFiles = FileSearcher {
   Name = 'TrainingFilenames',

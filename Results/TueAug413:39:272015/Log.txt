@@ -1,0 +1,119 @@
+2015-08-04 13:39:29 [program started on Tue Aug  4 13:39:29 2015] 
+2015-08-04 13:39:29 [command line arguments] 
+2015-08-04 13:39:29 LR 0.01 
+2015-08-04 13:39:29 LRDecay 0 
+2015-08-04 13:39:29 network ./Models/AlexNet_BN 
+2015-08-04 13:39:29 optState false 
+2015-08-04 13:39:29 save /home/ma/feng/proj/fg_elad/Results/TueAug413:39:272015 
+2015-08-04 13:39:29 load  
+2015-08-04 13:39:29 nGPU 1 
+2015-08-04 13:39:29 testonly false 
+2015-08-04 13:39:29 modelsFolder ./Models/ 
+2015-08-04 13:39:29 momentum 0.9 
+2015-08-04 13:39:29 checkpoint 0 
+2015-08-04 13:39:29 type cuda 
+2015-08-04 13:39:29 devid 1 
+2015-08-04 13:39:29 batchSize 256 
+2015-08-04 13:39:29 epoch -1 
+2015-08-04 13:39:29 threads 8 
+2015-08-04 13:39:29 optimization sgd 
+2015-08-04 13:39:29 weightDecay 0.0005 
+2015-08-04 13:39:29 shuffle true 
+2015-08-04 13:39:29 constBatchSize false 
+2015-08-04 13:39:29 bufferSize 1280 
+2015-08-04 13:39:29 [----------------------] 
+2015-08-04 13:39:31 ==> Network 
+2015-08-04 13:39:31 nn.Sequential {
+  [input -> (1) -> (2) -> output]
+  (1): nn.Sequential {
+    [input -> (1) -> (2) -> (3) -> (4) -> (5) -> (6) -> (7) -> (8) -> (9) -> (10) -> (11) -> (12) -> (13) -> (14) -> (15) -> (16) -> (17) -> (18) -> output]
+    (1): cudnn.SpatialConvolution(3 -> 64, 11x11, 4,4, 2,2)
+    (2): cudnn.SpatialMaxPooling
+    (3): cudnn.ReLU
+    (4): nn.SpatialBatchNormalization
+    (5): cudnn.SpatialConvolution(64 -> 192, 5x5, 1,1, 2,2)
+    (6): cudnn.SpatialMaxPooling
+    (7): cudnn.ReLU
+    (8): nn.SpatialBatchNormalization
+    (9): cudnn.SpatialConvolution(192 -> 384, 3x3, 1,1, 1,1)
+    (10): cudnn.ReLU
+    (11): nn.SpatialBatchNormalization
+    (12): cudnn.SpatialConvolution(384 -> 256, 3x3, 1,1, 1,1)
+    (13): cudnn.ReLU
+    (14): nn.SpatialBatchNormalization
+    (15): cudnn.SpatialConvolution(256 -> 256, 3x3, 1,1, 1,1)
+    (16): cudnn.SpatialMaxPooling
+    (17): cudnn.ReLU
+    (18): nn.SpatialBatchNormalization
+  }
+  (2): nn.Sequential {
+    [input -> (1) -> (2) -> (3) -> (4) -> (5) -> (6) -> (7) -> (8) -> (9) -> (10) -> (11) -> output]
+    (1): nn.View
+    (2): nn.Dropout(0.500000)
+    (3): nn.Linear(9216 -> 4096)
+    (4): nn.Threshold
+    (5): nn.BatchNormalization
+    (6): nn.Dropout(0.500000)
+    (7): nn.Linear(4096 -> 4096)
+    (8): nn.Threshold
+    (9): nn.BatchNormalization
+    (10): nn.Linear(4096 -> 1000)
+    (11): nn.LogSoftMax
+  }
+} 
+2015-08-04 13:39:31 ==>61100840 Parameters 
+2015-08-04 13:39:31 ==> Loss 
+2015-08-04 13:39:31 nn.ClassNLLCriterion 
+2015-08-04 13:39:31 
+Epoch 1 
+2015-08-04 13:39:35 #1    function Train(DB, train) @Main.lua:225 
+2015-08-04 13:39:37 
+  256
+ 1000
+[torch.LongStorage of size 2]
+ 
+2015-08-04 13:39:40 
+ 256
+[torch.LongStorage of size 1]
+ 
+2015-08-04 13:40:22 
+ 1000
+[torch.LongStorage of size 1]
+ 
+2015-08-04 13:40:42 bad argument #2 to '?' (too many indices provided) 
+2015-08-04 13:40:49 ...ma/feng/torch/install/share/lua/5.1/fb/debugger/init.lua:223: Invalid Lua code: print(y[1, {1, 10}]) 
+2015-08-04 13:40:55 
+  256
+ 1000
+[torch.LongStorage of size 2]
+ 
+2015-08-04 13:41:10 -6.5015
+-6.9064
+-7.7742
+-8.7051
+-7.5266
+-7.6296
+-6.7018
+-7.5843
+-7.8106
+-5.8047
+[torch.CudaTensor of size 10]
+ 
+2015-08-04 13:41:45 -6.5015 -6.9064 -7.7742 -8.7051 -7.5266 -7.6296 -6.7018 -7.5843 -7.8106 -5.8047
+-7.6650 -6.9990 -6.6069 -6.4406 -7.3661 -6.7340 -6.0649 -6.8718 -7.9251 -6.5192
+-6.2336 -7.5066 -6.1065 -6.9886 -7.1967 -6.4945 -6.7983 -6.7233 -7.7037 -6.9307
+-8.2947 -7.0822 -7.2603 -7.4872 -8.3083 -8.5146 -7.7128 -7.4237 -7.7380 -7.3431
+-6.8833 -7.4357 -6.4810 -8.3977 -6.2843 -6.8861 -7.3305 -6.5154 -6.7571 -7.3939
+[torch.CudaTensor of size 5x10]
+ 
+2015-08-04 13:41:49 -6.5015 -6.9064 -7.7742 -8.7051 -7.5266 -7.6296 -6.7018 -7.5843 -7.8106 -5.8047
+-7.6650 -6.9990 -6.6069 -6.4406 -7.3661 -6.7340 -6.0649 -6.8718 -7.9251 -6.5192
+-6.2336 -7.5066 -6.1065 -6.9886 -7.1967 -6.4945 -6.7983 -6.7233 -7.7037 -6.9307
+[torch.CudaTensor of size 3x10]
+ 
+2015-08-04 13:41:58 -6.5015 -6.9064 -7.7742 -8.7051 -7.5266 -7.6296 -6.7018 -7.5843 -7.8106 -5.8047
+-7.6650 -6.9990 -6.6069 -6.4406 -7.3661 -6.7340 -6.0649 -6.8718 -7.9251 -6.5192
+[torch.CudaTensor of size 2x10]
+ 
+2015-08-04 13:42:17 userdata 
+2015-08-04 13:42:25 torch.CudaTensor 

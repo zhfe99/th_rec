@@ -11,9 +11,6 @@ function Normalize(data)
 end
 
 function ExtractFromLMDBTrain(key, data)
-  local debugger = require('fb.debugger')
-  debugger.enter()
-
   local wnid = string.split(data.Name, '_')[1]
   local class = config.ImageNetClasses.Wnid2ClassNum[wnid]
   local img = data.Data

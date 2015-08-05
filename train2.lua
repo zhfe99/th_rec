@@ -11,24 +11,19 @@ require 'optim'
 require 'pl'
 require 'eladtools'
 require 'trepl'
-local th = require 'lua_th'
+paths.dofile('fbcunn_files/Optim.lua')
+local th = require('lua_th')
 
 cmd = torch.CmdLine()
 cmd:addTime()
 cmd:option('-dbe', 'car', 'database name')
 cmd:option('-ver', 'v1c', 'version')
 cmd:option('-con', 'alex', 'configuration')
-cmd:option('-LR', 0.01, 'learning rate')
-cmd:option('-LRDecay', 0, 'learning rate decay (in #samples)')
-cmd:option('-weightDecay', 5e-4, 'L2 penalty on the weights')
-cmd:option('-momentum', 0.9, 'momentum')
 cmd:option('-batchSize', 128, 'batch size')
-cmd:option('-optimization', 'sgd', 'optimization method')
-cmd:option('-epoch', -1, 'number of epochs to train, -1 for unbounded')
+cmd:option('-bufferSize', 1280, 'buffer size')
 cmd:option('-testonly', false, 'Just test loaded net on validation set')
 cmd:option('-threads', 8, 'number of threads')
 cmd:option('-type', 'cuda', 'float or cuda')
-cmd:option('-bufferSize', 1280, 'buffer size')
 cmd:option('-devid', 1, 'device ID (if using CUDA)')
 cmd:option('-nGPU', 1, 'num of gpu devices used')
 cmd:option('-load', '', 'load existing net weights')
@@ -50,14 +45,8 @@ torch.setdefaulttensortype('torch.FloatTensor')
 if opt.testonly then opt.epoch = 2 end
 
 -- model + loss:
-local model = require(opt.network)
+local model, nEpo, lrs = require(opt.network)
 local loss = nn.ClassNLLCriterion()
-if torch.type(model) == 'table' then
-  if model.loss then
-    loss = model.loss
-  end
-  model = model.model
-end
 
 -- load old model
 if paths.filep(opt.load) then
@@ -100,27 +89,62 @@ local Weights, Gradients = model:getParameters()
 local savedModel = model:clone('weight', 'bias', 'running_mean', 'running_std')
 
 -- Optimization Configuration
+-- local optimState = {
+--   learningRate = opt.LR,
+--   momentum = opt.momentum,
+--   weightDecay = opt.weightDecay,
+--   learningRateDecay = opt.LRDecay
+-- }
 local optimState = {
   learningRate = opt.LR,
   momentum = opt.momentum,
   weightDecay = opt.weightDecay,
-  learningRateDecay = opt.LRDecay
+  learningRateDecay = 0.0,
+  dampening = 0.0
 }
 
-local optimizer = Optimizer {
-  Model = model,
-  Loss = loss,
-  OptFunction = _G.optim[opt.optimization],
-  OptState = optimState,
-  Parameters = {Weights, Gradients},
-}
+-- local optimizer = Optimizer {
+--   Model = model,
+--   Loss = loss,
+--   OptFunction = _G.optim[opt.optimization],
+--   OptState = optimState,
+--   Parameters = {Weights, Gradients},
+-- }
+local optimator = nn.Optim(model, optimState)
 
 local function ExtractSampleFunc(data, label)
   return Normalize(data), label
 end
 
-local function Forward(DB, train)
+local function paramsForEpoch(epoch)
+   -- manually specified
+  if opt.LR ~= 0.0 then
+    return {}
+  end
+  local regimes = {
+    { 1,  18, 1e-2, 5e-4,},
+    {19,  29, 5e-3, 5e-4 },
+    {30,  43, 1e-3, 0},
+    {44,  52, 5e-4, 0},
+    {53, 1e8, 1e-4, 0},
+  }
+
+  for _, row in ipairs(regimes) do
+    if epoch >= row[1] and epoch <= row[2] then
+      return {learningRate=row[3], weightDecay=row[4]}, epoch == row[1]
+    end
+  end
+end
+
+local function Forward(DB, train, epoch)
   confusion:zero()
+
+  local params, newRegime = paramsForEpoch(epoch)
+  optimator:setParameters(params)
+  if newRegime then
+    -- zero the momentum vector by throwing away previous state.
+    optimator = nn.Optim(model, optimState)
+  end
 
   local SizeData = DB:size()
   local dataIndices = torch.range(1, SizeData, opt.bufferSize):long()
@@ -183,14 +207,15 @@ local function Forward(DB, train)
 
     while MiniBatch:GetNextBatch() do
       if train then
-        y, currLoss = optimizer:optimize(x, yt)
+        -- y, currLoss = optimizer:optimize(x, yt)
+        currLoss, y = optimator:optimize(optim.sgd, x, yt, loss)
       else
         y = model:forward(x)
         currLoss = loss:forward(y, yt)
       end
       loss_val = currLoss + loss_val
 
-      --table results - always take first prediction
+      -- table results - always take first prediction
       if type(y) == 'table' then
         y = y[1]
       end
@@ -213,7 +238,7 @@ local epoch = 1
 while epoch ~= opt.epoch do
   local ErrTrain, LossTrain
   if not opt.testonly then
-    print(string.format('\n%s %s %s: Epoch %d', dbe, ver, con, epoch))
+    print('\nEpoch ' .. epoch)
 
     -- train
     model:training()

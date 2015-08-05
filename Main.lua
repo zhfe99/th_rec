@@ -226,10 +226,11 @@ local function Forward(DB, train)
                 currLoss = loss:forward(y,yt)
             end
             loss_val = currLoss + loss_val
-            if type(y) == 'table' then --table results - always take first prediction
+            --table results - always take first prediction
+            if type(y) == 'table' then
                 y = y[1]
             end
-            confusion:batchAdd(y,yt)
+            confusion:batchAdd(y, yt)
             NumSamples = NumSamples + x:size(1)
             xlua.progress(NumSamples, SizeData)
         end
