@@ -1,8 +1,12 @@
-paths.dofile('models/alex.lua')
+paths.dofile('alex.lua')
 
-local model = newModel(196, 1)
+local model = newModel(196, 1, false, 'xavier')
+
+local loss = nn.ClassNLLCriterion()
 
 local nEpo = 60
+
+local nEpoSv = 20
 
 local lrs = {
   { 1,   18, 1e-2, 5e-4},
@@ -12,4 +16,8 @@ local lrs = {
   {53, nEpo, 1e-4, 0},
 }
 
-return model, nEpo, lrs
+local batchSiz = 128
+
+local mom = 0.9
+
+return model, loss, nEpo, nEpoSv, batchSiz, lrs, mom

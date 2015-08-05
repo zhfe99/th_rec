@@ -49,6 +49,7 @@ function Optim:__init(model, optState, checkpoint_data)
 
     self.model = model
     self.modulesToOptState = {}
+
     -- Keep this around so we update it in setParameters
     self.originalOptState = optState
 
