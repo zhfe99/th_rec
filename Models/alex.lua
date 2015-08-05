@@ -83,7 +83,12 @@ function newModel(nC, nGpu, isBn, iniAlg)
   model:add(features):add(classifier)
 
   -- init
-  model = require('weight-init')(model, iniAlg)
+  w_init = require('weight_init')
+  model.modules[1] = w_init(model.modules[1], iniAlg)
+  model.modules[2] = w_init(model.modules[2], iniAlg)
+
+  -- local debugger = require('fb.debugger')
+  -- debugger.enter()
 
   return model
 end

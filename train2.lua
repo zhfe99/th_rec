@@ -25,7 +25,6 @@ cmd:option('-threads', 8, 'number of threads')
 cmd:option('-type', 'cuda', 'float or cuda')
 cmd:option('-devid', 1, 'device ID (if using CUDA)')
 cmd:option('-load', '', 'load existing net weights')
-cmd:option('-optState', false, 'Save optimization state every epoch')
 cmd:option('-shuffle', true, 'shuffle training samples')
 
 opt = cmd:parse(arg or {})
@@ -61,9 +60,6 @@ local confusion = optim.ConfusionMatrix(classes)
 os.execute('mkdir -p ' .. opt.save)
 cmd:log(opt.save .. '/Log.txt', opt)
 local netFilename = paths.concat(opt.save, 'Net')
-local logFilename = paths.concat(opt.save, 'ErrorRate.log')
-local optStateFilename = paths.concat(opt.save, 'optState')
-local Log = optim.Logger(logFilename)
 
 -- cuda
 local TensorType = 'torch.FloatTensor'
@@ -78,9 +74,9 @@ local savedModel = model:clone('weight', 'bias', 'running_mean', 'running_std')
 
 -- Optimization Configuration
 local optimState = {
-  learningRate = 0.0,
+  learningRate = 0.01,
   momentum = mom,
-  weightDecay = 0.0,
+  weightDecay = 5e-4,
   learningRateDecay = 0.0,
   dampening = 0.0
 }
@@ -116,7 +112,7 @@ local function Forward(DB, train, epoch)
   local SizeData = DB:size()
   local dataIndices = torch.range(1, SizeData, opt.bufferSize):long()
 
-  --shuffle batches from LMDB
+  -- shuffle batches from LMDB
   if train and opt.shuffle then
     dataIndices = dataIndices:index(1, torch.randperm(dataIndices:size(1)):long())
   end
@@ -204,24 +200,23 @@ data.TrainDB:Threads()
 
 -- each epoch
 for epoch = 1, nEpo do
-  print('\nEpoch ' .. epoch)
-  local ErrTrain, LossTrain
+  print('Epoch ' .. epoch)
+  local AccTrain, LossTrain
 
   -- train
   if not opt.testonly then
     model:training()
     LossTrain = Forward(data.TrainDB, true, epoch)
     confusion:updateValids()
-    ErrTrain = (1 - confusion.totalValid)
+    AccTrain = confusion.totalValid
+    print('Learning Rate: ' .. optimator.originalOptState.learningRate)
+    print('Weight Decay: ' .. optimator.originalOptState.weightDecay)
     print('Training Loss: ' .. LossTrain)
-    print('Training Classification Error: ' .. ErrTrain)
+    print('Training Acc: ' .. AccTrain)
 
     -- save
     if epoch % nEpoSv == 0 then
       torch.save(netFilename .. '_' .. epoch .. '.t7', savedModel)
-      if opt.optState then
-        torch.save(optStateFilename .. '_epoch_' .. epoch .. '.t7', optimState)
-      end
     end
   end
 
@@ -229,13 +224,7 @@ for epoch = 1, nEpo do
   model:evaluate()
   local LossVal = Forward(data.ValDB, false, epoch)
   confusion:updateValids()
-  local ErrVal = (1 - confusion.totalValid)
+  local AccVal = confusion.totalValid
   print('Validation Loss: ' .. LossVal)
-  print('Validation Classification Error = ' .. ErrVal)
-
-  -- log
-  if not opt.testonly then
-    Log:add{['Training Error'] = ErrTrain, ['Validation Error'] = ErrVal}
-    Log:style{['Training Error'] = '-', ['Validation Error'] = '-'}
-  end
+  print('Validation Acc: ' .. AccVal)
 end
