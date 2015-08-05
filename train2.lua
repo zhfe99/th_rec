@@ -33,7 +33,7 @@ local ver = opt.ver
 local con = opt.con
 opt.network = string.format('./Models/%s_%s_%s', dbe, ver, con)
 opt.conf = string.format('./Models/%s_%s_conf', dbe, ver)
-opt.save = string.format('./save/%s/torch/log/%s_%s_%s', dbe, dbe, ver, con)
+opt.saveFold = string.format('./save/%s/torch', dbe)
 opt.dataPath = string.format('data_%s_%s', dbe, ver)
 
 torch.setnumthreads(opt.threads)
@@ -57,9 +57,13 @@ local classes = dat.DATA.cNms
 local confusion = optim.ConfusionMatrix(classes)
 
 -- output files
-os.execute('mkdir -p ' .. opt.save)
-cmd:log(opt.save .. '/Log.txt', opt)
-local netFilename = paths.concat(opt.save, 'Net')
+local logFold = string.format('%s/log', opt.saveFold)
+os.execute('mkdir -p ' .. logFold)
+local logPath = string.format('%s/%s_%s_%s.log', logFold, dbe, ver, con)
+cmd:log(logPath)
+local modFold = string.format('%s/model', opt.saveFold)
+os.execute('mkdir -p ' .. modFold)
+local modPath = string.format('%s/%s_%s_%s', modFold, dbe, ver, con)
 
 -- cuda
 local TensorType = 'torch.FloatTensor'
@@ -199,8 +203,8 @@ data.ValDB:Threads()
 data.TrainDB:Threads()
 
 -- each epoch
+print(string.format('nEpo %d', nEpo))
 for epoch = 1, nEpo do
-  print('Epoch ' .. epoch)
   local AccTrain, LossTrain
 
   -- train
@@ -209,14 +213,14 @@ for epoch = 1, nEpo do
     LossTrain = Forward(data.TrainDB, true, epoch)
     confusion:updateValids()
     AccTrain = confusion.totalValid
-    print('Learning Rate: ' .. optimator.originalOptState.learningRate)
-    print('Weight Decay: ' .. optimator.originalOptState.weightDecay)
-    print('Training Loss: ' .. LossTrain)
-    print('Training Acc: ' .. AccTrain)
+    print(string.format('Epoch %d, Learning Rate %f', epoch, optimator.originalOptState.learningRate))
+    print(string.format('Epoch %d, Weight Decay %f', epoch, optimator.originalOptState.weightDecay))
+    print(string.format('Epoch %d, Training Loss %f', epoch, LossTrain))
+    print(string.format('Epoch %d, Training Acc %f', epoch, AccTrain))
 
     -- save
     if epoch % nEpoSv == 0 then
-      torch.save(netFilename .. '_' .. epoch .. '.t7', savedModel)
+      torch.save(modPath .. '_' .. epoch .. '.t7', savedModel)
     end
   end
 
@@ -225,6 +229,6 @@ for epoch = 1, nEpo do
   local LossVal = Forward(data.ValDB, false, epoch)
   confusion:updateValids()
   local AccVal = confusion.totalValid
-  print('Validation Loss: ' .. LossVal)
-  print('Validation Acc: ' .. AccVal)
+  print(string.format('Epoch %d, Validation Loss %f', epoch, LossVal))
+  print(string.format('Epoch %d, Validation Acc %f', epoch, AccVal))
 end

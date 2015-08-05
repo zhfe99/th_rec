@@ -1,24 +1,22 @@
-#!/usr/bin/env th
--- car v1c googlenet.
---
--- History
---   create  -  Feng Zhou (zhfe99@gmail.com), 08-05-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-05-2015
-
 paths.dofile('goo.lua')
 
-local model = newModel(196, 1, true)
+local nC = 196
+
+local model = newModel(nC, 1, true, 'xavier')
 
 local loss = nn.ClassNLLCriterion()
 
-local nEpo = 60
+local nEpo = 120
+
+local nEpoSv = 40
 
 local lrs = {
-  { 1,   18, 1e-2, 5e-4},
-  {19,   29, 5e-3, 5e-4},
-  {30,   43, 1e-3, 0},
-  {44,   52, 5e-4, 0},
-  {53, nEpo, 1e-4, 0},
+  {  1,   20, 1e-2, 5e-4},
+  { 21,   40, 5e-3, 5e-4},
+  { 41,   60, 1e-3, 5e-4},
+  { 61,   80, 5e-4, 5e-4},
+  { 81,  100, 1e-4, 5e-4},
+  {101, nEpo, 5e-5, 5e-4},
 }
 
 local batchSiz = 50
