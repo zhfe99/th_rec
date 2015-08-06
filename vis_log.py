@@ -63,33 +63,33 @@ def shLog(trLrs, trLosss, trAccss, teLosss, teAccss):
     for i in range(nCon):
         co1 += 1
         _, cl = lib.genMkCl(co1)
-        tr = np.array(trLosss[i][key])
-        ha, = lib.plt.plot(trEposs[i], tr, '-', color=cl, label='{}: tr {}'.format(cons[i], key))
+        ys = np.array(trLosss[i])
+        xs = np.array(range(len(ys)))
+        ha, = lib.plt.plot(xs, ys, '-', color=cl, label='{} tr'.format(cons[i]))
         has.append(ha)
 
         # testing loss
-        for c, key in enumerate(teLossNms):
-            co2 += 1
-            mk, _ = lib.genMkCl(co2)
-            ha, = lib.plt.plot(teEposs[i], teLosss[i][key], 'r-', marker=mk, label='{}: te {}'.format(cons[i], key))
-            # ha, = lib.plt.plot(np.array(teTiss[i]) / 3600, teLosss[i][key], 'r-', marker=mk, label='{}: te {}'.format(cons[i], key))
-            has.append(ha)
+        co2 += 1
+        mk, _ = lib.genMkCl(co2)
+        ha, = lib.plt.plot(xs, teLosss[i], 'r-', marker=mk, label='{}: te'.format(cons[i]))
+        # ha, = lib.plt.plot(np.array(teTiss[i]) / 3600, teLosss[i][key], 'r-', marker=mk, label='{}: te {}'.format(cons[i], key))
+        has.append(ha)
 
         # plot learning rate
-        if isLr:
-            lrs = []
-            lrs.append(trLrs[i][0])
-            for c, key in enumerate(trLrs[i]):
-                _, cl = lib.genMkCl(i)
-                if c == len(trLrs[i]) - 1 or trLrs[i][c] == trLrs[i][c + 1]:
-                    continue
-                lrs.append(trLrs[i][c + 1])
-                lib.plt.plot([trEposs[i][c], trEposs[i][c]], [0, maLos], '--', color=cl)
+        # if isLr:
+        #     lrs = []
+        #     lrs.append(trLrs[i][0])
+        #     for c, key in enumerate(trLrs[i]):
+        #         _, cl = lib.genMkCl(i)
+        #         if c == len(trLrs[i]) - 1 or trLrs[i][c] == trLrs[i][c + 1]:
+        #             continue
+        #         lrs.append(trLrs[i][c + 1])
+        #         lib.plt.plot([trEposs[i][c], trEposs[i][c]], [0, maLos], '--', color=cl)
 
-            lib.pr('Learning rate: ')
-            print lrs
+        #     lib.pr('Learning rate: ')
+        #     print lrs
 
-    lib.plt.xlabel(xaxis)
+    # lib.plt.xlabel(xaxis)
     lib.plt.ylabel('loss')
 
     lib.setAx(Ax[1, 0])
@@ -101,22 +101,24 @@ def shLog(trLrs, trLosss, trAccss, teLosss, teAccss):
     has = []
     co = 0
     for i in range(nCon):
-        for c, key in enumerate(accNms):
+        # for c, key in enumerate(accNms):
             co += 1
             mk, _ = lib.genMkCl(co)
-            ha, = lib.plt.plot(teEposs[i], teAccss[i][key], 'r-', marker=mk, label = '{}: te {}'.format(cons[i], key))
+            ys = np.array(teAccss[i])
+            xs = np.array(range(len(ys)))
+            ha, = lib.plt.plot(xs, ys, 'r-', marker=mk, label = '{}: te'.format(cons[i]))
             # ha, = lib.plt.plot(np.array(teTiss[i]) / 3600, teAccss[i][key], 'r-', marker=mk, label = '{}: te {}'.format(cons[i], key))
             has.append(ha)
 
         # plot learning rate
-        if isLr:
-            for c, key in enumerate(trLrs[i]):
-                _, cl = lib.genMkCl(i)
-                if c == len(trLrs[i]) - 1 or trLrs[i][c] == trLrs[i][c + 1]:
-                    continue
-                lib.plt.plot([trEposs[i][c], trEposs[i][c]], [miAcc, maAcc], '--', color=cl)
+        # if isLr:
+        #     for c, key in enumerate(trLrs[i]):
+        #         _, cl = lib.genMkCl(i)
+        #         if c == len(trLrs[i]) - 1 or trLrs[i][c] == trLrs[i][c + 1]:
+        #             continue
+        #         lib.plt.plot([trEposs[i][c], trEposs[i][c]], [miAcc, maAcc], '--', color=cl)
 
-    lib.plt.xlabel(xaxis)
+    # lib.plt.xlabel(xaxis)
     lib.plt.ylabel('accuracy')
 
     lib.setAx(Ax[1, 1])
@@ -124,23 +126,23 @@ def shLog(trLrs, trLosss, trAccss, teLosss, teAccss):
     lib.plt.legend(handles=has, loc=1)
 
     # time
-    lib.setAx(Ax[0, 2])
-    has = []
-    for i in range(nCon):
-        mk, _ = lib.genMkCl(2 * i)
-        ha, = lib.plt.plot(trEposs[i], np.array(trTiss[i]) / 3600, 'r-', marker=mk, label='{}: tr time'.format(cons[i]))
-        has.append(ha)
+    # lib.setAx(Ax[0, 2])
+    # has = []
+    # for i in range(nCon):
+    #     mk, _ = lib.genMkCl(2 * i)
+    #     ha, = lib.plt.plot(trEposs[i], np.array(trTiss[i]) / 3600, 'r-', marker=mk, label='{}: tr time'.format(cons[i]))
+    #     has.append(ha)
 
-    mk, _ = lib.genMkCl(2 * i + 1)
-    ha, = lib.plt.plot(teEposs[i], np.array(teTiss[i]) / 3600, 'bs', marker=mk, label='{}: te time'.format(cons[i]))
-    has.append(ha)
+    # mk, _ = lib.genMkCl(2 * i + 1)
+    # ha, = lib.plt.plot(teEposs[i], np.array(teTiss[i]) / 3600, 'bs', marker=mk, label='{}: te time'.format(cons[i]))
+    # has.append(ha)
 
-    lib.plt.xlabel('#epochs')
-    lib.plt.ylabel('hours')
+    # lib.plt.xlabel('#epochs')
+    # lib.plt.ylabel('hours')
 
-    lib.setAx(Ax[1, 2])
-    lib.plt.axis('off')
-    lib.plt.legend(handles=has, loc=1)
+    # lib.setAx(Ax[1, 2])
+    # lib.plt.axis('off')
+    # lib.plt.legend(handles=has, loc=1)
     lib.show()
 
     # save to pdf
@@ -175,7 +177,7 @@ if __name__ == '__main__':
         # log path
         logNms[i] = '{}_{}_{}.log'.format(dbes[i], vers[i], cons[i])
         logFold = os.path.join(os.environ['HOME'], 'save/{}/torch/log'.format(dbes[i]))
-        logPaths = os.path.join(logFold, logNms[i])
+        logPaths[i] = os.path.join(logFold, logNms[i])
 
         # parse
         trLrs[i], _, trLosss[i], trAccss[i], teLosss[i], teAccss[i] = th.logParse(logPaths[i])
