@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-05-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-06-2015
 
 require 'eladtools'
 require 'image'
@@ -22,10 +22,11 @@ local params = cmd:parse(arg)
 -- data
 local dbe = params.dbe
 local ver = params.ver
-dat = ThDat(dbe, ver)
+local dat = ThDat(dbe, ver)
+local PATH = dat.PATH
 
 -- config
-confPath = string.format('Models/%s_%s_conf', dbe, ver)
+local confPath = string.format('Models/%s_%s_conf', dbe, ver)
 local config = require(confPath)
 
 local TrainingFiles = FileSearcher {
@@ -42,18 +43,21 @@ local ValidationFiles = FileSearcher {
   Name = 'ValidationFilenames',
   CachePrefix = config.VALIDATION_DIR,
   MaxNumItems = 1e8,
+  CacheFiles = true,
   PathList = {config.VALIDATION_PATH},
   SubFolders = true,
   MaxFilenameLength = 200
 }
 
 local TrainDB = lmdb.env {
-  Path = config.TRAINING_DIR,
+  -- Path = config.TRAINING_DIR,
+  Path = PATH.trLmdb,
   Name = 'TrainDB'
 }
 
 local ValDB = lmdb.env {
-  Path = config.VALIDATION_DIR,
+  -- Path = config.VALIDATION_DIR,
+  Path = PATH.teLmdb,
   Name = 'ValDB'
 }
 
@@ -86,22 +90,23 @@ end
 --
 -- Input
 --   filename  -  file path
+--
+-- Output
+--   img       -  image
 local LoadImgData = function(filename)
   local ok, img = pcall(gm.Image, filename)
+
+  -- error
   if not ok or img == nil then
     print('Image is buggy')
     print(filename)
-    local debugger = require('fb.debugger')
-    debugger.enter()
     os.exit()
   end
-  img = img:toTensor('float', 'RGB', 'DHW')
+
+  -- pre-process
+  img = img:toTensor('byte', 'RGB', 'DHW')
   img = PreProcess(img)
-  if config.Compressed then
-    return image.compressJPG(img)
-  else
-    return img
-  end
+  return img
 end
 
 ----------------------------------------------------------------------
@@ -112,7 +117,7 @@ end
 --
 -- Output
 --   name      -  key used in lmdb
-function Na\\\\\\\\\\meFile(filename)
+function NameFile(filename)
   local ext = paths.extname(filename)
   local foldPath = paths.dirname(filename)
   local parts = string.split(foldPath, '/')
@@ -132,10 +137,23 @@ function LMDBFromFilenames(charTensor, env)
   env:open()
   local txn = env:txn()
   local cursor = txn:cursor()
-  for i=1,charTensor:size(1) do
+  local me = {0, 0, 0}
+  local std = {0, 0, 0}
+  local nImg = charTensor:size(1)
+  for i = 1, nImg do
     local filename = ffi.string(torch.data(charTensor[i]))
-    local data = {Data = LoadImgData(filename), Name = NameFile(filename)}
+    local img = LoadImgData(filename)
 
+    -- update mean & std
+    for j = 1, 3 do
+      me[j] = me[j] + img[j]:float():mean()
+      std[j] = std[j] + img[j]:float():std()
+    end
+
+    -- local debugger = require('fb.debugger')
+    -- debugger.enter()
+
+    local data = {Data = img, Name = NameFile(filename)}
     cursor:put(config.Key(i), data, lmdb.C.MDB_NODUPDATA)
     if i % 1000 == 0 then
       txn:commit()
@@ -144,12 +162,21 @@ function LMDBFromFilenames(charTensor, env)
       txn = env:txn()
       cursor = txn:cursor()
     end
-    xlua.progress(i, charTensor:size(1))
+    xlua.progress(i, nImg)
   end
   txn:commit()
   env:close()
+
+  -- update mean & std
+  for j = 1, 3 do
+    me[j] = me[j] / nImg
+    std[j] = std[j] / nImg
+  end
+
+  print(string.format('mean: %.3f, %.3f, %.3f', me[1], me[2], me[3]))
+  print(string.format('std : %.3f, %.3f, %.3f', std[1], std[2], std[3]))
 end
 
 TrainingFiles:ShuffleItems()
-LMDBFromFilenames(TrainingFiles.Data, TrainDB)
 LMDBFromFilenames(ValidationFiles.Data, ValDB)
+LMDBFromFilenames(TrainingFiles.Data, TrainDB)

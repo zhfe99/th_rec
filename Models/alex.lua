@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-04-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-05-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-06-2015
 
 ----------------------------------------------------------------------
 -- Create the alexnet model.
@@ -86,9 +86,6 @@ function newModel(nC, nGpu, isBn, iniAlg)
   w_init = require('weight_init')
   model.modules[1] = w_init(model.modules[1], iniAlg)
   model.modules[2] = w_init(model.modules[2], iniAlg)
-
-  -- local debugger = require('fb.debugger')
-  -- debugger.enter()
 
   return model
 end

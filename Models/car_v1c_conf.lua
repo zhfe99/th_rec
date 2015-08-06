@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-05-2015
 
 local info = torch.load('data/car/v1c_info.t7')
 
@@ -20,8 +20,9 @@ return {
   InputSize = 224,
   SampleSize = {3, 224, 224},
   info = info,
-  DataMean = 118.380948,
-  DataStd = 61.896913,
-  Compressed = true,
+  -- DataMean = 118.380948,
+  DataMean = {107, 101, 102},
+  -- DataStd = 61.896913,
+  DataStd = {68, 67, 68},
   Key = Key
 }

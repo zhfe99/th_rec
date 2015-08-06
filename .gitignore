@@ -1,0 +1,12 @@
+*.pdf
+*.eps
+*.jpg
+*.png
+*.log
+*.pyc
+*flymake.py
+.DS_Store
+GPATH
+GRTAGS
+GTAGS
+TAGS

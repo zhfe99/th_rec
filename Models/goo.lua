@@ -7,6 +7,7 @@
 
 require 'nn'
 require 'cudnn'
+local w_init = require('weight_init')
 
 ----------------------------------------------------------------------
 -- Inception component.
@@ -15,7 +16,7 @@ require 'cudnn'
 --   input_size
 --   config
 --   isBn        -  flag of using BN, true | false
-local function inception(input_size, config, isBn)
+local function inception(input_size, config, isBn, iniAlg)
   local concat = nn.Concat(2)
   if config[1][1] ~= 0 then
     local conv1 = nn.Sequential()
@@ -23,7 +24,14 @@ local function inception(input_size, config, isBn)
     if isBn then
       conv1:add(nn.SpatialBatchNormalization(config[1][1], 1e-3))
     end
+    -- print(conv1.modules[1].weight:max())
+    -- print(conv1.modules[1].bias:max())
     conv1:add(cudnn.ReLU(true))
+    conv1 = w_init(conv1, iniAlg)
+    -- print(conv1.modules[1].weight:max())
+    -- print(conv1.modules[1].bias:max())
+    -- debug.debug()
+
     concat:add(conv1)
   end
 
@@ -38,6 +46,7 @@ local function inception(input_size, config, isBn)
     conv3:add(nn.SpatialBatchNormalization(config[2][2], 1e-3))
   end
   conv3:add(cudnn.ReLU(true))
+  conv3 = w_init(conv3, iniAlg)
   concat:add(conv3)
 
   local conv3xx = nn.Sequential()
@@ -56,6 +65,7 @@ local function inception(input_size, config, isBn)
     conv3xx:add(nn.SpatialBatchNormalization(config[3][2], 1e-3))
   end
   conv3xx:add(cudnn.ReLU(true))
+  conv3xx = w_init(conv3xx, iniAlg)
   concat:add(conv3xx)
 
   local pool = nn.Sequential()
@@ -74,6 +84,7 @@ local function inception(input_size, config, isBn)
     end
     pool:add(cudnn.ReLU(true))
   end
+  pool = w_init(pool, iniAlg)
   concat:add(pool)
 
   return concat
@@ -86,10 +97,11 @@ end
 --   nC     -  #classes
 --   nGpu   -  #gpus
 --   isBn   -  flag of using BN, true | false
+--   iniAlg -  init method
 --
 -- Output
 --   model  -  model
-function newModel(nC, nGpu, isBn)
+function newModel(nC, nGpu, isBn, iniAlg)
   local features = nn.Sequential()
   features:add(cudnn.SpatialConvolution(3,64,7,7,2,2,3,3))
   if isBn then
@@ -108,30 +120,32 @@ function newModel(nC, nGpu, isBn)
   end
   features:add(cudnn.ReLU(true))
   features:add(cudnn.SpatialMaxPooling(3,3,2,2):ceil())
-  features:add(inception(192, {{ 64},{ 64, 64},{ 64, 96},{'avg', 32}}), isBn) -- 3(a)
-  features:add(inception(256, {{ 64},{ 64, 96},{ 64, 96},{'avg', 64}}), isBn) -- 3(b)
-  features:add(inception(320, {{  0},{128,160},{ 64, 96},{'max',  0}}), isBn) -- 3(c)
+  features:add(inception(192, {{ 64},{ 64, 64},{ 64, 96},{'avg', 32}}, isBn, iniAlg)) -- 3(a)
+  features:add(inception(256, {{ 64},{ 64, 96},{ 64, 96},{'avg', 64}}, isBn, iniAlg)) -- 3(b)
+  features:add(inception(320, {{  0},{128,160},{ 64, 96},{'max',  0}}, isBn, iniAlg)) -- 3(c)
   features:add(cudnn.SpatialConvolution(576,576,2,2,2,2))
   if isBn then
     features:add(nn.SpatialBatchNormalization(576, 1e-3))
   end
-  features:add(inception(576, {{224},{ 64, 96},{ 96,128},{'avg',128}}), isBn) -- 4(a)
-  features:add(inception(576, {{192},{ 96,128},{ 96,128},{'avg',128}}), isBn) -- 4(b)
-  features:add(inception(576, {{160},{128,160},{128,160},{'avg', 96}}), isBn) -- 4(c)
-  features:add(inception(576, {{ 96},{128,192},{160,192},{'avg', 96}}), isBn) -- 4(d)
+  features:add(inception(576, {{224},{ 64, 96},{ 96,128},{'avg',128}}, isBn, iniAlg)) -- 4(a)
+  features:add(inception(576, {{192},{ 96,128},{ 96,128},{'avg',128}}, isBn, iniAlg)) -- 4(b)
+  features:add(inception(576, {{160},{128,160},{128,160},{'avg', 96}}, isBn, iniAlg)) -- 4(c)
+  features:add(inception(576, {{ 96},{128,192},{160,192},{'avg', 96}}, isBn, iniAlg)) -- 4(d)
+  features = w_init(features, iniAlg)
 
   local main_branch = nn.Sequential()
-  main_branch:add(inception(576, {{  0},{128,192},{192,256},{'max',  0}}), isBn) -- 4(e)
+  main_branch:add(inception(576, {{  0},{128,192},{192,256},{'max', 0}}, isBn, iniAlg)) -- 4(e)
   main_branch:add(cudnn.SpatialConvolution(1024,1024,2,2,2,2))
   if isBn then
     main_branch:add(nn.SpatialBatchNormalization(1024, 1e-3))
   end
-  main_branch:add(inception(1024, {{352},{192,320},{160,224},{'avg',128}}), isBn) -- 5(a)
-  main_branch:add(inception(1024, {{352},{192,320},{192,224},{'max',128}}), isBn) -- 5(b)
+  main_branch:add(inception(1024, {{352},{192,320},{160,224},{'avg',128}}, isBn, iniAlg)) -- 5(a)
+  main_branch:add(inception(1024, {{352},{192,320},{192,224},{'max',128}}, isBn, iniAlg)) -- 5(b)
   main_branch:add(cudnn.SpatialAveragePooling(7,7,1,1))
   main_branch:add(nn.View(1024):setNumInputDims(3))
   main_branch:add(nn.Linear(1024, nC))
   main_branch:add(nn.LogSoftMax())
+  main_branch = w_init(main_branch, iniAlg)
 
   -- add auxillary classifier here (thanks to Christian Szegedy for the details)
   -- local aux_classifier = nn.Sequential()
