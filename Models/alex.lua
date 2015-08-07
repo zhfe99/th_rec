@@ -22,6 +22,7 @@ function newModel(nC, nGpu, isBn, iniAlg)
   local SpatialConvolution = cudnn.SpatialConvolution
   local SpatialMaxPooling = cudnn.SpatialMaxPooling
 
+  -- convolution
   local features = nn.Sequential()
   features:add(SpatialConvolution(3,96,11,11,4,4,2,2))       -- 224 -> 55
   if isBn then
@@ -52,6 +53,7 @@ function newModel(nC, nGpu, isBn, iniAlg)
   features:add(cudnn.ReLU(true))
   features:add(SpatialMaxPooling(3,3,2,2))                   -- 13 -> 6
 
+  -- fully-connected
   local classifier = nn.Sequential()
   classifier:add(nn.View(256*6*6))
   classifier:add(nn.Dropout(0.5))
