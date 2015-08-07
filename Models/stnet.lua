@@ -8,7 +8,7 @@
 ----------------------------------------------------------------------
 -- Create the stn model.
 --
--- Input2
+-- Input
 --   locNet  -  localization network
 --   nC      -  #classes
 --   nGpu    -  #gpus
