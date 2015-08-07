@@ -6,12 +6,16 @@ local Threads = require 'threads'
 local ffi = require 'ffi'
 local config = require './Models/car_v1c_conf'
 
+----------------------------------------------------------------------
+-- Normalize the data by subtracting the mean and dividing the scale.
+--
+-- Input
+--   data  -  b x d x h x w
 function Normalize(data)
   data = data:float()
-
   for j = 1, 3 do
-    data[j]:add(-config.DataMean[j])
-    data[j]:div(config.DataStd[j])
+    data[{{}, j, {}, {}}]:add(-config.DataMean[j])
+    data[{{}, j, {}, {}}]:div(config.DataStd[j])
   end
 
   return data

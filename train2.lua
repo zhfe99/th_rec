@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-05-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-07-2015
 
 require 'torch'
 require 'xlua'
@@ -179,7 +179,15 @@ local function Forward(DB, train, epoch)
         -- y, currLoss = optimizer:optimize(x, yt)
         currLoss, y = optimator:optimize(optim.sgd, x, yt, loss)
       else
-        y = model:forward(x)
+
+        -- y = model:forward(x)
+        local function tmp()
+          y = model:forward(x)
+        end
+        if not pcall(tmp) then
+          local debugger = require('fb.debugger')
+          debugger.enter()
+        end
         currLoss = loss:forward(y, yt)
       end
       loss_val = currLoss + loss_val

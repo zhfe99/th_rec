@@ -2,7 +2,7 @@ local alex = require 'Models.alex'
 
 local nC = 196
 
-local model = alex.newStn(nC, 1, true, 'xavier')
+local model = alex.new(nC, 1, false, 'xavier_caffe')
 
 local loss = nn.ClassNLLCriterion()
 
@@ -19,7 +19,7 @@ local lrs = {
   {101, nEpo, 5e-5, 5e-4},
 }
 
-local batchSiz = 50
+local batchSiz = 128
 
 local mom = 0.9
 

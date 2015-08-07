@@ -3,11 +3,13 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-05-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-06-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-07-2015
 
 require 'nn'
 require 'cudnn'
-local w_init = require('weight_init')
+local w_init = require('lua_th.w_init')
+
+local goo = {}
 
 ----------------------------------------------------------------------
 -- Inception component.
@@ -16,6 +18,7 @@ local w_init = require('weight_init')
 --   input_size
 --   config
 --   isBn        -  flag of using BN, true | false
+--   iniAlg      -  init method
 local function inception(input_size, config, isBn, iniAlg)
   local concat = nn.Concat(2)
   if config[1][1] ~= 0 then
@@ -24,14 +27,8 @@ local function inception(input_size, config, isBn, iniAlg)
     if isBn then
       conv1:add(nn.SpatialBatchNormalization(config[1][1], 1e-3))
     end
-    -- print(conv1.modules[1].weight:max())
-    -- print(conv1.modules[1].bias:max())
     conv1:add(cudnn.ReLU(true))
     conv1 = w_init(conv1, iniAlg)
-    -- print(conv1.modules[1].weight:max())
-    -- print(conv1.modules[1].bias:max())
-    -- debug.debug()
-
     concat:add(conv1)
   end
 
@@ -101,7 +98,7 @@ end
 --
 -- Output
 --   model  -  model
-function newModel(nC, nGpu, isBn, iniAlg)
+function goo.new(nC, nGpu, isBn, iniAlg)
   local features = nn.Sequential()
   features:add(cudnn.SpatialConvolution(3,64,7,7,2,2,3,3))
   if isBn then
@@ -177,3 +174,5 @@ function newModel(nC, nGpu, isBn, iniAlg)
 
   return model
 end
+
+return goo
