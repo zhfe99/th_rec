@@ -24,9 +24,7 @@ cmd:option('-testonly', false, 'Just test loaded net on validation set')
 cmd:option('-threads', 8, 'number of threads')
 cmd:option('-type', 'cuda', 'float or cuda')
 cmd:option('-devid', 1, 'device ID (if using CUDA)')
-cmd:option('-load', '', 'load existing net weights')
 cmd:option('-shuffle', true, 'shuffle training samples')
-
 opt = cmd:parse(arg or {})
 local dbe = opt.dbe
 local ver = opt.ver
@@ -179,15 +177,7 @@ local function Forward(DB, train, epoch)
         -- y, currLoss = optimizer:optimize(x, yt)
         currLoss, y = optimator:optimize(optim.sgd, x, yt, loss)
       else
-
-        -- y = model:forward(x)
-        local function tmp()
-          y = model:forward(x)
-        end
-        if not pcall(tmp) then
-          local debugger = require('fb.debugger')
-          debugger.enter()
-        end
+        y = model:forward(x)
         currLoss = loss:forward(y, yt)
       end
       loss_val = currLoss + loss_val
