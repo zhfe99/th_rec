@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-06-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-08-2015
 
 local info = torch.load('data/imgnet/v2_info.t7')
 
@@ -21,8 +21,9 @@ return {
   SampleSize = {3, 224, 224},
   info = info,
   -- DataMean = 118.380948,
-  DataMean = {107, 101, 102},
+  DataMean = {122, 116, 103},
   -- DataStd = 61.896913,
-  DataStd = {68, 67, 68},
+  -- DataStd = {68, 67, 68},
+  DataStd = {58, 57, 57},
   Key = Key
 }
