@@ -9,6 +9,7 @@ require 'eladtools'
 require 'image'
 require 'xlua'
 require 'lmdb'
+local lib = require('lua_lib')
 local gm = require 'graphicsmagick'
 local ffi = require 'ffi'
 local th = require 'lua_th'
@@ -24,44 +25,11 @@ local dbe = params.dbe
 local ver = params.ver
 local dat = ThDat(dbe, ver)
 local PATH = dat.PATH
+local DATA = dat.DATA
 
 -- config
 local confPath = string.format('Models/%s_%s_conf.lua', dbe, ver)
 local config = paths.dofile(confPath)
-
-local debugger = require('fb.debugger')
-debugger.enter()
-
-local TrainingFiles = FileSearcher {
-  Name = 'TrainingFilenames',
-  CachePrefix = PATH.trCach,
-  -- CachePrefix = config.TRAINING_DIR,
-  MaxNumItems = 1e8,
-  CacheFiles = true,
-  PathList = {config.TRAINING_PATH},
-  SubFolders = true,
-  MaxFilenameLength = 200
-}
-
-local ValidationFiles = FileSearcher {
-  Name = 'ValidationFilenames',
-  CachePrefix = config.VALIDATION_DIR,
-  MaxNumItems = 1e8,
-  CacheFiles = true,
-  PathList = {config.VALIDATION_PATH},
-  SubFolders = true,
-  MaxFilenameLength = 200
-}
-
-local TrainDB = lmdb.env {
-  Path = PATH.trLmdb,
-  Name = 'TrainDB'
-}
-
-local ValDB = lmdb.env {
-  Path = PATH.teLmdb,
-  Name = 'ValDB'
-}
 
 ----------------------------------------------------------------------
 -- Pre-process image.
@@ -112,38 +80,25 @@ local LoadImgData = function(filename)
 end
 
 ----------------------------------------------------------------------
--- Rename the file.
---
--- Input
---   filename  -  file path
---
--- Output
---   name      -  key used in lmdb
-function NameFile(filename)
-  local ext = paths.extname(filename)
-  local foldPath = paths.dirname(filename)
-  local parts = string.split(foldPath, '/')
-  local foldNm = parts[#parts]
-  local imgNm = paths.basename(filename, ext)
-  local name = string.format('%s/%s', foldNm, imgNm)
-  return name
-end
-
-----------------------------------------------------------------------
 -- Generate lmdb from a list of files.
 --
 -- Input
---   charTensor  -  file name list
 --   env         -  lmdb env
-function LMDBFromFilenames(charTensor, env)
+--   charTensor  -  file name list
+function LMDBFromList(env, foldPath, imgList, meanPath)
   env:open()
   local txn = env:txn()
   local cursor = txn:cursor()
   local me = {0, 0, 0}
   local std = {0, 0, 0}
-  local nImg = charTensor:size(1)
+  local nImg = #imgList
   for i = 1, nImg do
-    local filename = ffi.string(torch.data(charTensor[i]))
+    -- parse
+    local ln = imgList[i]
+    local parts = lib.split(ln, ' ')
+    local imgPath = foldPath .. '/' .. parts[1]
+    local c = tonumber(parts[2]) + 1
+    local filename = ffi.string(imgPath)
     local img = LoadImgData(filename)
 
     -- update mean & std
@@ -152,7 +107,8 @@ function LMDBFromFilenames(charTensor, env)
       std[j] = std[j] + img[j]:float():std()
     end
 
-    local data = {Data = img, Name = NameFile(filename)}
+    -- store
+    local data = {img = img, c = c, path = imgPath}
     cursor:put(config.Key(i), data, lmdb.C.MDB_NODUPDATA)
     if i % 1000 == 0 then
       txn:commit()
@@ -172,10 +128,33 @@ function LMDBFromFilenames(charTensor, env)
     std[j] = std[j] / nImg
   end
 
+  -- save mean
+  meanInfo = {
+    me = me,
+    std = std
+  }
+  if meanPath then
+    torch.save(meanPath, meanInfo)
+  end
   print(string.format('mean: %.3f, %.3f, %.3f', me[1], me[2], me[3]))
   print(string.format('std : %.3f, %.3f, %.3f', std[1], std[2], std[3]))
 end
 
-TrainingFiles:ShuffleItems()
-LMDBFromFilenames(ValidationFiles.Data, ValDB)
-LMDBFromFilenames(TrainingFiles.Data, TrainDB)
+-- create tr lmdb
+local trEnv = lmdb.env {
+  Path = PATH.trLmdb,
+  Name = 'TrainDB'
+}
+LMDBFromList(ValDB, PATH.dataFold .. '/test', lns)
+
+local teEnv = lmdb.env {
+  Path = PATH.teLmdb,
+  Name = 'ValDB'
+}
+
+-- test
+local lns = lib.loadLns(PATH.teListCaf)
+LMDBFromList(ValDB, PATH.dataFold .. '/test', lns)
+
+
+-- LMDBFromFilenames(TrainingFiles.Data, TrainDB)

@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-04-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-07-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-09-2015
 
 require 'cudnn'
 require 'cunn'
@@ -80,6 +80,18 @@ function alex.new(nC, nGpu, isBn, iniAlg)
   model.modules[1] = w_init(model.modules[1], iniAlg)
   model.modules[2] = w_init(model.modules[2], iniAlg)
 
+  if nGpu > 1 then
+    assert(nGpu <= cutorch.getDeviceCount(), 'number of GPUs less than nGpu specified')
+    require 'fbcunn_files.AbstractParallel'
+    require 'fbcunn_files.DataParallel'
+
+    local model_single = model
+    model = nn.DataParallel(1)
+    for i = 1, nGpu do
+      cutorch.withDevice(i, function() model:add(model_single:clone()) end)
+    end
+  end
+
   return model
 end
 
@@ -144,6 +156,19 @@ function alex.newStnTrun(nC, nGpu, isBn, iniAlg)
   w_init = require('weight_init')
   model.modules[1] = w_init(model.modules[1], iniAlg)
   model.modules[2] = w_init(model.modules[2], iniAlg)
+
+  if nGpu > 1 then
+    assert(nGpu <= cutorch.getDeviceCount(), 'number of GPUs less than nGpu specified')
+    -- require 'fbcunn'
+    require 'fbcunn_files.AbstractParallel'
+    require 'fbcunn_files.DataParallel'
+
+    local model_single = model
+    model = nn.DataParallel(1)
+    for i = 1, nGpu do
+      cutorch.withDevice(i, function() model:add(model_single:clone()) end)
+    end
+  end
 
   return model
 end
