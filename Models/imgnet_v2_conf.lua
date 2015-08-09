@@ -14,8 +14,8 @@ end
 return {
   TRAINING_PATH = 'data/imgnet/v2/train/',
   VALIDATION_PATH = 'data/imgnet/v2/test/',
-  TRAINING_DIR = 'save/imgnet/torch/data/imgnet_v2_train/',
-  VALIDATION_DIR = 'save/imgnet/torch/data/imgnet_v2_test/',
+  TRAINING_DIR = 'save/imgnet/torch/data/imgnet_v2_tr_lmdb/',
+  VALIDATION_DIR = 'save/imgnet/torch/data/imgnet_v2_te_lmdb/',
   ImageSize = 256,
   InputSize = 224,
   SampleSize = {3, 224, 224},

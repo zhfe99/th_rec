@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-07-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-08-2015
 
 require 'torch'
 require 'xlua'

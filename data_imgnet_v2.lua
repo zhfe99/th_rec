@@ -4,7 +4,7 @@ require 'lmdb'
 
 local Threads = require 'threads'
 local ffi = require 'ffi'
-local config = require './Models/car_v1c_conf'
+local config = require './Models/imgnet_v2_conf'
 
 ----------------------------------------------------------------------
 -- Normalize the data by subtracting the mean and dividing the scale.
@@ -17,9 +17,7 @@ function Normalize(data)
     data[{{}, j, {}, {}}]:add(-config.DataMean[j])
     data[{{}, j, {}, {}}]:div(config.DataStd[j])
   end
-
   return data
-  -- return data:float():add(-config.DataMean):div(config.DataStd)
 end
 
 function ExtractFromLMDBTrain(key, data)
@@ -50,9 +48,6 @@ function ExtractFromLMDBTest(key, data)
 end
 
 local TrainDB = eladtools.LMDBProvider {
-  -- local debugger = require('fb.debugger')
-  -- debugger.enter()
-
   Source = lmdb.env({Path = config.TRAINING_DIR, RDONLY = true}),
   SampleSize = config.SampleSize,
   ExtractFunction = ExtractFromLMDBTrain

@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-05-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-07-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-08-2015
 
 require 'nn'
 require 'cudnn'
@@ -161,14 +161,14 @@ function goo.new(nC, nGpu, isBn, iniAlg)
 
   if nGpu > 1 then
     assert(nGpu <= cutorch.getDeviceCount(), 'number of GPUs less than nGpu specified')
-    require 'fbcunn'
+    -- require 'fbcunn'
+    require 'fbcunn_files.AbstractParallel'
+    require 'fbcunn_files.DataParallel'
+
     local model_single = model
     model = nn.DataParallel(1)
     for i = 1, nGpu do
-      cutorch.withDevice(i,
-                         function()
-                           model:add(model_single:clone())
-      end)
+      cutorch.withDevice(i, function() model:add(model_single:clone()) end)
     end
   end
 
