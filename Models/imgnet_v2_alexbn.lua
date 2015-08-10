@@ -2,7 +2,7 @@ local alex = require 'Models.alex'
 
 local nC = 1000
 
-local model = alex.new(nC, 2, true, 'xavier_caffe')
+local model = alex.new(nC, opt.nGpu, true, 'xavier_caffe')
 
 local loss = nn.ClassNLLCriterion()
 

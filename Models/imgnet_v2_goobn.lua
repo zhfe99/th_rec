@@ -2,7 +2,7 @@ local goo = require 'Models.goo'
 
 local nC = 1000
 
-local model = goo.new(nC, 2, true, 'xavier_caffe')
+local model = goo.new(nC, opt.nGpu, true, 'xavier_caffe')
 
 local loss = nn.ClassNLLCriterion()
 
@@ -16,7 +16,7 @@ local lrs = {
   { 61, nEpo, 1e-4, 5e-4}
 }
 
-local batchSiz = 100
+local batchSiz = 160
 
 local mom = 0.9
 

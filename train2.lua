@@ -54,10 +54,21 @@ local optimState = {
 
 local optimator = nn.Optim(model, optimState)
 
-local function ExtractSampleFunc(data, label)
-  if data:size(1) % 2 > 0 then
-    local debugger = require('fb.debugger')
-    debugger.enter()
+local function ExtractSampleFunc(data0, label0)
+  assert(torch.type(data0) == 'torch.ByteTensor')
+  assert(torch.type(label0) == 'torch.IntTensor')
+  local data = data0
+  local label = label0
+
+  -- fit the data to multi-gpu
+  if data0:size(1) % opt.nGpu > 0 then
+    local b0 = data0:size(1)
+    local d = data0:size(2)
+    local h = data0:size(3)
+    local w = data0:size(4)
+    local b = b0 - b0 % opt.nGpu
+    data = torch.ByteTensor(b, d, h, w):copy(data0[{{1, b}, {}, {}, {}}])
+    label = torch.IntTensor(b):copy(label0[{{1, b}}])
   end
   return Normalize(data), label
 end

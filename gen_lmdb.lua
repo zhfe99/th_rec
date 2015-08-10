@@ -29,9 +29,6 @@ local PATH = dat.PATH
 local confPath = string.format('Models/%s_%s_conf.lua', dbe, ver)
 local config = paths.dofile(confPath)
 
-local debugger = require('fb.debugger')
-debugger.enter()
-
 local TrainingFiles = FileSearcher {
   Name = 'TrainingFilenames',
   CachePrefix = PATH.trCach,
@@ -96,19 +93,19 @@ end
 -- Output
 --   img       -  image
 local LoadImgData = function(filename)
-  local ok, img = pcall(gm.Image, filename)
+  local ok, img0 = pcall(gm.Image, filename)
 
   -- error
-  if not ok or img == nil then
+  if not ok or img0 == nil then
     print('Image is buggy')
     print(filename)
     os.exit()
   end
 
   -- pre-process
-  img = img:toTensor('byte', 'RGB', 'DHW')
-  img = PreProcess(img)
-  return img
+  img0 = img0:toTensor('byte', 'RGB', 'DHW')
+  local img = PreProcess(img0)
+  return img, img0
 end
 
 ----------------------------------------------------------------------
@@ -144,13 +141,27 @@ function LMDBFromFilenames(charTensor, env)
   local nImg = charTensor:size(1)
   for i = 1, nImg do
     local filename = ffi.string(torch.data(charTensor[i]))
-    local img = LoadImgData(filename)
+    local img, img0 = LoadImgData(filename)
 
     -- update mean & std
     for j = 1, 3 do
       me[j] = me[j] + img[j]:float():mean()
       std[j] = std[j] + img[j]:float():std()
     end
+
+    require 'image'
+    local img2 = image.load(filename)
+    image.save(string.format('tmp_%d.jpg', 0), img0:float() / 255)
+    image.save(string.format('tmp_%d.jpg', 1), img:float() / 255)
+    image.save(string.format('tmp_%d.jpg', 2), img2)
+
+    -- local img00 = img0:float() / 255
+    local img0b = image.compressJPG(img0:float() / 255)
+    local img0c = image.decompressJPG(img0b)
+    image.save(string.format('tmp_%dc.jpg', 0), img0c)
+
+    local debugger = require('fb.debugger')
+    debugger.enter()
 
     local data = {Data = img, Name = NameFile(filename)}
     cursor:put(config.Key(i), data, lmdb.C.MDB_NODUPDATA)

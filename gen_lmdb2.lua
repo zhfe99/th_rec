@@ -16,16 +16,24 @@ local th = require 'lua_th'
 
 -- argument
 cmd = torch.CmdLine()
+cmd:text()
+cmd:text('Generate lmdb for training and testing data')
+cmd:text()
+cmd:text('Options:')
+cmd:addTime()
 cmd:option('-dbe', 'car', 'database name')
 cmd:option('-ver', 'v1c', 'version')
-local params = cmd:parse(arg)
+cmd:option('-cmp', true, 'compress or not')
+cmd:option('-size', 256, 'image size')
+local opt = cmd:parse(arg)
 
 -- data
-local dbe = params.dbe
-local ver = params.ver
+local dbe = opt.dbe
+local ver = opt.ver
 local dat = ThDat(dbe, ver)
 local PATH = dat.PATH
 local DATA = dat.DATA
+cmd:log(PATH.logPath)
 
 -- config
 local confPath = string.format('Models/%s_%s_conf.lua', dbe, ver)
@@ -35,13 +43,13 @@ local config = paths.dofile(confPath)
 -- Pre-process image.
 --
 -- Input
---   Img  -  original image
+--   img0  -  original image
 --
 -- Output
---   img  -  new img
-local PreProcess = function(Img)
+--   img   -  new img
+local function PreProcess(img0)
   --minimum side of ImageSize
-  local im = image.scale(Img, '^' .. config.ImageSize)
+  local im = image.scale(img0, '^' .. config.ImageSize)
 
   if im:dim() == 2 then
     im = im:reshape(1, im:size(1), im:size(2))
@@ -63,7 +71,7 @@ end
 --
 -- Output
 --   img       -  image
-local LoadImgData = function(filename)
+local function LoadImgData(filename)
   local ok, img = pcall(gm.Image, filename)
 
   -- error
@@ -83,20 +91,24 @@ end
 -- Generate lmdb from a list of files.
 --
 -- Input
---   env         -  lmdb env
---   charTensor  -  file name list
-function LMDBFromList(env, foldPath, imgList, meanPath)
+--   env       -  lmdb env
+--   imgFold   -  image fold
+--   imgList   -  image list
+--   meanPath  -  mean path
+function genLmdbFromList(env, imgFold, imgList, meanPath)
   env:open()
   local txn = env:txn()
   local cursor = txn:cursor()
   local me = {0, 0, 0}
   local std = {0, 0, 0}
+
+  -- each image
   local nImg = #imgList
   for i = 1, nImg do
     -- parse
     local ln = imgList[i]
     local parts = lib.split(ln, ' ')
-    local imgPath = foldPath .. '/' .. parts[1]
+    local imgPath = imgFold .. '/' .. parts[1]
     local c = tonumber(parts[2]) + 1
     local filename = ffi.string(imgPath)
     local img = LoadImgData(filename)
@@ -107,12 +119,17 @@ function LMDBFromList(env, foldPath, imgList, meanPath)
       std[j] = std[j] + img[j]:float():std()
     end
 
+    -- compress
+    if opt.cmp then
+      img = image.compressJPG(img:float() / 255)
+    end
+
     -- store
-    local data = {img = img, c = c, path = imgPath}
+    local data = {img = img, c = c, path = parts[1]}
     cursor:put(config.Key(i), data, lmdb.C.MDB_NODUPDATA)
     if i % 1000 == 0 then
       txn:commit()
-      print(env:stat())
+      xlua.print(env:stat())
       collectgarbage()
       txn = env:txn()
       cursor = txn:cursor()
@@ -129,32 +146,32 @@ function LMDBFromList(env, foldPath, imgList, meanPath)
   end
 
   -- save mean
-  meanInfo = {
+  local meanInfo = {
     me = me,
     std = std
   }
-  if meanPath then
-    torch.save(meanPath, meanInfo)
-  end
   print(string.format('mean: %.3f, %.3f, %.3f', me[1], me[2], me[3]))
   print(string.format('std : %.3f, %.3f, %.3f', std[1], std[2], std[3]))
+  if meanPath then
+    print('saving mean')
+    torch.save(meanPath .. 'c', meanInfo)
+  end
 end
 
 -- create tr lmdb
+assert(not paths.dirp(PATH.trLmdb), string.format('%s exists', PATH.trLmdb))
 local trEnv = lmdb.env {
   Path = PATH.trLmdb,
   Name = 'TrainDB'
 }
-LMDBFromList(ValDB, PATH.dataFold .. '/test', lns)
+local trImgList = lib.loadLns(PATH.trListCaf)
+genLmdbFromList(trEnv, PATH.dataFold .. '/train', trImgList, PATH.meanPath)
 
+-- test
+assert(not paths.dirp(PATH.teLmdb))
 local teEnv = lmdb.env {
   Path = PATH.teLmdb,
   Name = 'ValDB'
 }
-
--- test
-local lns = lib.loadLns(PATH.teListCaf)
-LMDBFromList(ValDB, PATH.dataFold .. '/test', lns)
-
-
--- LMDBFromFilenames(TrainingFiles.Data, TrainDB)
+local teImgList = lib.loadLns(PATH.teListCaf)
+genLmdbFromList(teEnv, PATH.dataFold .. '/test', teImgList)

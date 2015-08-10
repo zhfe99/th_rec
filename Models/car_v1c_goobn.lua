@@ -2,7 +2,7 @@ paths.dofile('goo.lua')
 
 local nC = 196
 
-local model = newModel(nC, 1, true, 'xavier')
+local model = newModel(nC, opts.nGpu, true, 'xavier')
 
 local loss = nn.ClassNLLCriterion()
 

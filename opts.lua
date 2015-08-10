@@ -23,7 +23,9 @@ function M.parse(arg)
   cmd:option('-threads', 8, 'number of threads')
   cmd:option('-type', 'cuda', 'float or cuda')
   cmd:option('-devid', 1, 'device ID (if using CUDA)')
+  cmd:option('-nGpu', 1, '#gpus')
   cmd:option('-shuffle', true, 'shuffle training samples')
+  cmd:option('-cmp', true, 'compress or not')
   opt = cmd:parse(arg or {})
 
   local dbe = opt.dbe
