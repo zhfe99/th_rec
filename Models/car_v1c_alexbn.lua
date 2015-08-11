@@ -23,4 +23,6 @@ local batchSiz = 128
 
 local mom = 0.9
 
+local SampleSize = {3, 224, 224}
+
 return model, loss, nEpo, nEpoSv, batchSiz, lrs, mom

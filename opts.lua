@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-09-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-09-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-10-2015
 
 local M = {}
 
@@ -22,7 +22,7 @@ function M.parse(arg)
   cmd:option('-testonly', false, 'Just test loaded net on validation set')
   cmd:option('-threads', 8, 'number of threads')
   cmd:option('-type', 'cuda', 'float or cuda')
-  cmd:option('-devid', 1, 'device ID (if using CUDA)')
+  cmd:option('-devid', 1, 'device ID')
   cmd:option('-nGpu', 1, '#gpus')
   cmd:option('-shuffle', true, 'shuffle training samples')
   cmd:option('-cmp', true, 'compress or not')

@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-09-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-09-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-10-2015
 
 local lib = require 'lua_lib'
 require 'image'
@@ -24,7 +24,5 @@ debugger.enter()
 
 local dif = torch.add(img2:float(), -1, img0:float())
 print(dif:abs():max())
-
-
 
 -- lib.lmdbROut(ha)

@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-09-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-09-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-10-2015
 
 local lib = require 'lua_lib'
 require 'image'
@@ -19,9 +19,9 @@ for i = 1, 10 do
   local img0 = val.img
   local img1 = image.decompressJPG(img0)
 
-  local img = (img1 * 255):type('torch.ByteTensor')
+  -- local img = (img1 * 255):type('torch.ByteTensor')
 
-  image.save(string.format('tmp_%d.jpg', i), img:float() / 255)
+  image.save(string.format('tmp_%d.jpg', i), img1)
 end
 
 lib.lmdbROut(ha)

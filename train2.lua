@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-09-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-10-2015
 
 require 'torch'
 require 'xlua'
@@ -18,69 +18,32 @@ local th = require('lua_th')
 -- argument
 opt = opts.parse(arg)
 
--- model + loss:
-local model, loss, nEpo, nEpoSv, batchSiz, lrs, mom = require(opt.network)
-
--- config
-local config = require(opt.conf)
-
 -- data
-local data = require(opt.dataPath)
+local dat = ThDat(opt.dbe, opt.ver)
+PATH = dat.PATH
+
+-- network
+local model, loss, nEpo, nEpoSv, batchSiz, sampleSiz, optStat, paramsForEpoch = require(opt.network)
+
+-- data loader
+local data = require('data_load')
 
 -- confusion
-local dat = ThDat(opt.dbe, opt.ver)
-local classes = dat.DATA.cNms
-local confusion = optim.ConfusionMatrix(classes)
+local confusion = optim.ConfusionMatrix(dat.DATA.cNms)
 
--- cuda
-local TensorType = 'torch.FloatTensor'
-if opt.type == 'cuda' then
-  model:cuda()
-  loss = loss:cuda()
-  TensorType = 'torch.CudaTensor'
-end
-
--- savedModel - lower footprint model to save
+-- save model
 local savedModel = model:clone('weight', 'bias', 'running_mean', 'running_std')
 
--- Optimization Configuration
-local optimState = {
-  learningRate = 0.01,
-  momentum = mom,
-  weightDecay = 5e-4,
-  learningRateDecay = 0.0,
-  dampening = 0.0
-}
+-- init optimization
+local optimator = nn.Optim(model, optStat)
 
-local optimator = nn.Optim(model, optimState)
-
-local function ExtractSampleFunc(data0, label0)
-  assert(torch.type(data0) == 'torch.ByteTensor')
-  assert(torch.type(label0) == 'torch.IntTensor')
-  local data = data0
-  local label = label0
-
-  -- fit the data to multi-gpu
-  if data0:size(1) % opt.nGpu > 0 then
-    local b0 = data0:size(1)
-    local d = data0:size(2)
-    local h = data0:size(3)
-    local w = data0:size(4)
-    local b = b0 - b0 % opt.nGpu
-    data = torch.ByteTensor(b, d, h, w):copy(data0[{{1, b}, {}, {}, {}}])
-    label = torch.IntTensor(b):copy(label0[{{1, b}}])
-  end
-  return Normalize(data), label
-end
-
-local function paramsForEpoch(epoch)
-  for _, row in ipairs(lrs) do
-    if epoch >= row[1] and epoch <= row[2] then
-      return {learningRate=row[3], weightDecay=row[4]}, epoch == row[1]
-    end
-  end
-end
-
+----------------------------------------------------------------------
+-- Update for one epoch.
+--
+-- Input
+--   DB     -  data provider
+--   train  -  train or test
+--   epoch  -  epoch index
 local function Forward(DB, train, epoch)
   confusion:zero()
 
@@ -91,7 +54,7 @@ local function Forward(DB, train, epoch)
 
     if newRegime then
       -- zero the momentum vector by throwing away previous state.
-      optimator = nn.Optim(model, optimState)
+      optimator = nn.Optim(model, optStat)
     end
   end
 
@@ -123,12 +86,11 @@ local function Forward(DB, train, epoch)
 
     local sizeBuffer = math.min(opt.bufferSize, SizeData - dataIndices[currBatch] + 1)
 
-    BufferSources[currBuffer].Data:resize(sizeBuffer, unpack(config.SampleSize))
+    BufferSources[currBuffer].Data:resize(sizeBuffer, unpack(sampleSiz))
     BufferSources[currBuffer].Labels:resize(sizeBuffer)
-    DB:AsyncCacheSeq(config.Key(dataIndices[currBatch]),
-                     sizeBuffer,
-                     BufferSources[currBuffer].Data,
-                     BufferSources[currBuffer].Labels)
+    local key = string.format('%07d', dataIndices[currBatch])
+    -- config.Key(dataIndices[currBatch])
+    DB:AsyncCacheSeq(key, sizeBuffer, BufferSources[currBuffer].Data, BufferSources[currBuffer].Labels)
     currBatch = currBatch + 1
   end
 
@@ -137,7 +99,7 @@ local function Forward(DB, train, epoch)
     MaxNumItems = batchSiz,
     Source = BufferSources[currBuffer],
     ExtractFunction = ExtractSampleFunc,
-    TensorType = TensorType
+    TensorType = 'torch.CudaTensor'
   }
 
   local yt = MiniBatch.Labels
@@ -158,7 +120,6 @@ local function Forward(DB, train, epoch)
 
     while MiniBatch:GetNextBatch() do
       if train then
-        -- y, currLoss = optimizer:optimize(x, yt)
         currLoss, y = optimator:optimize(optim.sgd, x, yt, loss)
       else
         y = model:forward(x)
@@ -181,6 +142,7 @@ local function Forward(DB, train, epoch)
   return(loss_val / math.ceil(SizeData / batchSiz))
 end
 
+-- create threads for dataloader
 data.ValDB:Threads()
 data.TrainDB:Threads()
 
