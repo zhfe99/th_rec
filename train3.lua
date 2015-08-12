@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-11-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-12-2015
 
 require 'torch'
 require 'xlua'
@@ -166,13 +166,13 @@ for epoch = 1, nEpo do
   local trLoss = Forward(data.TrainDB, true, epoch)
   confusion:updateValids()
   print(string.format('epoch %d/%d, lr %f, wd %f', epoch, nEpo, optimator.originalOptState.learningRate, optimator.originalOptState.weightDecay))
-  print(string.format('epoch %d/%d, tr, loss %f, acc %f', epoch, nEpo, trLoss, confusion.totalValid))
+  print(string.format('tr, loss %f, acc %f', epoch, nEpo, trLoss, confusion.totalValid))
 
   -- test
   model:evaluate()
   local teLoss = Forward(data.ValDB, false, epoch)
   confusion:updateValids()
-  print(string.format('epoch %d/%d, te, loss %f, acc %f', epoch, nEpo, teLoss, confusion.totalValid))
+  print(string.format('te, loss %f, acc %f', epoch, nEpo, teLoss, confusion.totalValid))
 
   -- save
   if epoch % nEpoSv == 0 then
