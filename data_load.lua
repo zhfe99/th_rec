@@ -14,13 +14,16 @@ local DataMean = meanInfo.me
 local DataStd = meanInfo.std
 
 function ExtractSampleFunc(data0, label0)
-  assert(torch.type(data0) == 'torch.ByteTensor')
-  assert(torch.type(label0) == 'torch.IntTensor')
+  -- local debugger = require('fb.debugger')
+  -- debugger.enter()
+
   local data = data0
   local label = label0
 
   -- fit the data to multi-gpu
-  if data0:size(1) % opt.nGpu > 0 then
+  if data0:size(1) % #opt.gpus > 0 then
+    assert(torch.type(data0) == 'torch.ByteTensor')
+    assert(torch.type(label0) == 'torch.IntTensor')
     local b0 = data0:size(1)
     local d = data0:size(2)
     local h = data0:size(3)
@@ -39,6 +42,9 @@ end
 -- Input
 --   data  -  b x d x h x w
 function Normalize(data)
+  -- local debugger = require('fb.debugger')
+  -- debugger.enter()
+
   data = data:float()
   for j = 1, 3 do
     data[{{}, j, {}, {}}]:add(-DataMean[j])
@@ -64,7 +70,7 @@ local function ExtractFromLMDBTrain(key, data)
     img = image.hflip(img)
   end
 
-  return img, class
+  return img:float(), class
 end
 
 local function ExtractFromLMDBTest(key, data)
@@ -77,7 +83,7 @@ local function ExtractFromLMDBTest(key, data)
   local start_y = math.ceil((img:size(nDim - 1) - InputSize) / 2)
   img = img:narrow(nDim, start_x, InputSize):narrow(nDim - 1, start_y, InputSize)
 
-  return img, class
+  return img:float(), class
 end
 
 local TrainDB = eladtools.LMDBProvider {

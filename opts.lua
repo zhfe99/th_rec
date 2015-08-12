@@ -3,9 +3,10 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-09-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-10-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-11-2015
 
 local M = {}
+local lib = require('lua_lib')
 
 function M.parse(arg)
 
@@ -18,12 +19,10 @@ function M.parse(arg)
   cmd:option('-dbe', 'car', 'database name')
   cmd:option('-ver', 'v1c', 'version')
   cmd:option('-con', 'alex', 'configuration')
-  cmd:option('-bufferSize', 1280, 'buffer size')
   cmd:option('-testonly', false, 'Just test loaded net on validation set')
   cmd:option('-threads', 8, 'number of threads')
   cmd:option('-type', 'cuda', 'float or cuda')
-  cmd:option('-devid', 1, 'device ID')
-  cmd:option('-nGpu', 1, '#gpus')
+  cmd:option('-gpu', '0', 'gpu id, could be multiple')
   cmd:option('-shuffle', true, 'shuffle training samples')
   cmd:option('-cmp', true, 'compress or not')
   opt = cmd:parse(arg or {})
@@ -50,8 +49,9 @@ function M.parse(arg)
   opt.modPath = string.format('%s/%s_%s_%s', opt.modFold, dbe, ver, con)
 
   -- cuda
+  opt.gpus = lib.str2idx(opt.gpu)
   torch.setnumthreads(opt.threads)
-  cutorch.setDevice(opt.devid)
+  cutorch.setDevice(opt.gpus[1] + 1)
   torch.setdefaulttensortype('torch.FloatTensor')
 
   return opt

@@ -1,6 +1,6 @@
 local alex = require 'Models.alex'
 
-local nC = 1000
+local nC = 196
 
 -- k20
 local batchSiz = 128
@@ -13,7 +13,6 @@ end
 -- if #opt.gpus > 1 then
 --   batchSiz = 512
 -- end
-
 local bufSiz = batchSiz * #opt.gpus
 
 local model = alex.new(nC, opt.gpus, true, 'xavier_caffe')
@@ -23,14 +22,14 @@ local loss = nn.ClassNLLCriterion()
 model:cuda()
 loss:cuda()
 
-local nEpo = 90
+local nEpo = 120
 
 local nEpoSv = 40
 
 local lrs = {
-  {  1,   30, 1e-2, 5e-4},
-  { 31,   60, 1e-3, 5e-4},
-  { 61, nEpo, 1e-4, 5e-4}
+  {  1,   40, 1e-2, 5e-4},
+  { 41,   80, 1e-3, 5e-4},
+  { 81, nEpo, 1e-4, 5e-4}
 }
 
 local sampleSiz = {3, 224, 224}
