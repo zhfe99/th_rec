@@ -143,7 +143,6 @@ function AbstractParallel:updateOutput(input)
     end
 
     -- find the size of the merged output.
-    xlua.print(self.gpu_assignments)
     assert(container_gpuid == self.gpu_assignments[1], string.format('%d vs %d', container_gpuid, self.gpu_assignments[1]))
     assert(outs[1].getDevice and
            (outs[1]:getDevice() == 0 or

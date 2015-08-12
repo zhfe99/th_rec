@@ -166,13 +166,13 @@ for epoch = 1, nEpo do
   local trLoss = Forward(data.TrainDB, true, epoch)
   confusion:updateValids()
   print(string.format('epoch %d/%d, lr %f, wd %f', epoch, nEpo, optimator.originalOptState.learningRate, optimator.originalOptState.weightDecay))
-  print(string.format('tr, loss %f, acc %f', epoch, nEpo, trLoss, confusion.totalValid))
+  print(string.format('tr, loss %f, acc %f', trLoss, confusion.totalValid))
 
   -- test
   model:evaluate()
   local teLoss = Forward(data.ValDB, false, epoch)
   confusion:updateValids()
-  print(string.format('te, loss %f, acc %f', epoch, nEpo, teLoss, confusion.totalValid))
+  print(string.format('te, loss %f, acc %f', teLoss, confusion.totalValid))
 
   -- save
   if epoch % nEpoSv == 0 then
