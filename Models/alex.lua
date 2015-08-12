@@ -87,6 +87,8 @@ function alex.new(nC, gpus, isBn, iniAlg)
 
     local model_single = model
     model = nn.DataParallel(1)
+
+    xlua.print(gpus)
     for i, gpu in ipairs(gpus) do
       cutorch.withDevice(gpu + 1, function() model:add(model_single:clone()) end)
     end

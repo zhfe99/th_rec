@@ -5,8 +5,9 @@
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-09-2015
 --   modify  -  Feng Zhou (zhfe99@gmail.com), 08-11-2015
 
-local M = {}
 local lib = require('lua_lib')
+
+local M = {}
 
 function M.parse(arg)
 
@@ -16,6 +17,7 @@ function M.parse(arg)
   cmd:text()
   cmd:text('Options:')
   cmd:addTime()
+  cmd:option('-seed',    2, 'manually set RNG seed')
   cmd:option('-dbe', 'car', 'database name')
   cmd:option('-ver', 'v1c', 'version')
   cmd:option('-con', 'alex', 'configuration')
@@ -53,6 +55,7 @@ function M.parse(arg)
   torch.setnumthreads(opt.threads)
   cutorch.setDevice(opt.gpus[1] + 1)
   torch.setdefaulttensortype('torch.FloatTensor')
+  torch.manualSeed(opt.seed)
 
   return opt
 end

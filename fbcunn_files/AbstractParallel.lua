@@ -137,14 +137,14 @@ function AbstractParallel:updateOutput(input)
     for i, module in ipairs(self.modules) do
         local gpuid = self.gpu_assignments[i]
         withDevice(gpuid, function()
-                       assert(self.input_gpu[gpuid]:getDevice() ==
-                                  self.gpu_assignments[gpuid])
+                       assert(self.input_gpu[gpuid]:getDevice() == self.gpu_assignments[gpuid], self.input_gpu[gpuid]:getDevice())
                        outs[i] = module:updateOutput(self.input_gpu[gpuid])
         end)
     end
 
     -- find the size of the merged output.
-    assert(container_gpuid == self.gpu_assignments[1])
+    xlua.print(self.gpu_assignments)
+    assert(container_gpuid == self.gpu_assignments[1], string.format('%d vs %d', container_gpuid, self.gpu_assignments[1]))
     assert(outs[1].getDevice and
            (outs[1]:getDevice() == 0 or
             outs[1]:getDevice() == container_gpuid))
