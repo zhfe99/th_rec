@@ -56,6 +56,7 @@ def shLog(trLrs, trLosss, trAccss, trTi0ss, teLosss, teAccss, teTi0ss):
         trTis, teTis = [], []
         for j in range(trTi0ss[i].shape[0]):
             trTis.append((trTi0ss[i][j] - ti0).seconds)
+        for j in range(teTi0ss[i].shape[0]):
             teTis.append((teTi0ss[i][j] - ti0).seconds)
         trTiss[i] = np.array(trTis)
         teTiss[i] = np.array(teTis)
