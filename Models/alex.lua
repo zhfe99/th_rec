@@ -89,7 +89,7 @@ function alex.new(nC, gpus, isBn, iniAlg)
     model = nn.DataParallel(1)
 
     for i, gpu in ipairs(gpus) do
-      cutorch.withDevice(gpu + 1, function() model:add(model_single:clone()) end)
+      cutorch.withDevice(gpu + 1, function() model:add(model_single:clone(), gpu + 1) end)
     end
   end
 

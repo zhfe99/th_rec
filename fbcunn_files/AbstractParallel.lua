@@ -66,6 +66,7 @@ end
 function AbstractParallel:add(module, gpuid)
     table.insert(self.modules, module)
     local gpuid = gpuid or self:nextGPU()
+
     table.insert(self.gpu_assignments, gpuid)
     return self
 end
@@ -135,9 +136,15 @@ function AbstractParallel:updateOutput(input)
 
     -- update output for each module.
     for i, module in ipairs(self.modules) do
-        local gpuid = self.gpu_assignments[i]
+      local gpuid = self.gpu_assignments[i]
+
+      -- xlua.print(gpuid)
+      -- xlua.print(self.input_gpu)
+      -- debug.debug()
         withDevice(gpuid, function()
-                       assert(self.input_gpu[gpuid]:getDevice() == self.gpu_assignments[gpuid], self.input_gpu[gpuid]:getDevice())
+                     -- assert(self.input_gpu[gpuid]:getDevice() == self.gpu_assignments[gpuid], self.input_gpu[gpuid]:getDevice())
+                     -- modified by Feng, original is: self.input_gpu[gpuid]:getDevice() == self.gpu_assignments[gpuid]
+                     assert(self.input_gpu[gpuid]:getDevice() == self.gpu_assignments[i], self.input_gpu[gpuid]:getDevice())
                        outs[i] = module:updateOutput(self.input_gpu[gpuid])
         end)
     end

@@ -150,7 +150,8 @@ function DataParallel:updateGradInput(_input, gradOutput)
     if not self.gradInput then return end -- if gradInput is nil, do nothing
 
     self.gradInput:resizeAs(_input)
-    local elementsPerSlice = self.input_gpu[1]:size(self.dimension)
+    local id2 = self.gpu_assignments[1] -- modified by feng. original: id2 = 1
+    local elementsPerSlice = self.input_gpu[id2]:size(self.dimension)
     -- add gradInputs
     for i, module in ipairs(self.modules) do
         if module.gradInput then
