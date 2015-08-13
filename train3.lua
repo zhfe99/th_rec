@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-12-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-13-2015
 
 require 'torch'
 require 'xlua'
@@ -16,7 +16,7 @@ local th = require('lua_th')
 
 -- argument
 local opts = paths.dofile('opts.lua')
-opt = opts.parse(arg)
+opt = opts.parse(arg, 'train')
 
 -- data
 local dat = ThDat(opt.dbe, opt.ver)

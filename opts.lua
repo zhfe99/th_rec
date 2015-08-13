@@ -3,17 +3,17 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-09-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-11-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-13-2015
 
 local lib = require('lua_lib')
 
 local M = {}
 
-function M.parse(arg)
+function M.parse(arg, mode)
 
   local cmd = torch.CmdLine()
   cmd:text()
-  cmd:text('Torch-7 Training script')
+  cmd:text('Torch-7 Training / Testing script')
   cmd:text()
   cmd:text('Options:')
   cmd:addTime()
@@ -42,7 +42,7 @@ function M.parse(arg)
   -- log
   opt.logFold = string.format('%s/log', opt.saveFold)
   os.execute('mkdir -p ' .. opt.logFold)
-  opt.logPath = string.format('%s/%s_%s_%s.log', opt.logFold, dbe, ver, con)
+  opt.logPath = string.format('%s/%s_%s_%s_%s.log', opt.logFold, dbe, ver, con, mode)
   cmd:log(opt.logPath)
 
   -- output
