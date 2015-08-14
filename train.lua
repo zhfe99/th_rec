@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-13-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-14-2015
 
 require 'torch'
 require 'xlua'
@@ -15,11 +15,11 @@ require 'fbcunn.Optim'
 local th = require('lua_th')
 
 -- argument
-local opts = paths.dofile('opts.lua')
+local opts = require('opts')
 opt = opts.parse(arg, 'train')
 
 -- network
-local model, loss, nEpo, nEpoSv, batchSiz, bufSiz, sampleSiz, optStat, parEpo = require(opt.network)
+local model, loss, nEpo, nEpoSv, batchSiz, bufSiz, sampleSiz, optStat, parEpo = dofile(opt.CONF.protTr)
 
 -- data loader
 local data = require('data_load')
@@ -31,7 +31,7 @@ local confusion = optim.ConfusionMatrix(opt.DATA.cNms)
 local modelSv
 if #opt.gpus > 1 then
   model:syncParameters()
-  modelSv = model.modules[1]:clone('weight','bias','running_mean','running_std')
+  modelSv = model.modules[1]:clone('weight', 'bias', 'running_mean', 'running_std')
 else
   modelSv = model:clone('weight', 'bias', 'running_mean', 'running_std')
 end
@@ -182,6 +182,6 @@ for epoch = 1, nEpo do
 
   -- save
   if epoch % nEpoSv == 0 then
-    torch.save(opt.modPath .. '_' .. epoch .. '.t7', modelSv)
+    torch.save(opt.CONF.modPath .. '_' .. epoch .. '.t7', modelSv)
   end
 end

@@ -1,9 +1,9 @@
 #!/usr/bin/env th
--- Train using Torch.
+-- Demo using Torch.
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-13-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-14-2015
 
 require 'torch'
 require 'xlua'

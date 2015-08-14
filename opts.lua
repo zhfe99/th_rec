@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-09-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-13-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-14-2015
 
 local lib = require('lua_lib')
 
@@ -34,22 +34,16 @@ function M.parse(arg, mode)
   local con = opt.con
 
   -- data
-  local dat = ThDat(opt.dbe, opt.ver)
-  opt.PATH = dat.PATH
-  opt.DATA = dat.DATA
+  local th_lst = require('lua_th.th_lst')
+  opt.PATH = th_lst.dbeInfoPath(dbe, ver)
+  opt.DATA = th_lst.dbeInfoData(opt.PATH)
+  opt.CONF = th_lst.dbeInfoConf(opt.PATH, con)
 
   -- folder
   opt.network = string.format('./model/%s_%s_%s', dbe, ver, con)
 
   -- log
-  os.execute('mkdir -p ' .. opt.PATH.logFold)
-  local logPath = string.format('%s/%s_%s_%s_%s.log', opt.PATH.logFold, dbe, ver, con, mode)
-  cmd:log(logPath)
-
-  -- output
-  opt.modFold = string.format('%s/model', opt.saveFold)
-  os.execute('mkdir -p ' .. opt.modFold)
-  opt.modPath = string.format('%s/%s_%s_%s', opt.modFold, dbe, ver, con)
+  cmd:log(opt.CONF.logPath)
 
   -- cuda
   opt.gpus = lib.str2idx(opt.gpu)

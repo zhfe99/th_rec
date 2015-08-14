@@ -39,7 +39,7 @@ for i, ln in ipairs(imgNms) do
 
   -- img
   local imgPath = imgFold .. '/' .. imgNm
-  img = lib.imgLoad(imgPath)
+  local img = lib.imgLoad(imgPath)
 
   -- scale
   local sizMa = 256
