@@ -7,6 +7,8 @@
 
 require 'cudnn'
 require 'cunn'
+require 'fbcunn.AbstractParallel'
+require 'fbcunn.DataParallel'
 local w_init = require('lua_th.w_init')
 local SpatialConvolution = cudnn.SpatialConvolution
 local SpatialMaxPooling = cudnn.SpatialMaxPooling
@@ -82,16 +84,23 @@ function alex.new(nC, gpus, isBn, iniAlg)
   model.modules[2] = w_init.w_init(model.modules[2], iniAlg)
 
   -- multi-gpu
-  if #gpus > 1 then
-    require 'fbcunn_files.AbstractParallel'
-    require 'fbcunn_files.DataParallel'
+  -- if #gpus > 1 then
+  --   local model_single = model
+  --   model = nn.DataParallel(1)
 
+  --   for i, gpu in ipairs(gpus) do
+  --     cutorch.withDevice(gpu + 1, function() model:add(model_single:clone(), gpu + 1) end)
+  --   end
+  -- end
+  if #gpus > 1 then
     local model_single = model
-    model = nn.DataParallel(1)
+    model = nn.DataParallelTable(1)
 
     for i, gpu in ipairs(gpus) do
-      cutorch.withDevice(gpu + 1, function() model:add(model_single:clone(), gpu + 1) end)
+      cutorch.setDevice(gpu + 1)
+      model:add(model_single:clone():cuda(), gpu + 1)
     end
+    cutorch.setDevice(gpus[1] + 1)
   end
 
   return model
@@ -178,9 +187,6 @@ function alex.newStnTrun(nC, nGpu, isBn, iniAlg)
   model.modules[2] = w_init(model.modules[2], iniAlg)
 
   if nGpu > 1 then
-    require 'fbcunn_files.AbstractParallel'
-    require 'fbcunn_files.DataParallel'
-
     local model_single = model
     model = nn.DataParallel(1)
     for i = 1, nGpu do
@@ -203,7 +209,7 @@ end
 -- Output
 --   model  -  model
 function alex.newStn(nC, nGpu, isBn, iniAlg)
-  local stn = require 'Models.stnet'
+  local stn = require 'model.stnet'
 
   model = nn.Sequential()
   model:add(stn.new('alex', nC, nGpu, isBn, iniAlg, 224))

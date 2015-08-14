@@ -11,7 +11,7 @@ require 'optim'
 require 'pl'
 require 'eladtools'
 require 'trepl'
-paths.dofile('fbcunn_files/Optim.lua')
+-- paths.dofile('fbcunn_files/Optim.lua')
 local th = require('lua_th')
 local lib = require('lua_lib')
 
@@ -26,7 +26,7 @@ PATH = dat.PATH
 -- network
 local model, loss, nEpo, nEpoSv, batchSiz, bufSiz, sampleSiz, optStat, parEpo = require(opt.network)
 
-local modPath = opt.modPath .. '_' .. 80 .. '.t7'
+local modPath = opt.modPath .. '_' .. 1 .. '.t7'
 local model1 = torch.load(modPath)
 
 -- img

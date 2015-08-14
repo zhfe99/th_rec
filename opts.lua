@@ -17,7 +17,7 @@ function M.parse(arg, mode)
   cmd:text()
   cmd:text('Options:')
   cmd:addTime()
-  cmd:option('-seed',    2, 'manually set RNG seed')
+  cmd:option('-seed', 2, 'manually set RNG seed')
   cmd:option('-dbe', 'car', 'database name')
   cmd:option('-ver', 'v1c', 'version')
   cmd:option('-con', 'alex', 'configuration')
@@ -33,17 +33,18 @@ function M.parse(arg, mode)
   local ver = opt.ver
   local con = opt.con
 
+  -- data
+  local dat = ThDat(opt.dbe, opt.ver)
+  opt.PATH = dat.PATH
+  opt.DATA = dat.DATA
+
   -- folder
-  opt.network = string.format('./Models/%s_%s_%s', dbe, ver, con)
-  opt.conf = string.format('./Models/%s_%s_conf', dbe, ver)
-  opt.saveFold = string.format('./save/%s/torch', dbe)
-  opt.dataPath = string.format('data_%s_%s', dbe, ver)
+  opt.network = string.format('./model/%s_%s_%s', dbe, ver, con)
 
   -- log
-  opt.logFold = string.format('%s/log', opt.saveFold)
-  os.execute('mkdir -p ' .. opt.logFold)
-  opt.logPath = string.format('%s/%s_%s_%s_%s.log', opt.logFold, dbe, ver, con, mode)
-  cmd:log(opt.logPath)
+  os.execute('mkdir -p ' .. opt.PATH.logFold)
+  local logPath = string.format('%s/%s_%s_%s_%s.log', opt.PATH.logFold, dbe, ver, con, mode)
+  cmd:log(logPath)
 
   -- output
   opt.modFold = string.format('%s/model', opt.saveFold)

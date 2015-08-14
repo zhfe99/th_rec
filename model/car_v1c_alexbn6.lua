@@ -1,4 +1,4 @@
-local alex = require 'Models.alex'
+local alex = require 'model.alex'
 
 local nC = 196
 

@@ -11,16 +11,12 @@ require 'optim'
 require 'pl'
 require 'eladtools'
 require 'trepl'
-paths.dofile('fbcunn_files/Optim.lua')
+require 'fbcunn.Optim'
 local th = require('lua_th')
 
 -- argument
 local opts = paths.dofile('opts.lua')
 opt = opts.parse(arg, 'train')
-
--- data
-local dat = ThDat(opt.dbe, opt.ver)
-PATH = dat.PATH
 
 -- network
 local model, loss, nEpo, nEpoSv, batchSiz, bufSiz, sampleSiz, optStat, parEpo = require(opt.network)
@@ -29,10 +25,16 @@ local model, loss, nEpo, nEpoSv, batchSiz, bufSiz, sampleSiz, optStat, parEpo = 
 local data = require('data_load')
 
 -- confusion
-local confusion = optim.ConfusionMatrix(dat.DATA.cNms)
+local confusion = optim.ConfusionMatrix(opt.DATA.cNms)
 
 -- save model
-local savedModel = model:clone('weight', 'bias', 'running_mean', 'running_std')
+local modelSv
+if #opt.gpus > 1 then
+  model:syncParameters()
+  modelSv = model.modules[1]:clone('weight','bias','running_mean','running_std')
+else
+  modelSv = model:clone('weight', 'bias', 'running_mean', 'running_std')
+end
 
 -- init optimization
 local optimator = nn.Optim(model, optStat)
@@ -132,6 +134,10 @@ local function Forward(DB, train, epoch)
     -- each minibatch / buffer
     while MiniBatch:GetNextBatch() do
       if train then
+        if #opt.gpus > 1 then
+          model:zeroGradParameters()
+          model:syncParameters()
+        end
         currLoss, y = optimator:optimize(optim.sgd, x, yt, loss)
       else
         y = model:forward(x)
@@ -176,6 +182,6 @@ for epoch = 1, nEpo do
 
   -- save
   if epoch % nEpoSv == 0 then
-    torch.save(opt.modPath .. '_' .. epoch .. '.t7', savedModel)
+    torch.save(opt.modPath .. '_' .. epoch .. '.t7', modelSv)
   end
 end

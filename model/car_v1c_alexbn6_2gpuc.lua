@@ -1,11 +1,11 @@
-local alex = require 'Models.alex'
+local alex = require 'model.alex'
 
 local nC = 196
 
 -- k20
 local batchSiz = 128
 if #opt.gpus > 1 then
-  batchSiz = 256
+  batchSiz = 128
 end
 
 -- k40
@@ -19,12 +19,12 @@ local model = alex.new(nC, opt.gpus, true, 'xavier_caffe')
 
 local loss = nn.ClassNLLCriterion()
 
-model:cuda()
+-- model:cuda()
 loss:cuda()
 
 local nEpo = 120
 
-local nEpoSv = 40
+local nEpoSv = 1
 
 local lrs = {
   {  1,   40, 1e-2, 5e-4},
