@@ -3,15 +3,13 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-04-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-13-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-15-2015
 
 require 'cudnn'
 require 'cunn'
-require 'fbcunn.AbstractParallel'
-require 'fbcunn.DataParallel'
+-- require 'fbcunn.AbstractParallel'
+-- require 'fbcunn.DataParallel'
 local w_init = require('lua_th.w_init')
-local SpatialConvolution = cudnn.SpatialConvolution
-local SpatialMaxPooling = cudnn.SpatialMaxPooling
 local alex = {}
 
 ----------------------------------------------------------------------
@@ -28,34 +26,34 @@ local alex = {}
 function alex.new(nC, gpus, isBn, iniAlg)
   -- convolution
   local features = nn.Sequential()
-  features:add(SpatialConvolution(3,96,11,11,4,4,2,2))       -- 224 -> 55
+  features:add(cudnn.SpatialConvolution(3,96,11,11,4,4,2,2))       -- 224 -> 55
   if isBn then
     features:add(nn.SpatialBatchNormalization(96, 1e-3))
   end
   features:add(cudnn.ReLU(true))
-  features:add(SpatialMaxPooling(3,3,2,2))                   -- 55 ->  27
-  features:add(SpatialConvolution(96,256,5,5,1,1,2,2))       -- 27 -> 27
+  features:add(cudnn.SpatialMaxPooling(3,3,2,2))                   -- 55 ->  27
+  features:add(cudnn.SpatialConvolution(96,256,5,5,1,1,2,2))       -- 27 -> 27
   if isBn then
     features:add(nn.SpatialBatchNormalization(256, 1e-3))
   end
   features:add(cudnn.ReLU(true))
-  features:add(SpatialMaxPooling(3,3,2,2))                   -- 27 ->  13
-  features:add(SpatialConvolution(256,384,3,3,1,1,1,1))      -- 13 ->  13
+  features:add(cudnn.SpatialMaxPooling(3,3,2,2))                   -- 27 ->  13
+  features:add(cudnn.SpatialConvolution(256,384,3,3,1,1,1,1))      -- 13 ->  13
   if isBn then
     features:add(nn.SpatialBatchNormalization(384, 1e-3))
   end
   features:add(cudnn.ReLU(true))
-  features:add(SpatialConvolution(384,256,3,3,1,1,1,1))      -- 13 ->  13
+  features:add(cudnn.SpatialConvolution(384,256,3,3,1,1,1,1))      -- 13 ->  13
   if isBn then
     features:add(nn.SpatialBatchNormalization(256, 1e-3))
   end
   features:add(cudnn.ReLU(true))
-  features:add(SpatialConvolution(256,256,3,3,1,1,1,1))      -- 13 ->  13
+  features:add(cudnn.SpatialConvolution(256,256,3,3,1,1,1,1))      -- 13 ->  13
   if isBn then
     features:add(nn.SpatialBatchNormalization(256, 1e-3))
   end
   features:add(cudnn.ReLU(true))
-  features:add(SpatialMaxPooling(3,3,2,2))                   -- 13 -> 6
+  features:add(cudnn.SpatialMaxPooling(3,3,2,2))                   -- 13 -> 6
 
   -- fully-connected
   local classifier = nn.Sequential()
@@ -83,7 +81,7 @@ function alex.new(nC, gpus, isBn, iniAlg)
   model.modules[1] = w_init.w_init(model.modules[1], iniAlg)
   model.modules[2] = w_init.w_init(model.modules[2], iniAlg)
 
-  -- multi-gpu
+  -- old multi-gpu
   -- if #gpus > 1 then
   --   local model_single = model
   --   model = nn.DataParallel(1)
@@ -92,6 +90,8 @@ function alex.new(nC, gpus, isBn, iniAlg)
   --     cutorch.withDevice(gpu + 1, function() model:add(model_single:clone(), gpu + 1) end)
   --   end
   -- end
+
+  -- multi-gpu
   if #gpus > 1 then
     local model_single = model
     model = nn.DataParallelTable(1)
@@ -139,34 +139,34 @@ end
 function alex.newStnTrun(nC, nGpu, isBn, iniAlg)
   -- convolution
   local features = nn.Sequential()
-  features:add(SpatialConvolution(3,96,11,11,4,4,2,2))       -- 224 -> 55
+  features:add(cudnn.SpatialConvolution(3,96,11,11,4,4,2,2))       -- 224 -> 55
   if isBn then
     features:add(nn.SpatialBatchNormalization(96, 1e-3))
   end
   features:add(cudnn.ReLU(true))
-  features:add(SpatialMaxPooling(3,3,2,2))                   -- 55 ->  27
-  features:add(SpatialConvolution(96,256,5,5,1,1,2,2))       --  27 -> 27
+  features:add(cudnn.SpatialMaxPooling(3,3,2,2))                   -- 55 ->  27
+  features:add(cudnn.SpatialConvolution(96,256,5,5,1,1,2,2))       --  27 -> 27
   if isBn then
     features:add(nn.SpatialBatchNormalization(256, 1e-3))
   end
   features:add(cudnn.ReLU(true))
-  features:add(SpatialMaxPooling(3,3,2,2))                   --  27 ->  13
-  features:add(SpatialConvolution(256,384,3,3,1,1,1,1))      --  13 ->  13
+  features:add(cudnn.SpatialMaxPooling(3,3,2,2))                   --  27 ->  13
+  features:add(cudnn.SpatialConvolution(256,384,3,3,1,1,1,1))      --  13 ->  13
   if isBn then
     features:add(nn.SpatialBatchNormalization(384, 1e-3))
   end
   features:add(cudnn.ReLU(true))
-  features:add(SpatialConvolution(384,256,3,3,1,1,1,1))      --  13 ->  13
+  features:add(cudnn.SpatialConvolution(384,256,3,3,1,1,1,1))      --  13 ->  13
   if isBn then
     features:add(nn.SpatialBatchNormalization(256, 1e-3))
   end
   features:add(cudnn.ReLU(true))
-  features:add(SpatialConvolution(256,256,3,3,1,1,1,1))      --  13 ->  13
+  features:add(cudnn.SpatialConvolution(256,256,3,3,1,1,1,1))      --  13 ->  13
   if isBn then
     features:add(nn.SpatialBatchNormalization(256, 1e-3))
   end
   features:add(cudnn.ReLU(true))
-  features:add(SpatialMaxPooling(3,3,2,2))                   -- 13 -> 6
+  features:add(cudnn.SpatialMaxPooling(3,3,2,2))                   -- 13 -> 6
 
   -- fully-connected
   local classifier = nn.Sequential()

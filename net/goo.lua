@@ -3,20 +3,19 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-05-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-11-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-15-2015
 
 require 'nn'
 require 'cudnn'
 local w_init = require('lua_th.w_init')
-
 local goo = {}
 
 ----------------------------------------------------------------------
--- Inception component.
+-- Create the inception component.
 --
 -- Input
---   input_size
---   config
+--   input_size  -  input size
+--   config      -  configuration
 --   isBn        -  flag of using BN, true | false
 --   iniAlg      -  init method
 local function inception(input_size, config, isBn, iniAlg)
@@ -28,7 +27,7 @@ local function inception(input_size, config, isBn, iniAlg)
       conv1:add(nn.SpatialBatchNormalization(config[1][1], 1e-3))
     end
     conv1:add(cudnn.ReLU(true))
-    conv1 = w_init(conv1, iniAlg)
+    conv1 = w_init.w_init(conv1, iniAlg)
     concat:add(conv1)
   end
 
@@ -43,7 +42,7 @@ local function inception(input_size, config, isBn, iniAlg)
     conv3:add(nn.SpatialBatchNormalization(config[2][2], 1e-3))
   end
   conv3:add(cudnn.ReLU(true))
-  conv3 = w_init(conv3, iniAlg)
+  conv3 = w_init.w_init(conv3, iniAlg)
   concat:add(conv3)
 
   local conv3xx = nn.Sequential()
@@ -62,7 +61,7 @@ local function inception(input_size, config, isBn, iniAlg)
     conv3xx:add(nn.SpatialBatchNormalization(config[3][2], 1e-3))
   end
   conv3xx:add(cudnn.ReLU(true))
-  conv3xx = w_init(conv3xx, iniAlg)
+  conv3xx = w_init.w_init(conv3xx, iniAlg)
   concat:add(conv3xx)
 
   local pool = nn.Sequential()
@@ -81,7 +80,7 @@ local function inception(input_size, config, isBn, iniAlg)
     end
     pool:add(cudnn.ReLU(true))
   end
-  pool = w_init(pool, iniAlg)
+  pool = w_init.w_init(pool, iniAlg)
   concat:add(pool)
 
   return concat
@@ -98,7 +97,7 @@ end
 --
 -- Output
 --   model  -  model
-function goo.new(nC, nGpu, isBn, iniAlg)
+function goo.new(nC, gpus, isBn, iniAlg)
   local features = nn.Sequential()
   features:add(cudnn.SpatialConvolution(3,64,7,7,2,2,3,3))
   if isBn then
@@ -128,7 +127,7 @@ function goo.new(nC, nGpu, isBn, iniAlg)
   features:add(inception(576, {{192},{ 96,128},{ 96,128},{'avg',128}}, isBn, iniAlg)) -- 4(b)
   features:add(inception(576, {{160},{128,160},{128,160},{'avg', 96}}, isBn, iniAlg)) -- 4(c)
   features:add(inception(576, {{ 96},{128,192},{160,192},{'avg', 96}}, isBn, iniAlg)) -- 4(d)
-  features = w_init(features, iniAlg)
+  features = w_init.w_init(features, iniAlg)
 
   local main_branch = nn.Sequential()
   main_branch:add(inception(576, {{  0},{128,192},{192,256},{'max', 0}}, isBn, iniAlg)) -- 4(e)
@@ -142,7 +141,7 @@ function goo.new(nC, nGpu, isBn, iniAlg)
   main_branch:add(nn.View(1024):setNumInputDims(3))
   main_branch:add(nn.Linear(1024, nC))
   main_branch:add(nn.LogSoftMax())
-  main_branch = w_init(main_branch, iniAlg)
+  main_branch = w_init.w_init(main_branch, iniAlg)
 
   -- add auxillary classifier here (thanks to Christian Szegedy for the details)
   -- local aux_classifier = nn.Sequential()
@@ -159,15 +158,28 @@ function goo.new(nC, nGpu, isBn, iniAlg)
   -- local model = nn.Sequential():add(features):add(splitter)
   local model = nn.Sequential():add(features):add(main_branch)
 
-  if nGpu > 1 then
-    require 'fbcunn_files.AbstractParallel'
-    require 'fbcunn_files.DataParallel'
+  -- old multi-gpu
+  -- if nGpu > 1 then
+  --   require 'fbcunn_files.AbstractParallel'
+  --   require 'fbcunn_files.DataParallel'
 
+  --   local model_single = model
+  --   model = nn.DataParallel(1)
+  --   for i = 1, nGpu do
+  --     cutorch.withDevice(i, function() model:add(model_single:clone()) end)
+  --   end
+  -- end
+
+  -- multi-gpu
+  if #gpus > 1 then
     local model_single = model
-    model = nn.DataParallel(1)
-    for i = 1, nGpu do
-      cutorch.withDevice(i, function() model:add(model_single:clone()) end)
+    model = nn.DataParallelTable(1)
+
+    for i, gpu in ipairs(gpus) do
+      cutorch.setDevice(gpu + 1)
+      model:add(model_single:clone():cuda(), gpu + 1)
     end
+    cutorch.setDevice(gpus[1] + 1)
   end
 
   return model
