@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-14-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-15-2015
 
 require 'torch'
 require 'xlua'
@@ -19,10 +19,11 @@ local opts = require('opts')
 opt = opts.parse(arg, 'train')
 
 -- network
-local model, loss, nEpo, nEpoSv, batchSiz, bufSiz, sampleSiz, optStat, parEpo = dofile(opt.CONF.protTr)
+local model, loss, solConf, optStat = dofile(opt.CONF.protTr)
+rawset(_G, 'solConf', solConf)
 
 -- data loader
-local data = require('data_load')
+local data_load = require('data_load')
 
 -- confusion
 local confusion = optim.ConfusionMatrix(opt.DATA.cNms)
@@ -40,6 +41,19 @@ end
 local optimator = nn.Optim(model, optStat)
 
 ----------------------------------------------------------------------
+-- Get the parameters for each epoch.
+--
+-- Input
+--   epoch  -  epoch id
+local function parEpo(epoch, lrs)
+  for _, row in ipairs(lrs) do
+    if epoch >= row[1] and epoch <= row[2] then
+      return {learningRate=row[3], weightDecay=row[4]}, epoch == row[1]
+    end
+  end
+end
+
+----------------------------------------------------------------------
 -- Update for one epoch.
 --
 -- Input
@@ -51,7 +65,7 @@ local function Forward(DB, train, epoch)
 
   -- adjust optimizer
   if train then
-    local params, newRegime = parEpo(epoch)
+    local params, newRegime = parEpo(epoch, solConf.lrs)
     optimator:setParameters(params)
 
     -- zero the momentum vector by throwing away previous state.
@@ -62,6 +76,8 @@ local function Forward(DB, train, epoch)
 
   -- dimension
   local nImg = DB:size()
+  local batchSiz = solConf.batchSiz
+  local bufSiz = solConf.bufSiz
 
   -- TODO: fix this for testing
   nImg = math.floor(nImg / batchSiz) * batchSiz
@@ -94,7 +110,7 @@ local function Forward(DB, train, epoch)
     bufSizi = math.floor(bufSizi / batchSiz) * batchSiz
 
     -- copy from LMDB provider
-    bufSrcs[iBufSrc].Data:resize(bufSizi, unpack(sampleSiz))
+    bufSrcs[iBufSrc].Data:resize(bufSizi, unpack(solConf.smpSiz))
     bufSrcs[iBufSrc].Labels:resize(bufSizi)
     local key = string.format('%07d', bufSts[iBuf])
     DB:AsyncCacheSeq(key, bufSizi, bufSrcs[iBufSrc].Data, bufSrcs[iBufSrc].Labels)
@@ -106,7 +122,7 @@ local function Forward(DB, train, epoch)
     Name = 'minibatch',
     MaxNumItems = batchSiz,
     Source = bufSrcs[iBufSrc],
-    ExtractFunction = ExtractSampleFunc,
+    ExtractFunction = data_load.ExtractSampleFunc,
     TensorType = 'torch.CudaTensor'
   }
 
@@ -142,6 +158,12 @@ local function Forward(DB, train, epoch)
       else
         y = model:forward(x)
         currLoss = loss:forward(y, yt)
+
+        -- local lib = require('lua_lib')
+        -- lib.imgSave('tmp3.jpg', x[1])
+        -- local debugger = require('fb.debugger')
+        -- debugger.enter()
+
       end
       loss_val = currLoss + loss_val
 
@@ -162,26 +184,32 @@ local function Forward(DB, train, epoch)
 end
 
 -- create threads for dataloader
-data.TrainDB:Threads()
-data.ValDB:Threads()
+local trDB = data_load.newTrainDB()
+trDB:Threads()
+local teDB = data_load.newTestDB()
+teDB:Threads()
+-- data.TrainDB:Threads()
+-- data.ValDB:Threads()
 
 -- each epoch
-for epoch = 1, nEpo do
+for epoch = 1, solConf.nEpo do
   -- train
   model:training()
-  local trLoss = Forward(data.TrainDB, true, epoch)
+  -- local trLoss = Forward(data.TrainDB, true, epoch)
+  local trLoss = Forward(trDB, true, epoch)
   confusion:updateValids()
-  print(string.format('epoch %d/%d, lr %f, wd %f', epoch, nEpo, optimator.originalOptState.learningRate, optimator.originalOptState.weightDecay))
+  print(string.format('epoch %d/%d, lr %f, wd %f', epoch, solConf.nEpo, optimator.originalOptState.learningRate, optimator.originalOptState.weightDecay))
   print(string.format('tr, loss %f, acc %f', trLoss, confusion.totalValid))
+
+  -- save
+  if epoch % solConf.nEpoSv == 0 then
+    torch.save(opt.CONF.modPath .. '_' .. epoch .. '.t7', modelSv)
+  end
 
   -- test
   model:evaluate()
-  local teLoss = Forward(data.ValDB, false, epoch)
+  -- local teLoss = Forward(data.ValDB, false, epoch)
+  local teLoss = Forward(teDB, false, epoch)
   confusion:updateValids()
   print(string.format('te, loss %f, acc %f', teLoss, confusion.totalValid))
-
-  -- save
-  if epoch % nEpoSv == 0 then
-    torch.save(opt.CONF.modPath .. '_' .. epoch .. '.t7', modelSv)
-  end
 end

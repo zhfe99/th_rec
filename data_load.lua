@@ -1,22 +1,47 @@
+#!/usr/bin/env th
+-- Data loader.
+--
+-- History
+--   create  -  Feng Zhou (zhfe99@gmail.com), 08-01-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-15-2015
+
 require 'eladtools'
 require 'xlua'
 require 'lmdb'
 
 local Threads = require 'threads'
 local ffi = require 'ffi'
--- local conf = dat
-local InputSize = 224
-local sampleSiz = {3, 224, 224}
-local meanInfo = torch.load(PATH.meanPath)
-local TRAINING_DIR = PATH.trLmdb
-local VALIDATION_DIR = PATH.teLmdb
+local sampleSiz = solConf.smpSiz
+local InputSize = sampleSiz[2]
+local meanInfo = torch.load(opt.PATH.meanPath)
+local TRAINING_DIR = opt.PATH.trLmdb
+local VALIDATION_DIR = opt.PATH.teLmdb
 local DataMean = meanInfo.me
 local DataStd = meanInfo.std
 
-function ExtractSampleFunc(data0, label0)
+local data_load = {}
+
+----------------------------------------------------------------------
+-- Normalize the data by subtracting the mean and dividing the scale.
+--
+-- Input
+--   data  -  b x d x h x w
+function data_load.Normalize(data)
+
+
   -- local debugger = require('fb.debugger')
   -- debugger.enter()
 
+  local data = data:float()
+  for j = 1, 3 do
+    data[{{}, j, {}, {}}]:add(-DataMean[j])
+    data[{{}, j, {}, {}}]:div(DataStd[j])
+  end
+
+  return data
+end
+
+function data_load.ExtractSampleFunc(data0, label0)
   local data = data0
   local label = label0
 
@@ -33,28 +58,20 @@ function ExtractSampleFunc(data0, label0)
     label = torch.IntTensor(b):copy(label0[{{1, b}}])
   end
 
-  return Normalize(data), label
+  return data_load.Normalize(data), label
 end
 
 ----------------------------------------------------------------------
--- Normalize the data by subtracting the mean and dividing the scale.
+-- Extract from LMDB training data.
 --
 -- Input
---   data  -  b x d x h x w
-function Normalize(data)
-  -- local debugger = require('fb.debugger')
-  -- debugger.enter()
-
-  data = data:float()
-  for j = 1, 3 do
-    data[{{}, j, {}, {}}]:add(-DataMean[j])
-    data[{{}, j, {}, {}}]:div(DataStd[j])
-  end
-
-  return data
-end
-
-local function ExtractFromLMDBTrain(key, data)
+--   key    -  key
+--   data   -  data
+--
+-- Output
+--   img    -  image
+--   class  -  class
+function data_load.ExtractFromLMDBTrain(key, data)
   local class = data.c
   local img = image.decompressJPG(data.img)
 
@@ -73,9 +90,26 @@ local function ExtractFromLMDBTrain(key, data)
   return img:float(), class
 end
 
-local function ExtractFromLMDBTest(key, data)
+----------------------------------------------------------------------
+-- Extract from LMDB testing data.
+--
+-- Input
+--   key    -  key
+--   data   -  data
+--
+-- Output
+--   img    -  image
+--   class  -  class
+function data_load.ExtractFromLMDBTest(key, data)
   local class = data.c
+
+  -- decompress
   local img = image.decompressJPG(data.img)
+
+  -- local lib = require 'lua_lib'
+  -- lib.imgSave('tmp1.jpg', img)
+  -- local debugger = require('fb.debugger')
+  -- debugger.enter()
 
   -- crop
   local nDim = img:dim()
@@ -83,24 +117,79 @@ local function ExtractFromLMDBTest(key, data)
   local start_y = math.ceil((img:size(nDim - 1) - InputSize) / 2)
   img = img:narrow(nDim, start_x, InputSize):narrow(nDim - 1, start_y, InputSize)
 
+  -- lib.imgSave('tmp2.jpg', img)
+  -- local debugger = require('fb.debugger')
+  -- debugger.enter()
+
   return img:float(), class
 end
 
-local TrainDB = eladtools.LMDBProvider {
-  Source = lmdb.env({Path = TRAINING_DIR, RDONLY = true}),
-  SampleSize = sampleSiz,
-  ExtractFunction = ExtractFromLMDBTrain,
-  Name = 'train'
-}
+-- lmdb training
+-- local TrainDB = eladtools.LMDBProvider {
+--   Source = lmdb.env({Path = TRAINING_DIR, RDONLY = true}),
+--   SampleSize = sampleSiz,
+--   ExtractFunction = ExtractFromLMDBTrain,
+--   Name = 'train'
+-- }
 
-local ValDB = eladtools.LMDBProvider {
-  Source = lmdb.env({Path = VALIDATION_DIR, RDONLY = true}),
-  SampleSize = sampleSiz,
-  ExtractFunction = ExtractFromLMDBTest,
-  Name = 'test'
-}
+-- lmdb testing
+-- local ValDB = eladtools.LMDBProvider {
+--   Source = lmdb.env({Path = VALIDATION_DIR, RDONLY = true}),
+--   SampleSize = sampleSiz,
+--   ExtractFunction = ExtractFromLMDBTest,
+--   Name = 'test'
+-- }
 
-return {
-  ValDB = ValDB,
-  TrainDB = TrainDB,
-}
+-- return {ValDB = ValDB, TrainDB = TrainDB}
+
+-- train db
+
+----------------------------------------------------------------------
+-- Create training data-provider.
+--
+-- Output
+--   db  -  data provider
+function data_load.newTrainDB()
+  local db = eladtools.LMDBProvider {
+    Source = lmdb.env({Path = TRAINING_DIR, RDONLY = true}),
+    SampleSize = sampleSiz,
+    ExtractFunction = data_load.ExtractFromLMDBTrain,
+    Name = 'train'
+  }
+
+  return db
+end
+
+----------------------------------------------------------------------
+-- Create testing data-provider.
+--
+-- Output
+--   db  -  data provider
+function data_load.newTestDB()
+  local db = eladtools.LMDBProvider {
+    Source = lmdb.env({Path = VALIDATION_DIR, RDONLY = true}),
+    SampleSize = sampleSiz,
+    ExtractFunction = data_load.ExtractFromLMDBTest,
+    Name = 'test'
+  }
+
+  return db
+end
+
+----------------------------------------------------------------------
+-- Initialize data-loader.
+--
+-- Input
+--   opt      -  option
+--   solConf  -  solver configuration
+function data_load.init(opt, solConf)
+  local sampleSiz = solConf.smpSiz
+  local InputSize = sampleSiz[2]
+  local meanInfo = torch.load(opt.PATH.meanPath)
+  local TRAINING_DIR = opt.PATH.trLmdb
+  local VALIDATION_DIR = opt.PATH.teLmdb
+  local DataMean = meanInfo.me
+  local DataStd = meanInfo.std
+end
+
+return data_load
