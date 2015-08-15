@@ -15,7 +15,7 @@ Example
 
 History
   create  -  Feng Zhou (zhfe99@gmail.com), 08-05-2015
-  modify  -  Feng Zhou (zhfe99@gmail.com), 08-12-2015
+  modify  -  Feng Zhou (zhfe99@gmail.com), 08-15-2015
 """
 import argparse
 import numpy as np
@@ -165,7 +165,7 @@ if __name__ == '__main__':
         # log path
         logNms[i] = '{}_{}_{}.log'.format(dbes[i], vers[i], cons[i])
         logFold = os.path.join(os.environ['HOME'], 'save/{}/torch/log'.format(dbes[i]))
-        logPaths[i] = os.path.join(logFold, logNms[i])
+        logPaths[i] = os.path.join(logFold, logNms[i] + '_train')
 
         # parse
         trLrs[i], _, trLosss[i], trAccss[i], trTiss[i], teLosss[i], teAccss[i], teTiss[i] = th.logParse(logPaths[i])
