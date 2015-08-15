@@ -27,11 +27,6 @@ local data_load = {}
 -- Input
 --   data  -  b x d x h x w
 function data_load.Normalize(data)
-
-
-  -- local debugger = require('fb.debugger')
-  -- debugger.enter()
-
   local data = data:float()
   for j = 1, 3 do
     data[{{}, j, {}, {}}]:add(-DataMean[j])
@@ -106,43 +101,14 @@ function data_load.ExtractFromLMDBTest(key, data)
   -- decompress
   local img = image.decompressJPG(data.img)
 
-  -- local lib = require 'lua_lib'
-  -- lib.imgSave('tmp1.jpg', img)
-  -- local debugger = require('fb.debugger')
-  -- debugger.enter()
-
   -- crop
   local nDim = img:dim()
   local start_x = math.ceil((img:size(nDim) - InputSize) / 2)
   local start_y = math.ceil((img:size(nDim - 1) - InputSize) / 2)
   img = img:narrow(nDim, start_x, InputSize):narrow(nDim - 1, start_y, InputSize)
 
-  -- lib.imgSave('tmp2.jpg', img)
-  -- local debugger = require('fb.debugger')
-  -- debugger.enter()
-
   return img:float(), class
 end
-
--- lmdb training
--- local TrainDB = eladtools.LMDBProvider {
---   Source = lmdb.env({Path = TRAINING_DIR, RDONLY = true}),
---   SampleSize = sampleSiz,
---   ExtractFunction = ExtractFromLMDBTrain,
---   Name = 'train'
--- }
-
--- lmdb testing
--- local ValDB = eladtools.LMDBProvider {
---   Source = lmdb.env({Path = VALIDATION_DIR, RDONLY = true}),
---   SampleSize = sampleSiz,
---   ExtractFunction = ExtractFromLMDBTest,
---   Name = 'test'
--- }
-
--- return {ValDB = ValDB, TrainDB = TrainDB}
-
--- train db
 
 ----------------------------------------------------------------------
 -- Create training data-provider.

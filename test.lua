@@ -37,34 +37,20 @@ model:evaluate()
 -- each image
 local ha = lib.lmdbRIn(dat.PATH.teLmdb)
 local co = 0
+lib.prCIn('img', ha.n, .1)
 for iImg = 1, ha.n do
+  lib.prC(iImg)
   -- read one
   local key, val = lib.lmdbR(ha)
 
   -- extract img
   local img, c = data_load.ExtractFromLMDBTest(key, val)
-  -- lib.imgSave('tmp3aa.jpg', img)
-  -- local debugger = require('fb.debugger')
-  -- debugger.enter()
-
-  -- img = img:resize(1, unpack(solConf.smpSiz))
   local img2 = torch.Tensor(1, unpack(solConf.smpSiz))
   img2[1] = img
-  -- lib.imgSave('tmp3b.jpg', img2[1])
-
-  -- img = img:contiguous()
-  -- img = img:resize(1, 3, 224, 224)
-  -- lib.imgSave('tmp3a.jpg', img[1])
-
-  -- local debugger = require('fb.debugger')
-  -- debugger.enter()
 
   -- normalize
   img = data_load.Normalize(img2)
   img = img:type('torch.CudaTensor')
-  lib.imgSave('tmp3.jpg', img[1])
-  local debugger = require('fb.debugger')
-  debugger.enter()
 
   -- classify
   local y = model:forward(img)
@@ -75,11 +61,9 @@ for iImg = 1, ha.n do
   if b[1][1] == c then
     co = co + 1
   end
-
-  local debugger = require('fb.debugger')
-  debugger.enter()
-
-
-  print(string.format('%d/%d', co, iImg))
 end
+lib.prCOut(ha.n)
+
+print(string.format('%d/%d', co, ha.n))
+
 lib.lmdbROut(ha)

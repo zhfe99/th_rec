@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-09-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-14-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-15-2015
 
 local lib = require('lua_lib')
 
@@ -43,7 +43,7 @@ function M.parse(arg, mode)
   opt.network = string.format('./model/%s_%s_%s', dbe, ver, con)
 
   -- log
-  cmd:log(opt.CONF.logPath)
+  cmd:log(opt.CONF.logPath .. '_' .. mode)
 
   -- cuda
   opt.gpus = lib.str2idx(opt.gpu)

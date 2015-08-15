@@ -158,12 +158,6 @@ local function Forward(DB, train, epoch)
       else
         y = model:forward(x)
         currLoss = loss:forward(y, yt)
-
-        -- local lib = require('lua_lib')
-        -- lib.imgSave('tmp3.jpg', x[1])
-        -- local debugger = require('fb.debugger')
-        -- debugger.enter()
-
       end
       loss_val = currLoss + loss_val
 
@@ -188,14 +182,11 @@ local trDB = data_load.newTrainDB()
 trDB:Threads()
 local teDB = data_load.newTestDB()
 teDB:Threads()
--- data.TrainDB:Threads()
--- data.ValDB:Threads()
 
 -- each epoch
 for epoch = 1, solConf.nEpo do
   -- train
   model:training()
-  -- local trLoss = Forward(data.TrainDB, true, epoch)
   local trLoss = Forward(trDB, true, epoch)
   confusion:updateValids()
   print(string.format('epoch %d/%d, lr %f, wd %f', epoch, solConf.nEpo, optimator.originalOptState.learningRate, optimator.originalOptState.weightDecay))
@@ -208,7 +199,6 @@ for epoch = 1, solConf.nEpo do
 
   -- test
   model:evaluate()
-  -- local teLoss = Forward(data.ValDB, false, epoch)
   local teLoss = Forward(teDB, false, epoch)
   confusion:updateValids()
   print(string.format('te, loss %f, acc %f', teLoss, confusion.totalValid))
