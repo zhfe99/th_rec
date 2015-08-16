@@ -28,7 +28,7 @@ local data_load = require('data_load')
 -- confusion
 local confusion = optim.ConfusionMatrix(opt.DATA.cNms)
 
--- save model
+-- save model (TODO: move to w_init)
 local modelSv
 if #opt.gpus > 1 then
   model:syncParameters()

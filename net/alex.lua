@@ -7,8 +7,6 @@
 
 require 'cudnn'
 require 'cunn'
--- require 'fbcunn.AbstractParallel'
--- require 'fbcunn.DataParallel'
 local w_init = require('lua_th.w_init')
 local alex = {}
 
@@ -110,7 +108,14 @@ end
 -- Create alexnet model for fine-tuning.
 --
 -- Input
---   model  -  original model
+--   model   -  original model (loaded from some .t7 file)
+--   nC      -  #classes
+--   gpus    -  gpu ids, nGpu x
+--   isBn    -  flag of using BN, true | false
+--   iniAlg  -  init method, 'none' | 'xavier_caffe' | 'xavier'
+--
+-- Output
+--   model   -  new model
 function alex.newT(model, nC, gpus, isBn, iniAlg)
   -- remove last fully connected layer
   model.modules[2]:remove(10)
@@ -119,7 +124,7 @@ function alex.newT(model, nC, gpus, isBn, iniAlg)
   model.modules[2]:insert(nn.Linear(4096, nC), 10)
 
   -- init weight
-  w_init.m_init(model.modules[2].modules[10], iniAlg)
+  w_init.w_init(model.modules[2].modules[10], iniAlg)
 
   local debugger = require('fb.debugger')
   debugger.enter()

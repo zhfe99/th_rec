@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-06-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-07-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-15-2015
 
 local stn = {}
 
@@ -33,7 +33,7 @@ function stn.new(locNet, nC, nGpu, isBn, iniAlg, inSiz)
   -- second branch is the localization network
   local locnet;
   if locNet == 'alex' then
-    local alex = require 'Models.alex'
+    local alex = require 'net.alex'
     locnet = alex.newStnTrun(nC, nGpu, isBn, iniAlg)
   end
   -- = nn.Sequential()
