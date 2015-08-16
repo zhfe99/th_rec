@@ -75,7 +75,7 @@ function alex.new(nC, gpus, isBn, iniAlg)
   local model = nn.Sequential()
   model:add(features):add(classifier)
 
-  -- init weigth
+  -- init weight
   model.modules[1] = w_init.w_init(model.modules[1], iniAlg)
   model.modules[2] = w_init.w_init(model.modules[2], iniAlg)
 
@@ -141,39 +141,14 @@ end
 --
 -- Output
 --   model  -  model
-function alex.newStnTrun(nC, nGpu, isBn, iniAlg)
-  -- convolution
-  local features = nn.Sequential()
-  features:add(cudnn.SpatialConvolution(3,96,11,11,4,4,2,2))       -- 224 -> 55
-  if isBn then
-    features:add(nn.SpatialBatchNormalization(96, 1e-3))
-  end
-  features:add(cudnn.ReLU(true))
-  features:add(cudnn.SpatialMaxPooling(3,3,2,2))                   -- 55 ->  27
-  features:add(cudnn.SpatialConvolution(96,256,5,5,1,1,2,2))       --  27 -> 27
-  if isBn then
-    features:add(nn.SpatialBatchNormalization(256, 1e-3))
-  end
-  features:add(cudnn.ReLU(true))
-  features:add(cudnn.SpatialMaxPooling(3,3,2,2))                   --  27 ->  13
-  features:add(cudnn.SpatialConvolution(256,384,3,3,1,1,1,1))      --  13 ->  13
-  if isBn then
-    features:add(nn.SpatialBatchNormalization(384, 1e-3))
-  end
-  features:add(cudnn.ReLU(true))
-  features:add(cudnn.SpatialConvolution(384,256,3,3,1,1,1,1))      --  13 ->  13
-  if isBn then
-    features:add(nn.SpatialBatchNormalization(256, 1e-3))
-  end
-  features:add(cudnn.ReLU(true))
-  features:add(cudnn.SpatialConvolution(256,256,3,3,1,1,1,1))      --  13 ->  13
-  if isBn then
-    features:add(nn.SpatialBatchNormalization(256, 1e-3))
-  end
-  features:add(cudnn.ReLU(true))
-  features:add(cudnn.SpatialMaxPooling(3,3,2,2))                   -- 13 -> 6
+function alex.newStnTrun(nC, gpus, isBn, iniAlg, inSiz)
+  -- original model
+  local model = alex.new(nC, gpus, isBn, iniAlg)
 
-  -- fully-connected
+  -- remove the classifier layer
+  model:remove(2)
+
+  -- add the new classifier layer
   local classifier = nn.Sequential()
   classifier:add(nn.View(256*6*6))
   classifier:add(nn.Dropout(0.5))
@@ -183,21 +158,9 @@ function alex.newStnTrun(nC, nGpu, isBn, iniAlg)
   end
   classifier:add(nn.Threshold(0, 1e-6))
 
-  -- combine
-  local model = nn.Sequential()
-  model:add(features):add(classifier)
-
   -- init
   model.modules[1] = w_init(model.modules[1], iniAlg)
   model.modules[2] = w_init(model.modules[2], iniAlg)
-
-  if nGpu > 1 then
-    local model_single = model
-    model = nn.DataParallel(1)
-    for i = 1, nGpu do
-      cutorch.withDevice(i, function() model:add(model_single:clone()) end)
-    end
-  end
 
   return model
 end
@@ -214,10 +177,10 @@ end
 -- Output
 --   model  -  model
 function alex.newStn(nC, nGpu, isBn, iniAlg)
-  local stn = require 'model.stnet'
-
+  local stn = require 'net.stnet'
+  local locnet = alex.newStnTrun(nC, nGpu, isBn, iniAlg)
   model = nn.Sequential()
-  model:add(stn.new('alex', nC, nGpu, isBn, iniAlg, 224))
+  model:add(stn.new(locnet, nC, nGpu, isBn, iniAlg, 224))
   model:add(alex.new(nC, nGpu, isBn, iniAlg))
 
   return model

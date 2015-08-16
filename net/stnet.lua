@@ -31,11 +31,7 @@ function stn.new(locNet, nC, nGpu, isBn, iniAlg, inSiz)
   tranet:add(nn.Transpose({2, 3}, {3, 4}))
 
   -- second branch is the localization network
-  local locnet;
-  if locNet == 'alex' then
-    local alex = require 'net.alex'
-    locnet = alex.newStnTrun(nC, nGpu, isBn, iniAlg)
-  end
+  local locNet = alex.newStnTrun(nC, nGpu, isBn, iniAlg)
   -- = nn.Sequential()
   -- locnet:add(cudnn.SpatialMaxPooling(2, 2, 2, 2))
   -- locnet:add(cudnn.SpatialConvolution(1, 20, 5, 5))
