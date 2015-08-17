@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-04-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-15-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-17-2015
 
 require 'cudnn'
 require 'cunn'
@@ -124,10 +124,7 @@ function alex.newT(model, nC, gpus, isBn, iniAlg)
   model.modules[2]:insert(nn.Linear(4096, nC), 10)
 
   -- init weight
-  w_init.w_init(model.modules[2].modules[10], iniAlg)
-
-  local debugger = require('fb.debugger')
-  debugger.enter()
+  w_init.init(model.modules[2].modules[10], iniAlg)
 end
 
 ----------------------------------------------------------------------
