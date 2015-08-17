@@ -15,7 +15,7 @@ Example
 
 History
   create  -  Feng Zhou (zhfe99@gmail.com), 08-05-2015
-  modify  -  Feng Zhou (zhfe99@gmail.com), 08-15-2015
+  modify  -  Feng Zhou (zhfe99@gmail.com), 08-17-2015
 """
 import argparse
 import numpy as np
@@ -55,9 +55,9 @@ def shLog(trLrs, trLosss, trAccss, trTi0ss, teLosss, teAccss, teTi0ss):
         ti0 = trTi0ss[i][0]
         trTis, teTis = [], []
         for j in range(trTi0ss[i].shape[0]):
-            trTis.append((trTi0ss[i][j] - ti0).seconds)
+            trTis.append((trTi0ss[i][j] - ti0).total_seconds())
         for j in range(teTi0ss[i].shape[0]):
-            teTis.append((teTi0ss[i][j] - ti0).seconds)
+            teTis.append((teTi0ss[i][j] - ti0).total_seconds())
         trTiss[i] = np.array(trTis)
         teTiss[i] = np.array(teTis)
 
