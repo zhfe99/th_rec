@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-09-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-15-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-17-2015
 
 local lib = require('lua_lib')
 
@@ -27,6 +27,7 @@ function M.parse(arg, mode)
   cmd:option('-gpu', '0', 'gpu id, could be multiple')
   cmd:option('-shuffle', true, 'shuffle training samples')
   cmd:option('-cmp', true, 'compress or not')
+  cmd:option('-local', true, 'using local data')
   opt = cmd:parse(arg or {})
 
   local dbe = opt.dbe

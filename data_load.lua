@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-01-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-15-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-17-2015
 
 require 'eladtools'
 require 'xlua'
@@ -14,8 +14,17 @@ local ffi = require 'ffi'
 local sampleSiz = solConf.smpSiz
 local InputSize = sampleSiz[2]
 local meanInfo = torch.load(opt.PATH.meanPath)
+
 local TRAINING_DIR = opt.PATH.trLmdb
+if paths.dirp(opt.PATH.trLmdb .. '_local') then
+  TRAINING_DIR = opt.PATH.trLmdb .. '_local'
+end
+print(TRAINING_DIR)
 local VALIDATION_DIR = opt.PATH.teLmdb
+if paths.dirp(opt.PATH.teLmdb .. '_local')  then
+  VALIDATION_DIR = opt.PATH.teLmdb .. '_local'
+end
+print(VALIDATION_DIR)
 local DataMean = meanInfo.me
 local DataStd = meanInfo.std
 
@@ -122,7 +131,6 @@ function data_load.newTrainDB()
     ExtractFunction = data_load.ExtractFromLMDBTrain,
     Name = 'train'
   }
-
   return db
 end
 
@@ -138,7 +146,6 @@ function data_load.newTestDB()
     ExtractFunction = data_load.ExtractFromLMDBTest,
     Name = 'test'
   }
-
   return db
 end
 
