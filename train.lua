@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-15-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-17-2015
 
 require 'torch'
 require 'xlua'
@@ -13,13 +13,14 @@ require 'eladtools'
 require 'trepl'
 require 'fbcunn.Optim'
 local th = require('lua_th')
+local lib = require('lua_lib')
 
 -- argument
 local opts = require('opts')
 opt = opts.parse(arg, 'train')
 
 -- network
-local model, loss, solConf, optStat = dofile(opt.CONF.protTr)
+local model, loss, solConf, optStat, modTs = dofile(opt.CONF.protTr)
 rawset(_G, 'solConf', solConf)
 
 -- data loader
@@ -72,6 +73,15 @@ local function Forward(DB, train, epoch)
     if newRegime then
       optimator = nn.Optim(model, optStat)
     end
+
+    -- fine-tune model
+    for _, mod in ipairs(modTs) do
+      optimator.modulesToOptState[mod][1].learningRate = params.learningRate * 10
+      optimator.modulesToOptState[mod][2].learningRate = params.learningRate * 10
+    end
+
+    -- local debugger = require('fb.debugger')
+    -- debugger.enter()
   end
 
   -- dimension
