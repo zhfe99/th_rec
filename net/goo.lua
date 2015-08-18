@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-05-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-15-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-17-2015
 
 require 'nn'
 require 'cudnn'
@@ -32,7 +32,7 @@ local function inception(input_size, config, isBn, iniAlg)
   end
 
   local conv3 = nn.Sequential()
-  conv3:add(cudnn.SpatialConvolution(  input_size, config[2][1],1,1,1,1))
+  conv3:add(cudnn.SpatialConvolution(input_size, config[2][1],1,1,1,1))
   if isBn then
     conv3:add(nn.SpatialBatchNormalization(config[2][1], 1e-3))
   end
@@ -46,7 +46,7 @@ local function inception(input_size, config, isBn, iniAlg)
   concat:add(conv3)
 
   local conv3xx = nn.Sequential()
-  conv3xx:add(cudnn.SpatialConvolution(  input_size, config[3][1],1,1,1,1))
+  conv3xx:add(cudnn.SpatialConvolution(input_size, config[3][1],1,1,1,1))
   if isBn then
     conv3xx:add(nn.SpatialBatchNormalization(config[3][1], 1e-3))
   end
