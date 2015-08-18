@@ -13,20 +13,25 @@ local Threads = require 'threads'
 local ffi = require 'ffi'
 local sampleSiz = solConf.smpSiz
 local InputSize = sampleSiz[2]
-local meanInfo = torch.load(opt.PATH.meanPath)
 
+-- mean
+local meanInfo = torch.load(opt.PATH.meanPath)
+local DataMean = meanInfo.me
+local DataStd = meanInfo.std
+
+-- train
 local TRAINING_DIR = opt.PATH.trLmdb
 if paths.dirp(opt.PATH.trLmdb .. '_local') then
   TRAINING_DIR = opt.PATH.trLmdb .. '_local'
 end
 print(TRAINING_DIR)
+
+-- test
 local VALIDATION_DIR = opt.PATH.teLmdb
 if paths.dirp(opt.PATH.teLmdb .. '_local')  then
   VALIDATION_DIR = opt.PATH.teLmdb .. '_local'
 end
 print(VALIDATION_DIR)
-local DataMean = meanInfo.me
-local DataStd = meanInfo.std
 
 local data_load = {}
 
