@@ -1,9 +1,13 @@
 #!/usr/bin/env th
 -- Train using Torch.
 --
+-- Example
+--   CUDA_VISIBLE_DEVICES=0,1,2,3 th train.lua -dbe imgnet -ver v2 -con alexbn_4gpu -gpu 0,1,2,3
+--   CUDA_VISIBLE_DEVICES=4,5,6,7 th train.lua -dbe imgnet -ver v2 -con alexbn_4gpu -gpu 0,1,2,3
+--
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-18-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-19-2015
 
 require 'torch'
 require 'xlua'
