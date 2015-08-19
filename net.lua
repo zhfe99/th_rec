@@ -58,8 +58,8 @@ function net.newMod(solConf, opt)
   -- init optimization state
   local optStat = {
     learningRate = solConf.lrs[1][3],
+    weightDecay = solConf.lrs[1][4],
     momentum = 0.9,
-    weightDecay = 5e-4,
     learningRateDecay = 0.0,
     dampening = 0.0
   }

@@ -141,7 +141,20 @@ local function Forward(DB, train, epoch)
           model:zeroGradParameters()
           model:syncParameters()
         end
+
         currLoss, y = optimator:optimize(optim.sgd, x, yt, loss)
+
+        local tmpIn0 = model:findModules('nn.Identity')[1].output
+        local tmpIn1 = model:findModules('nn.Transpose')[2].output
+        local tmpGrid = model:findModules('nn.AffineGridGeneratorBHWD')[1].output
+        ha = lib.hdfWIn('tmp.h5')
+        lib.hdfW(ha, tmpIn0:float(), 'input0')
+        lib.hdfW(ha, tmpIn1:float(), 'input1')
+        lib.hdfW(ha, tmpGrid:float(), 'grid')
+        lib.hdfWOut(ha)
+
+        local debugger = require('fb.debugger')
+        debugger.enter()
       else
         y = model:forward(x)
         currLoss = loss:forward(y, yt)

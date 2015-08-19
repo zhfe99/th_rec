@@ -31,19 +31,6 @@ function stn.new(locnet, isBn, inSiz)
   tranet:add(nn.Identity())
   tranet:add(nn.Transpose({2, 3}, {3, 4}))
 
-  -- second branch is the localization network
-  -- local locnet = alex.newStnTrun(nC, nGpu, isBn, iniAlg)
-  -- = nn.Sequential()
-  -- locnet:add(cudnn.SpatialMaxPooling(2, 2, 2, 2))
-  -- locnet:add(cudnn.SpatialConvolution(1, 20, 5, 5))
-  -- locnet:add(cudnn.ReLU(true))
-  -- locnet:add(cudnn.SpatialMaxPooling(2, 2, 2, 2))
-  -- locnet:add(cudnn.SpatialConvolution(20, 20, 5, 5))
-  -- locnet:add(cudnn.ReLU(true))
-  -- locnet:add(nn.View(20 * 2 * 2))
-  -- locnet:add(nn.Linear(20 * 2 * 2, 20))
-  -- locnet:add(cudnn.ReLU(true))
-
   -- full model
   -- local outLayer = nn.Linear(128, 6)
   -- outLayer.weight:fill(0)

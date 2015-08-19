@@ -5,6 +5,7 @@
 *.log
 *.pyc
 *flymake.py
+*.h5
 .DS_Store
 GPATH
 GRTAGS
