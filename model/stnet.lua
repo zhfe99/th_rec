@@ -3,7 +3,9 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-06-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-15-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-18-2015
+
+require 'stn'
 
 local stn = {}
 
@@ -11,7 +13,7 @@ local stn = {}
 -- Create the stn model.
 --
 -- Input
---   locNet  -  localization network
+--   locnet  -  localization network
 --   nC      -  #classes
 --   nGpu    -  #gpus
 --   isBn    -  flag of using BN, true | false
@@ -20,8 +22,7 @@ local stn = {}
 --
 -- Output
 --   model   -  model
-function stn.new(locNet, nC, nGpu, isBn, iniAlg, inSiz)
-  require 'stn'
+function stn.new(locnet, isBn, inSiz)
   local spanet = nn.Sequential()
   local concat = nn.ConcatTable()
 
@@ -31,7 +32,7 @@ function stn.new(locNet, nC, nGpu, isBn, iniAlg, inSiz)
   tranet:add(nn.Transpose({2, 3}, {3, 4}))
 
   -- second branch is the localization network
-  local locNet = alex.newStnTrun(nC, nGpu, isBn, iniAlg)
+  -- local locnet = alex.newStnTrun(nC, nGpu, isBn, iniAlg)
   -- = nn.Sequential()
   -- locnet:add(cudnn.SpatialMaxPooling(2, 2, 2, 2))
   -- locnet:add(cudnn.SpatialConvolution(1, 20, 5, 5))
@@ -43,17 +44,28 @@ function stn.new(locNet, nC, nGpu, isBn, iniAlg, inSiz)
   -- locnet:add(nn.Linear(20 * 2 * 2, 20))
   -- locnet:add(cudnn.ReLU(true))
 
-  -- we initialize the output layer so it gives the identity transform
-  local outLayer = nn.Linear(128, 6)
+  -- full model
+  -- local outLayer = nn.Linear(128, 6)
+  -- outLayer.weight:fill(0)
+  -- local bias = torch.FloatTensor(6):fill(0)
+  -- bias[1] = 1
+  -- bias[5] = 1
+  -- outLayer.bias:copy(bias)
+  -- locnet:add(outLayer)
+  -- locnet:add(nn.View(2, 3))
+
+  -- scale + translation
+  local outLayer = nn.Linear(128, 3)
   outLayer.weight:fill(0)
-  local bias = torch.FloatTensor(6):fill(0)
+  local bias = torch.FloatTensor(3):fill(0)
   bias[1] = 1
-  bias[5] = 1
+  bias[2] = 0
+  bias[3] = 0
   outLayer.bias:copy(bias)
   locnet:add(outLayer)
+  locnet:add(nn.AffineTransformMatrixGenerator(false, true, true))
 
-  -- there we generate the grids
-  locnet:add(nn.View(2, 3))
+  -- grid generation
   locnet:add(nn.AffineGridGeneratorBHWD(inSiz, inSiz))
 
   -- we need a table input for the bilinear sampler, so we use concattable
@@ -66,7 +78,7 @@ function stn.new(locNet, nC, nGpu, isBn, iniAlg, inSiz)
   -- and we transpose back to standard BDHW format for subsequent processing by nn modules
   spanet:add(nn.Transpose({3, 4}, {2, 3}))
 
-  return spanet
+  return spanet, {outLayer}
 end
 
 return stn

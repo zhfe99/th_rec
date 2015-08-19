@@ -3,12 +3,21 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-09-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-17-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-18-2015
 
 local lib = require('lua_lib')
 
 local M = {}
 
+----------------------------------------------------------------------
+-- Parse options.
+--
+-- Input
+--   arg   -  input
+--   mode  -  mode, 'train' | 'test' | 'demo'
+--
+-- Output
+--   opt   -  option
 function M.parse(arg, mode)
 
   local cmd = torch.CmdLine()

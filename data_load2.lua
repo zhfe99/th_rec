@@ -8,11 +8,29 @@
 require 'eladtools'
 require 'xlua'
 require 'lmdb'
+
 local Threads = require 'threads'
 local ffi = require 'ffi'
+local sampleSiz = solConf.smpSiz
+local InputSize = sampleSiz[2]
+local meanInfo = torch.load(opt.PATH.meanPath)
 
--- upvalue used by function
-local sampleSiz, InputSize, meanInfo, trLmdb, teLmdb, DataMean, DataStd
+local trLmdb = opt.PATH.trLmdb
+local trLmdb2 = trLmdb:gsub(paths.home, '/workplace/feng')
+if paths.dirp(trLmdb2) then
+  trLmdb = trLmdb2
+end
+print(trLmdb)
+
+local teLmdb = opt.PATH.teLmdb
+local teLmdb2 = teLmdb:gsub(paths.home, '/workplace/feng')
+if paths.dirp(teLmdb2)  then
+  teLmdb = teLmdb2
+end
+print(teLmdb)
+
+local DataMean = meanInfo.me
+local DataStd = meanInfo.std
 
 local data_load = {}
 
@@ -35,6 +53,19 @@ function data_load.ExtractSampleFunc(data0, label0)
   local data = data0
   local label = label0
 
+  -- fit the data to multi-gpu
+  if data0:size(1) % #opt.gpus > 0 then
+    assert(torch.type(data0) == 'torch.ByteTensor')
+    assert(torch.type(label0) == 'torch.IntTensor')
+    local b0 = data0:size(1)
+    local d = data0:size(2)
+    local h = data0:size(3)
+    local w = data0:size(4)
+    local b = b0 - b0 % opt.nGpu
+    data = torch.ByteTensor(b, d, h, w):copy(data0[{{1, b}, {}, {}, {}}])
+    label = torch.IntTensor(b):copy(label0[{{1, b}}])
+  end
+
   return data_load.Normalize(data), label
 end
 
@@ -49,10 +80,7 @@ end
 --   img    -  image
 --   class  -  class
 function data_load.ExtractFromLMDBTrain(key, data)
-  -- class
   local class = data.c
-
-  -- decompress
   local img = image.decompressJPG(data.img)
 
   -- random crop
@@ -81,7 +109,6 @@ end
 --   img    -  image
 --   class  -  class
 function data_load.ExtractFromLMDBTest(key, data)
-  -- class
   local class = data.c
 
   -- decompress
@@ -133,34 +160,13 @@ end
 --   opt      -  option
 --   solConf  -  solver configuration
 function data_load.init(opt, solConf)
-  local lib = require('lua_lib')
-  lib.prIn('data_load init')
-
-  -- dimension
-  sampleSiz = solConf.smpSiz
-  InputSize = sampleSiz[2]
-
-  -- mean
-  meanInfo = torch.load(opt.PATH.meanPath)
-  DataMean = meanInfo.me
-  DataStd = meanInfo.std
-  -- train
-  trLmdb = opt.PATH.trLmdb
-  local trLmdb2 = trLmdb:gsub(paths.home, '/workplace/feng')
-  if paths.dirp(trLmdb2) then
-    trLmdb = trLmdb2
-    lib.pr('local tr lmdb: %s', trLmdb)
-  end
-
-  -- test
-  teLmdb = opt.PATH.teLmdb
-  local teLmdb2 = teLmdb:gsub(paths.home, '/workplace/feng')
-  if paths.dirp(teLmdb2)  then
-    teLmdb = teLmdb2
-    lib.pr('local te lmdb: %s', teLmdb)
-  end
-
-  lib.prOut()
+  local sampleSiz = solConf.smpSiz
+  local InputSize = sampleSiz[2]
+  local meanInfo = torch.load(opt.PATH.meanPath)
+  local trLmdb = opt.PATH.trLmdb
+  local teLmdb = opt.PATH.teLmdb
+  local DataMean = meanInfo.me
+  local DataStd = meanInfo.std
 end
 
 return data_load

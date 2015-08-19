@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-17-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-18-2015
 
 require 'torch'
 require 'xlua'
@@ -20,39 +20,19 @@ local opts = require('opts')
 opt = opts.parse(arg, 'train')
 
 -- network
-local model, loss, solConf, optStat, modTs = dofile(opt.CONF.protTr)
-rawset(_G, 'solConf', solConf)
+local solConf = dofile(opt.CONF.protTr)
+local net = require('net')
+local model, loss, modelSv, modTs, optStat = net.newMod(solConf, opt)
 
 -- data loader
 local data_load = require('data_load')
+data_load.init(opt, solConf)
 
 -- confusion
 local confusion = optim.ConfusionMatrix(opt.DATA.cNms)
 
--- save model (TODO: move to w_init)
-local modelSv
-if #opt.gpus > 1 then
-  model:syncParameters()
-  modelSv = model.modules[1]:clone('weight', 'bias', 'running_mean', 'running_std')
-else
-  modelSv = model:clone('weight', 'bias', 'running_mean', 'running_std')
-end
-
 -- init optimization
 local optimator = nn.Optim(model, optStat)
-
-----------------------------------------------------------------------
--- Get the parameters for each epoch.
---
--- Input
---   epoch  -  epoch id
-local function parEpo(epoch, lrs)
-  for _, row in ipairs(lrs) do
-    if epoch >= row[1] and epoch <= row[2] then
-      return {learningRate=row[3], weightDecay=row[4]}, epoch == row[1]
-    end
-  end
-end
 
 ----------------------------------------------------------------------
 -- Update for one epoch.
@@ -66,7 +46,7 @@ local function Forward(DB, train, epoch)
 
   -- adjust optimizer
   if train then
-    local params, newRegime = parEpo(epoch, solConf.lrs)
+    local params, newRegime = th.parEpo(epoch, solConf.lrs)
     optimator:setParameters(params)
 
     -- zero the momentum vector by throwing away previous state.
@@ -79,9 +59,6 @@ local function Forward(DB, train, epoch)
       optimator.modulesToOptState[mod][1].learningRate = params.learningRate * 10
       optimator.modulesToOptState[mod][2].learningRate = params.learningRate * 10
     end
-
-    -- local debugger = require('fb.debugger')
-    -- debugger.enter()
   end
 
   -- dimension
