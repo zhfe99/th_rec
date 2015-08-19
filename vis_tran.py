@@ -4,7 +4,7 @@ Visualize the transformation.
 
 History
   create  -  Feng Zhou (zhfe99@gmail.com), 08-16-2015
-  modify  -  Feng Zhou (zhfe99@gmail.com), 08-18-2015
+  modify  -  Feng Zhou (zhfe99@gmail.com), 08-19-2015
 """
 import py_lib as lib
 
@@ -36,7 +36,7 @@ for iTop in range(nTop):
         ys[i] = (grid[iTop, idxY, idxX, 0] + 1) / 2 * h
         xs[i] = (grid[iTop, idxY, idxX, 1] + 1) / 2 * w
     lib.plt.plot(xs, ys, 'r-')
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
 
     # input
     lib.shImg(input1[iTop, 0], ax = Ax[1, iTop])
