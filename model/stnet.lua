@@ -42,15 +42,25 @@ function stn.new(locnet, isBn, inSiz)
   -- locnet:add(nn.View(2, 3))
 
   -- scale + translation
-  local outLayer = nn.Linear(128, 3)
+  -- local outLayer = nn.Linear(128, 3)
+  -- outLayer.weight:fill(0)
+  -- local bias = torch.FloatTensor(3):fill(0)
+  -- bias[1] = 1
+  -- bias[2] = 0
+  -- bias[3] = 0
+  -- outLayer.bias:copy(bias)
+  -- locnet:add(outLayer)
+  -- locnet:add(nn.AffineTransformMatrixGenerator(false, true, true))
+
+  -- translation
+  local outLayer = nn.Linear(128, 2)
   outLayer.weight:fill(0)
-  local bias = torch.FloatTensor(3):fill(0)
-  bias[1] = 1
+  local bias = torch.FloatTensor(2):fill(0)
+  bias[1] = 0
   bias[2] = 0
-  bias[3] = 0
   outLayer.bias:copy(bias)
   locnet:add(outLayer)
-  locnet:add(nn.AffineTransformMatrixGenerator(false, true, true))
+  locnet:add(nn.AffineTransformMatrixGenerator(false, false, true))
 
   -- grid generation
   locnet:add(nn.AffineGridGeneratorBHWD(inSiz, inSiz))

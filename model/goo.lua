@@ -3,11 +3,12 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-05-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-17-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-19-2015
 
-require 'nn'
 require 'cudnn'
-local w_init = require('lua_th.w_init')
+require 'nn'
+local lib = require('lua_lib')
+local th = require('lua_th')
 local goo = {}
 
 ----------------------------------------------------------------------
@@ -17,8 +18,7 @@ local goo = {}
 --   input_size  -  input size
 --   config      -  configuration
 --   isBn        -  flag of using BN, true | false
---   iniAlg      -  init method
-local function inception(input_size, config, isBn, iniAlg)
+local function inception(input_size, config, isBn)
   local concat = nn.Concat(2)
   if config[1][1] ~= 0 then
     local conv1 = nn.Sequential()
@@ -27,7 +27,6 @@ local function inception(input_size, config, isBn, iniAlg)
       conv1:add(nn.SpatialBatchNormalization(config[1][1], 1e-3))
     end
     conv1:add(cudnn.ReLU(true))
-    conv1 = w_init.w_init(conv1, iniAlg)
     concat:add(conv1)
   end
 
@@ -42,7 +41,6 @@ local function inception(input_size, config, isBn, iniAlg)
     conv3:add(nn.SpatialBatchNormalization(config[2][2], 1e-3))
   end
   conv3:add(cudnn.ReLU(true))
-  conv3 = w_init.w_init(conv3, iniAlg)
   concat:add(conv3)
 
   local conv3xx = nn.Sequential()
@@ -61,7 +59,6 @@ local function inception(input_size, config, isBn, iniAlg)
     conv3xx:add(nn.SpatialBatchNormalization(config[3][2], 1e-3))
   end
   conv3xx:add(cudnn.ReLU(true))
-  conv3xx = w_init.w_init(conv3xx, iniAlg)
   concat:add(conv3xx)
 
   local pool = nn.Sequential()
@@ -80,24 +77,22 @@ local function inception(input_size, config, isBn, iniAlg)
     end
     pool:add(cudnn.ReLU(true))
   end
-  pool = w_init.w_init(pool, iniAlg)
   concat:add(pool)
 
   return concat
 end
 
 ----------------------------------------------------------------------
--- Create the GoogLeNet model.
+-- Create the basic GoogLeNet model.
 --
 -- Input
 --   nC     -  #classes
---   nGpu   -  #gpus
 --   isBn   -  flag of using BN, true | false
 --   iniAlg -  init method
 --
 -- Output
 --   model  -  model
-function goo.new(nC, gpus, isBn, iniAlg)
+function goo.new(nC, isBn, iniAlg)
   local features = nn.Sequential()
   features:add(cudnn.SpatialConvolution(3,64,7,7,2,2,3,3))
   if isBn then
@@ -116,73 +111,50 @@ function goo.new(nC, gpus, isBn, iniAlg)
   end
   features:add(cudnn.ReLU(true))
   features:add(cudnn.SpatialMaxPooling(3,3,2,2):ceil())
-  features:add(inception(192, {{ 64},{ 64, 64},{ 64, 96},{'avg', 32}}, isBn, iniAlg)) -- 3(a)
-  features:add(inception(256, {{ 64},{ 64, 96},{ 64, 96},{'avg', 64}}, isBn, iniAlg)) -- 3(b)
-  features:add(inception(320, {{  0},{128,160},{ 64, 96},{'max',  0}}, isBn, iniAlg)) -- 3(c)
+  features:add(inception(192, {{ 64},{ 64, 64},{ 64, 96},{'avg', 32}}, isBn)) -- 3(a)
+  features:add(inception(256, {{ 64},{ 64, 96},{ 64, 96},{'avg', 64}}, isBn)) -- 3(b)
+  features:add(inception(320, {{  0},{128,160},{ 64, 96},{'max',  0}}, isBn)) -- 3(c)
   features:add(cudnn.SpatialConvolution(576,576,2,2,2,2))
   if isBn then
     features:add(nn.SpatialBatchNormalization(576, 1e-3))
   end
-  features:add(inception(576, {{224},{ 64, 96},{ 96,128},{'avg',128}}, isBn, iniAlg)) -- 4(a)
-  features:add(inception(576, {{192},{ 96,128},{ 96,128},{'avg',128}}, isBn, iniAlg)) -- 4(b)
-  features:add(inception(576, {{160},{128,160},{128,160},{'avg', 96}}, isBn, iniAlg)) -- 4(c)
-  features:add(inception(576, {{ 96},{128,192},{160,192},{'avg', 96}}, isBn, iniAlg)) -- 4(d)
-  features = w_init.w_init(features, iniAlg)
+  features:add(inception(576, {{224},{ 64, 96},{ 96,128},{'avg',128}}, isBn)) -- 4(a)
+  features:add(inception(576, {{192},{ 96,128},{ 96,128},{'avg',128}}, isBn)) -- 4(b)
+  features:add(inception(576, {{160},{128,160},{128,160},{'avg', 96}}, isBn)) -- 4(c)
+  features:add(inception(576, {{ 96},{128,192},{160,192},{'avg', 96}}, isBn)) -- 4(d)
 
   local main_branch = nn.Sequential()
-  main_branch:add(inception(576, {{  0},{128,192},{192,256},{'max', 0}}, isBn, iniAlg)) -- 4(e)
+  main_branch:add(inception(576, {{  0},{128,192},{192,256},{'max', 0}}, isBn)) -- 4(e)
   main_branch:add(cudnn.SpatialConvolution(1024,1024,2,2,2,2))
   if isBn then
     main_branch:add(nn.SpatialBatchNormalization(1024, 1e-3))
   end
-  main_branch:add(inception(1024, {{352},{192,320},{160,224},{'avg',128}}, isBn, iniAlg)) -- 5(a)
-  main_branch:add(inception(1024, {{352},{192,320},{192,224},{'max',128}}, isBn, iniAlg)) -- 5(b)
+  main_branch:add(inception(1024, {{352},{192,320},{160,224},{'avg',128}}, isBn)) -- 5(a)
+  main_branch:add(inception(1024, {{352},{192,320},{192,224},{'max',128}}, isBn)) -- 5(b)
   main_branch:add(cudnn.SpatialAveragePooling(7,7,1,1))
   main_branch:add(nn.View(1024):setNumInputDims(3))
   main_branch:add(nn.Linear(1024, nC))
   main_branch:add(nn.LogSoftMax())
-  main_branch = w_init.w_init(main_branch, iniAlg)
 
   -- add auxillary classifier here (thanks to Christian Szegedy for the details)
-  -- local aux_classifier = nn.Sequential()
-  -- aux_classifier:add(cudnn.SpatialAveragePooling(5,5,3,3):ceil())
-  -- aux_classifier:add(cudnn.SpatialConvolution(576,128,1,1,1,1))
-  -- aux_classifier:add(nn.View(128*4*4):setNumInputDims(3))
-  -- aux_classifier:add(nn.Linear(128*4*4,768))
-  -- aux_classifier:add(nn.ReLU())
-  -- aux_classifier:add(nn.Linear(768,196))
-  -- aux_classifier:add(nn.LogSoftMax())
+  local aux_classifier = nn.Sequential()
+  aux_classifier:add(cudnn.SpatialAveragePooling(5,5,3,3):ceil())
+  aux_classifier:add(cudnn.SpatialConvolution(576,128,1,1,1,1))
+  aux_classifier:add(nn.View(128*4*4):setNumInputDims(3))
+  aux_classifier:add(nn.Linear(128*4*4,768))
+  aux_classifier:add(nn.ReLU())
+  aux_classifier:add(nn.Linear(768,196))
+  aux_classifier:add(nn.LogSoftMax())
 
-  -- local splitter = nn.Concat(2)
-  -- splitter:add(main_branch):add(aux_classifier)
-  -- local model = nn.Sequential():add(features):add(splitter)
-  local model = nn.Sequential():add(features):add(main_branch)
+  local splitter = nn.Concat(2)
+  splitter:add(main_branch):add(aux_classifier)
+  local model = nn.Sequential():add(features):add(splitter)
+  -- local model = nn.Sequential():add(features):add(main_branch)
 
-  -- old multi-gpu
-  -- if nGpu > 1 then
-  --   require 'fbcunn_files.AbstractParallel'
-  --   require 'fbcunn_files.DataParallel'
+  -- init
+  th.iniMod(model, iniAlg)
 
-  --   local model_single = model
-  --   model = nn.DataParallel(1)
-  --   for i = 1, nGpu do
-  --     cutorch.withDevice(i, function() model:add(model_single:clone()) end)
-  --   end
-  -- end
-
-  -- multi-gpu
-  if #gpus > 1 then
-    local model_single = model
-    model = nn.DataParallelTable(1)
-
-    for i, gpu in ipairs(gpus) do
-      cutorch.setDevice(gpu + 1)
-      model:add(model_single:clone():cuda(), gpu + 1)
-    end
-    cutorch.setDevice(gpus[1] + 1)
-  end
-
-  return model
+  return model, {}
 end
 
 return goo

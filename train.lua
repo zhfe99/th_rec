@@ -143,6 +143,9 @@ local function Forward(DB, train, epoch)
         end
 
         currLoss, y = optimator:optimize(optim.sgd, x, yt, loss)
+      else
+        y = model:forward(x)
+        currLoss = loss:forward(y, yt)
 
         local tmpIn0 = model:findModules('nn.Identity')[1].output
         local tmpIn1 = model:findModules('nn.Transpose')[2].output
@@ -155,9 +158,6 @@ local function Forward(DB, train, epoch)
 
         local debugger = require('fb.debugger')
         debugger.enter()
-      else
-        y = model:forward(x)
-        currLoss = loss:forward(y, yt)
       end
       loss_val = currLoss + loss_val
 

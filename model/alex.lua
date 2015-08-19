@@ -3,14 +3,13 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-04-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-18-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-19-2015
 
 require 'cudnn'
 require 'cunn'
 local lib = require('lua_lib')
 local th = require('lua_th')
 local alex = {}
-
 local modPath0 = paths.concat(paths.home, 'save/imgnet/torch/model/imgnet_v2_alexbn_2gpu.t7')
 
 ----------------------------------------------------------------------

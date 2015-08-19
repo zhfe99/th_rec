@@ -3,11 +3,12 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-18-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-18-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-19-2015
 
 local lib = require('lua_lib')
 local th = require('lua_th')
 local alex = require('model.alex')
+local goo = require('model.goo')
 local net = {}
 
 ----------------------------------------------------------------------
@@ -32,8 +33,14 @@ function net.newMod(solConf, opt)
   elseif lib.startswith(solConf.netNm, 'alexbnS') then
     model, mods = alex.newStn(solConf.nC, true, solConf.iniAlg)
 
-  else
+  elseif lib.startswith(solConf.netNm, 'alexbn') then
     model, mods = alex.new(solConf.nC, true, solConf.iniAlg)
+
+  elseif lib.startswith(solConf.netNm, 'goobn') then
+    model, mods = goo.new(solConf.nC, true, solConf.iniAlg)
+
+  else
+    assert(nil, string.format('unknown net: %s', solConf.netNm))
   end
   local idx = th.idxMod(model, mods)
 
