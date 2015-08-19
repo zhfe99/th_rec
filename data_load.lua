@@ -10,9 +10,33 @@ require 'xlua'
 require 'lmdb'
 local Threads = require 'threads'
 local ffi = require 'ffi'
+<<<<<<< HEAD
 
 -- upvalue used by function
 local sampleSiz, InputSize, meanInfo, trLmdb, teLmdb, DataMean, DataStd
+=======
+local sampleSiz = solConf.smpSiz
+local InputSize = sampleSiz[2]
+
+-- mean
+local meanInfo = torch.load(opt.PATH.meanPath)
+local DataMean = meanInfo.me
+local DataStd = meanInfo.std
+
+-- train
+local TRAINING_DIR = opt.PATH.trLmdb
+if paths.dirp(opt.PATH.trLmdb .. '_local') then
+  TRAINING_DIR = opt.PATH.trLmdb .. '_local'
+end
+print(TRAINING_DIR)
+
+-- test
+local VALIDATION_DIR = opt.PATH.teLmdb
+if paths.dirp(opt.PATH.teLmdb .. '_local')  then
+  VALIDATION_DIR = opt.PATH.teLmdb .. '_local'
+end
+print(VALIDATION_DIR)
+>>>>>>> c7724600a6b36bfc9045773b6298a56121cb2898
 
 local data_load = {}
 
