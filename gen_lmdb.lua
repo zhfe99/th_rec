@@ -32,9 +32,7 @@ local opt = cmd:parse(arg)
 -- data
 local dat = ThDat(opt.dbe, opt.ver)
 local PATH = dat.PATH
-local debugger = require('fb.debugger')
-debugger.enter()
-cmd:log(PATH.logPath)
+cmd:log(string.format('%s/%s_%s.log_lmdb', PATH.logFold, opt.dbe, opt.ver))
 
 ----------------------------------------------------------------------
 -- Generate lmdb from a list of files.
