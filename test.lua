@@ -3,15 +3,15 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-15-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-20-2015
 
-require 'torch'
-require 'xlua'
-require 'optim'
-require 'pl'
-require 'eladtools'
-require 'trepl'
-require 'net.alex'
+require('torch')
+require('xlua')
+require('optim')
+require('pl')
+require('eladtools')
+require('trepl')
+require('net.alex')
 local th = require('lua_th')
 local lib = require('lua_lib')
 
