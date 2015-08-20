@@ -6,13 +6,19 @@ History
   create  -  Feng Zhou (zhfe99@gmail.com), 08-16-2015
   modify  -  Feng Zhou (zhfe99@gmail.com), 08-19-2015
 """
+import os
 import py_lib as lib
 
+tmpFold = os.path.join(os.environ['HOME'], 'save/car/torch/tmp')
+h5Path = '{}/test_{}_{}.h5'.format(tmpFold, 9, 1)
+
 # read from hdf
-ha = lib.hdfRIn('tmp.h5')
+ha = lib.hdfRIn(h5Path)
 grid = lib.hdfR(ha, 'grid')
 input0 = lib.hdfR(ha, 'input0')
 input1 = lib.hdfR(ha, 'input1')
+# bias = lib.hdfR(ha, 'bias')
+# weight = lib.hdfR(ha, 'weight')
 lib.hdfROut(ha)
 
 # dimension
@@ -20,7 +26,7 @@ nTop = 10
 n, h, w, _ = grid.shape
 
 # show
-rows = 3; cols = nTop
+rows = 2; cols = nTop
 Ax = lib.iniAx(1, rows, cols, [3 * rows, 3 * cols], flat=False)
 
 for iTop in range(nTop):
@@ -36,6 +42,7 @@ for iTop in range(nTop):
         ys[i] = (grid[iTop, idxY, idxX, 0] + 1) / 2 * h
         xs[i] = (grid[iTop, idxY, idxX, 1] + 1) / 2 * w
     lib.plt.plot(xs, ys, 'r-')
+    lib.plt.axis('image')
     # import pdb; pdb.set_trace()
 
     # input
