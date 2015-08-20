@@ -1,9 +1,12 @@
 #!/usr/bin/env th
 -- Generate lmdb.
 --
--- History
+-- Example
+--   ./gen_lmdb.lua -dbe car -ver v1c
+--
+-- history
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-10-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-20-2015
 
 require 'eladtools'
 require 'image'
@@ -23,7 +26,7 @@ cmd:addTime()
 cmd:option('-dbe', 'car', 'database name')
 cmd:option('-ver', 'v1c', 'version')
 cmd:option('-cmp', true, 'compress or not')
-cmd:option('-sizMa', 256, 'maximum image size')
+cmd:option('-sizMa', 256, 'minimum image size')
 local opt = cmd:parse(arg)
 
 -- data
