@@ -6,10 +6,14 @@
 --   CUDA_VISIBLE_DEVICES=4,5,6,7 th train.lua -dbe imgnet -ver v2 -con alexbn_4gpu -gpu 0,1,2,3
 --   CUDA_VISIBLE_DEVICES=1,2,3,4 th train.lua -dbe imgnet -ver v2 -con goobn_4gpu -gpu 0,1,2,3
 --   CUDA_VISIBLE_DEVICES=7 th train.lua -ver v1 -con alexbnS -deb
+--   CUDA_VISIBLE_DEVICES=7 th train.lua -ver v1c -con alexbnR3
+--
+-- Cudnn R3
+--   export LD_LIBRARY_PATH=$apps/cudnn_v3:$LD_LIBRARY_PATH
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-19-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-20-2015
 
 require('torch')
 require('xlua')
@@ -159,6 +163,8 @@ local function Forward(DB, train, epoch, confusion)
           model:syncParameters()
         end
 
+        -- local debugger = require('fb.debugger')
+        -- debugger.enter()
         currLoss, y = optimator:optimize(optim.sgd, x, yt, loss)
 
         if opt.deb and (iMini - 1) % 100 == 0 then
