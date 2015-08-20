@@ -6,7 +6,7 @@
 --   CUDA_VISIBLE_DEVICES=4,5,6,7 th train.lua -dbe imgnet -ver v2 -con alexbn_4gpu -gpu 0,1,2,3
 --   CUDA_VISIBLE_DEVICES=1,2,3,4 th train.lua -dbe imgnet -ver v2 -con goobn_4gpu -gpu 0,1,2,3
 --   CUDA_VISIBLE_DEVICES=7 th train.lua -ver v1 -con alexbnS -deb
---   CUDA_VISIBLE_DEVICES=7 th train.lua -ver v1c -con alexbnR3
+--   CUDA_VISIBLE_DEVICES=7 th train.lua -ver v1 -con alexbnS2 -deb
 --
 -- Cudnn R3
 --   export LD_LIBRARY_PATH=$apps/cudnn_v3:$LD_LIBRARY_PATH
