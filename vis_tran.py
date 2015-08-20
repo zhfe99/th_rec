@@ -10,7 +10,7 @@ import os
 import py_lib as lib
 
 tmpFold = os.path.join(os.environ['HOME'], 'save/car/torch/tmp')
-h5Path = '{}/train_{}_{}.h5'.format(tmpFold, 1, 1)
+h5Path = '{}/test_{}_{}.h5'.format(tmpFold, 2, 1)
 
 # read from hdf
 ha = lib.hdfRIn(h5Path)
