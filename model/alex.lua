@@ -138,6 +138,27 @@ function alex.newStnLoc(isBn, iniAlg)
   classifier:add(nn.Threshold(0, 1e-6))
   model:add(classifier)
 
+  -- remove last fully connected layer
+  -- local debugger = require('fb.debugger')
+  -- debugger.enter()
+  -- local mod0 = model.modules[2].modules[10]
+  -- model.modules[2]:remove(11)
+  -- model.modules[2]:remove(10)
+
+  -- model.modules[2]:remove(9)
+  -- model.modules[2]:remove(8)
+  -- model.modules[2]:remove(7)
+
+  -- model.modules[2]:remove(6)
+  -- model.modules[2]:remove(5)
+  -- model.modules[2]:remove(4)
+  -- model.modules[2]:remove(3)
+
+  -- insert a new one
+  -- local mod = nn.Linear(4096, nC)
+  -- model.modules[2]:insert(mod, 10)
+  -- model.modules[2]:add(nn.Dropout(0.5))
+
   -- init
   th.iniMod(classifier, iniAlg)
 
@@ -171,6 +192,8 @@ function alex.newStn(nC, isBn, iniAlg)
 
   -- model needed to re-train
   local mods = lib.tabCon(modLs, modSs, modAs)
+  -- local debugger = require('fb.debugger')
+  -- debugger.enter()
 
   return model, mods
 end

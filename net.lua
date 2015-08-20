@@ -42,6 +42,8 @@ function net.newMod(solConf, opt)
   else
     assert(nil, string.format('unknown net: %s', solConf.netNm))
   end
+
+  -- index of sub-modules
   local idx = th.idxMod(model, mods)
 
   -- loss

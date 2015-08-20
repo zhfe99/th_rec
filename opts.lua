@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-09-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-18-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-19-2015
 
 local lib = require('lua_lib')
 
@@ -30,13 +30,13 @@ function M.parse(arg, mode)
   cmd:option('-dbe', 'car', 'database name')
   cmd:option('-ver', 'v1c', 'version')
   cmd:option('-con', 'alex', 'configuration')
-  cmd:option('-testonly', false, 'Just test loaded net on validation set')
   cmd:option('-threads', 8, 'number of threads')
   cmd:option('-type', 'cuda', 'float or cuda')
   cmd:option('-gpu', '0', 'gpu id, could be multiple')
   cmd:option('-shuffle', true, 'shuffle training samples')
   cmd:option('-cmp', true, 'compress or not')
   cmd:option('-local', true, 'using local data')
+  cmd:option('-deb', false, 'debug mode')
   opt = cmd:parse(arg or {})
 
   local dbe = opt.dbe
@@ -48,9 +48,6 @@ function M.parse(arg, mode)
   opt.PATH = th_lst.dbeInfoPath(dbe, ver)
   opt.DATA = th_lst.dbeInfoData(opt.PATH)
   opt.CONF = th_lst.dbeInfoConf(opt.PATH, con)
-
-  -- folder
-  opt.network = string.format('./model/%s_%s_%s', dbe, ver, con)
 
   -- log
   cmd:log(opt.CONF.logPath .. '_' .. mode)
