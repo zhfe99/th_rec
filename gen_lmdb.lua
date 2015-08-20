@@ -32,6 +32,8 @@ local opt = cmd:parse(arg)
 -- data
 local dat = ThDat(opt.dbe, opt.ver)
 local PATH = dat.PATH
+local debugger = require('fb.debugger')
+debugger.enter()
 cmd:log(PATH.logPath)
 
 ----------------------------------------------------------------------
