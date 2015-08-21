@@ -20,7 +20,6 @@ local img0 = val.img
 local debugger = require('fb.debugger')
 debugger.enter()
 local img = img0:float() / 255
-
 image.save('tmp.jpg', img)
 
 local debugger = require('fb.debugger')
