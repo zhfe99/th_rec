@@ -2,11 +2,11 @@
 -- Generate lmdb.
 --
 -- Example
---   ./gen_lmdb.lua -dbe car -ver v1c
+--   ./data_lmdb.lua -dbe car -ver v1c
 --
 -- history
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-20-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-20-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-21-2015
 
 require 'eladtools'
 require 'image'
@@ -75,6 +75,8 @@ function genLmdbFromList(env, imgFold, imgList, meanPath)
     -- compress
     if opt.cmp then
       img = image.compressJPG(img)
+    else
+      img = image:storage()
     end
 
     -- store
@@ -112,14 +114,30 @@ function genLmdbFromList(env, imgFold, imgList, meanPath)
   end
 end
 
+-- tr lmdb path
+local trLmdb
+if opt.cmp then
+  trLmdb = PATH.trLmdb
+else
+  trLmdb = PATH.trLmdb .. '_ori'
+end
+
 -- create tr lmdb
-assert(not paths.dirp(PATH.trLmdb), string.format('%s exists', PATH.trLmdb))
+assert(not paths.dirp(trLmdb), string.format('%s exists', trLmdb))
 local trEnv = lmdb.env {
-  Path = PATH.trLmdb,
+  Path = trLmdb,
   Name = 'train'
 }
 local trImgList = lib.loadLns(PATH.trListCaf)
 genLmdbFromList(trEnv, PATH.dataFold .. '/train', trImgList, PATH.meanPath)
+
+-- te lmdb path
+local teLmdb
+if opt.cmp then
+  teLmdb = PATH.teLmdb
+else
+  teLmdb = PATH.teLmdb .. '_ori'
+end
 
 -- test
 assert(not paths.dirp(PATH.teLmdb))
