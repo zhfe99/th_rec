@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-06-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-20-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-21-2015
 
 require 'stn'
 
@@ -14,15 +14,16 @@ local stn = {}
 --
 -- Input
 --   locnet  -  localization network
---   nC      -  #classes
---   nGpu    -  #gpus
+--              the output layer should be, nBat x k
 --   isBn    -  flag of using BN, true | false
---   iniAlg  -  init method
+--   tran    -  transformation name, 'aff' | 'sca' | 'tra' | 'rot' | 'tra2' | 'tras'
+--   k       -  #dimension of locnet
 --   inSiz   -  input size
 --
 -- Output
 --   model   -  model
-function stn.new(locnet, isBn, inSiz)
+--   mods    -  module needed to be update, m x
+function stn.new(locnet, isBn, tran, k, inSiz)
   local spanet = nn.Sequential()
   local concat = nn.ConcatTable()
 
@@ -31,36 +32,68 @@ function stn.new(locnet, isBn, inSiz)
   tranet:add(nn.Identity())
   tranet:add(nn.Transpose({2, 3}, {3, 4}))
 
-  -- full model
-  -- local outLayer = nn.Linear(128, 6)
-  -- outLayer.weight:fill(0)
-  -- local bias = torch.FloatTensor(6):fill(0)
-  -- bias[1] = 1
-  -- bias[5] = 1
-  -- outLayer.bias:copy(bias)
-  -- locnet:add(outLayer)
-  -- locnet:add(nn.View(2, 3))
+  -- out layer
+  local outLayer
+  if tran == 'aff' then
+    -- affine
+    outLayer = nn.Linear(k, 6)
 
-  -- scale + translation
-  -- local outLayer = nn.Linear(128, 3)
-  -- outLayer.weight:fill(0)
-  -- local bias = torch.FloatTensor(3):fill(0)
-  -- bias[1] = 1
-  -- bias[2] = 0
-  -- bias[3] = 0
-  -- outLayer.bias:copy(bias)
-  -- locnet:add(outLayer)
-  -- locnet:add(nn.AffineTransformMatrixGenerator(false, true, true))
+    -- init
+    outLayer.weight:fill(0)
+    local bias = torch.FloatTensor(6):fill(0)
+    bias[1] = 1
+    bias[5] = 1
+    outLayer.bias:copy(bias)
 
-  -- translation
-  local outLayer = nn.Linear(128, 2)
-  outLayer.weight:fill(0)
-  local bias = torch.FloatTensor(2):fill(0)
-  bias[1] = 0
-  bias[2] = 0
-  outLayer.bias:copy(bias)
-  locnet:add(outLayer)
-  locnet:add(nn.AffineTransformMatrixGenerator(false, false, true))
+    locnet:add(outLayer)
+    locnet:add(nn.View(2, 3))
+
+  elseif tran == 'tra' then
+    -- translation
+    outLayer = nn.Linear(k, 2)
+
+    -- init
+    outLayer.weight:fill(0)
+    local bias = torch.FloatTensor(2):fill(0)
+    bias[1] = 0
+    bias[2] = 0
+    outLayer.bias:copy(bias)
+
+    locnet:add(outLayer)
+    locnet:add(nn.AffineTransformMatrixGenerator(false, false, true))
+
+  elseif tran == 'tras2' then
+    -- translation with fixed half-scaling
+    outLayer = nn.Linear(k, 2)
+
+    -- init
+    outLayer.weight:fill(0)
+    local bias = torch.FloatTensor(2):fill(0)
+    bias[1] = 0
+    bias[2] = 0
+    outLayer.bias:copy(bias)
+
+    locnet:add(outLayer)
+    locnet:add(nn.AffineTransformMatrixGenerator(false, false, true, .5))
+
+  elseif tran == 'tras' then
+    -- translation + scaling
+    outLayer = nn.Linear(k, 3)
+
+    -- init
+    outLayer.weight:fill(0)
+    local bias = torch.FloatTensor(3):fill(0)
+    bias[1] = 1
+    bias[2] = 0
+    bias[3] = 0
+    outLayer.bias:copy(bias)
+
+    locnet:add(outLayer)
+    locnet:add(nn.AffineTransformMatrixGenerator(false, true, true))
+
+  else
+    assert(nil, string.format('unknown tran: %s', tran))
+  end
 
   -- grid generation
   locnet:add(nn.AffineGridGeneratorBHWD(inSiz, inSiz))

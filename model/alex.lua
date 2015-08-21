@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-04-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-19-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-21-2015
 
 require 'cudnn'
 require 'cunn'
@@ -63,14 +63,18 @@ function alex.new(nC, isBn, iniAlg)
   if isBn then
     classifier:add(nn.BatchNormalization(4096, 1e-3))
   end
-  classifier:add(nn.Threshold(0, 1e-6))
+  -- classifier:add(nn.Threshold(0, 1e-6))
+  features:add(cudnn.ReLU(true))
+
   classifier:add(nn.Dropout(0.5))
   local ln = nn.Linear(4096, 4096)
   classifier:add(ln)
   if isBn then
     classifier:add(nn.BatchNormalization(4096, 1e-3))
   end
-  classifier:add(nn.Threshold(0, 1e-6))
+  -- classifier:add(nn.Threshold(0, 1e-6))
+  features:add(cudnn.ReLU(true))
+
   classifier:add(nn.Linear(4096, nC))
   classifier:add(nn.LogSoftMax())
 
@@ -130,12 +134,20 @@ function alex.newStnLoc(isBn, iniAlg)
   model:remove(2)
 
   -- add a new classifier layer
+  local k = 128
   local classifier = nn.Sequential()
   classifier:add(nn.View(256 * 6 * 6))
   classifier:add(nn.Dropout(0.5))
-  local mod = nn.Linear(256 * 6 * 6, 128)
+
+  local mod = nn.Linear(256 * 6 * 6, k)
   classifier:add(mod)
-  classifier:add(nn.Threshold(0, 1e-6))
+
+  if isBn then
+    classifier:add(nn.BatchNormalization(k, 1e-3))
+  end
+  classifier:add(cudnn.ReLU(true))
+  -- classifier:add(nn.Threshold(0, 1e-6))
+
   model:add(classifier)
 
   -- remove last fully connected layer
@@ -162,7 +174,7 @@ function alex.newStnLoc(isBn, iniAlg)
   -- init
   th.iniMod(classifier, iniAlg)
 
-  return model, {mod}
+  return model, {mod}, k
 end
 
 ----------------------------------------------------------------------
@@ -172,15 +184,21 @@ end
 --   nC      -  #classes
 --   isBn    -  flag of using BN, true | false
 --   iniAlg  -  init method
+--   tran    -  transformation name
 --
 -- Output
 --   model   -  model
---   idxT    -  index of sub-modules
-function alex.newStn(nC, isBn, iniAlg)
+--   mods    -  module needed to be update, m x
+--   modSs   -  module needed to be update, m x
+function alex.newStn(nC, isBn, iniAlg, tran)
+  local stn = require('model.stnet')
+
+  -- locnet
+  local locnet, modLs, k = alex.newStnLoc(isBn, iniAlg)
+
   -- stn net
-  local stn = require 'model.stnet'
-  local locnet, modLs = alex.newStnLoc(isBn, iniAlg)
-  local stnet, modSs = stn.new(locnet, isBn, 224)
+  local inSiz = 224
+  local stnet, modSs = stn.new(locnet, isBn, tran, k, inSiz)
 
   -- alex net
   local alnet, modAs = alex.newT(nC, isBn, iniAlg)
@@ -192,10 +210,8 @@ function alex.newStn(nC, isBn, iniAlg)
 
   -- model needed to re-train
   local mods = lib.tabCon(modLs, modSs, modAs)
-  -- local debugger = require('fb.debugger')
-  -- debugger.enter()
 
-  return model, mods
+  return model, mods, modSs
 end
 
 return alex

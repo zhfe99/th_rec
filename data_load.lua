@@ -147,10 +147,10 @@ function data_load.init(opt, solConf)
   lib.prIn('data_load init')
 
   -- compress
-  cmp = solConf.cmp
+  cmp = solConf.cmp or true
 
   -- dimension
-  sampleSiz = solConf.smpSiz
+  sampleSiz = solConf.smpSiz or {3, 224, 224}
   InputSize = sampleSiz[2]
 
   -- mean

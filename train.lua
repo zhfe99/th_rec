@@ -33,7 +33,7 @@ opt = opts.parse(arg, 'train')
 -- network
 local solConf = dofile(opt.CONF.protTr)
 local net = require('net')
-local model, loss, modelSv, modTs, optStat = net.newMod(solConf, opt)
+local model, loss, modelSv, mod1s, optStat, mod2s = net.newMod(solConf, opt)
 print(solConf)
 print(opt)
 
@@ -58,28 +58,17 @@ local function Forward(DB, train, epoch, confusion)
 
   -- adjust optimizer
   if train then
-    local params, newRegime = th.parEpo(epoch, solConf.lrs)
-    optimator:setParameters(params)
+    local newReg, par0, par1, par2 = th.parEpo(epoch, solConf.lrs)
+    optimator:setParameters(par0)
 
     -- zero the momentum vector by throwing away previous state.
-    if newRegime then
+    if newReg then
       optimator = nn.Optim(model, optStat)
     end
 
     -- fine-tune model
-    for _, mod in ipairs(modTs) do
-      optimator.modulesToOptState[mod][1].learningRate = params.learningRate * 10
-      optimator.modulesToOptState[mod][2].learningRate = params.learningRate * 10
-    end
-
-    if opt.deb then
-      optimator.modulesToOptState[modTs[2]][1].learningRate = params.learningRate * 1
-      optimator.modulesToOptState[modTs[2]][2].learningRate = params.learningRate * 1
-      print(modTs[2])
-      -- optimator.modulesToOptState[modTs[1]][1].weightDecay = params.weightDecay * 100
-      -- local debugger = require('fb.debugger')
-      -- debugger.enter()
-    end
+    th.setOptPar(optimator, mod1s, par1)
+    th.setOptPar(optimator, mod2s, par2)
   end
 
   -- dimension
@@ -118,7 +107,8 @@ local function Forward(DB, train, epoch, confusion)
     bufSizi = math.floor(bufSizi / batchSiz) * batchSiz
 
     -- copy from LMDB provider
-    bufSrcs[iBufSrc].Data:resize(bufSizi, unpack(solConf.smpSiz))
+    local smpSiz = solConf.smpSiz or {3, 224, 224}
+    bufSrcs[iBufSrc].Data:resize(bufSizi, unpack(smpSiz))
     bufSrcs[iBufSrc].Labels:resize(bufSizi)
     local key = string.format('%07d', bufSts[iBuf])
     DB:AsyncCacheSeq(key, bufSizi, bufSrcs[iBufSrc].Data, bufSrcs[iBufSrc].Labels)
@@ -166,8 +156,6 @@ local function Forward(DB, train, epoch, confusion)
           model:syncParameters()
         end
 
-        -- local debugger = require('fb.debugger')
-        -- debugger.enter()
         currLoss, y = optimator:optimize(optim.sgd, x, yt, loss)
 
         if opt.deb and (iMini - 1) % 100 == 0 then

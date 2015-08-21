@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-18-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-19-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-21-2015
 
 local lib = require('lua_lib')
 local th = require('lua_th')
@@ -25,19 +25,23 @@ local net = {}
 --   optStat
 --   modTs
 function net.newMod(solConf, opt)
+  -- default parameter
+  local iniAlg = opt.iniAlg or 'xavier_caffe'
+  local nC = solConf.nC or #opt.DATA.cNms
+
   -- model & sub-modules
-  local model, mods
+  local model, mods, modSs
   if lib.startswith(solConf.netNm, 'alexbnT') then
-    model, mods = alex.newT(solConf.nC, true, solConf.iniAlg)
+    model, mods = alex.newT(nC, true, iniAlg)
 
   elseif lib.startswith(solConf.netNm, 'alexbnS') then
-    model, mods = alex.newStn(solConf.nC, true, solConf.iniAlg)
+    model, mods, modSs = alex.newStn(nC, true, iniAlg, solConf.tran)
 
   elseif lib.startswith(solConf.netNm, 'alexbn') then
-    model, mods = alex.new(solConf.nC, true, solConf.iniAlg)
+    model, mods = alex.new(nC, true, iniAlg)
 
   elseif lib.startswith(solConf.netNm, 'goobn') then
-    model, mods = goo.new(solConf.nC, true, solConf.iniAlg)
+    model, mods = goo.new(nC, true, iniAlg)
 
   else
     assert(nil, string.format('unknown net: %s', solConf.netNm))
@@ -45,6 +49,7 @@ function net.newMod(solConf, opt)
 
   -- index of sub-modules
   local idx = th.idxMod(model, mods)
+  local idxS = th.idxMod(model, modSs)
 
   -- loss
   local loss = nn.ClassNLLCriterion()
@@ -59,7 +64,8 @@ function net.newMod(solConf, opt)
   loss:cuda()
 
   -- re-locate sub-module
-  local mods = th.subMod(model, idx)
+  mods = th.subMod(model, idx)
+  modSs = th.subMod(model, idxS)
 
   -- save model
   local modelSv = th.getModSv(model, #opt.gpus)
@@ -73,7 +79,7 @@ function net.newMod(solConf, opt)
     dampening = 0.0
   }
 
-  return model, loss, modelSv, mods, optStat
+  return model, loss, modelSv, mods, optStat, modSs
 end
 
 return net
