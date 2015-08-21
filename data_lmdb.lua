@@ -76,13 +76,15 @@ function genLmdbFromList(env, imgFold, imgList, meanPath)
     if opt.cmp then
       img = image.compressJPG(img)
     else
-      img = image:storage()
+      img = (img * 255):byte()
     end
 
     -- store
     local key = string.format('%07d', i)
     local data = {img = img, c = c, path = parts[1]}
     cursor:put(key, data, lmdb.C.MDB_NODUPDATA)
+
+    -- commit
     if i % 1000 == 0 then
       txn:commit()
       xlua.print(env:stat())
@@ -114,7 +116,7 @@ function genLmdbFromList(env, imgFold, imgList, meanPath)
   end
 end
 
--- tr lmdb path
+-- train lmdb path
 local trLmdb
 if opt.cmp then
   trLmdb = PATH.trLmdb
@@ -122,7 +124,7 @@ else
   trLmdb = PATH.trLmdb .. '_ori'
 end
 
--- create tr lmdb
+-- create train lmdb
 assert(not paths.dirp(trLmdb), string.format('%s exists', trLmdb))
 local trEnv = lmdb.env {
   Path = trLmdb,
@@ -131,7 +133,7 @@ local trEnv = lmdb.env {
 local trImgList = lib.loadLns(PATH.trListCaf)
 genLmdbFromList(trEnv, PATH.dataFold .. '/train', trImgList, PATH.meanPath)
 
--- te lmdb path
+-- test lmdb path
 local teLmdb
 if opt.cmp then
   teLmdb = PATH.teLmdb
@@ -139,10 +141,10 @@ else
   teLmdb = PATH.teLmdb .. '_ori'
 end
 
--- test
-assert(not paths.dirp(PATH.teLmdb))
+-- create test lmdb
+assert(not paths.dirp(teLmdb), string.format('%s exists', trLmdb))
 local teEnv = lmdb.env {
-  Path = PATH.teLmdb,
+  Path = teLmdb,
   Name = 'test'
 }
 local teImgList = lib.loadLns(PATH.teListCaf)

@@ -15,7 +15,7 @@ Example
 
 History
   create  -  Feng Zhou (zhfe99@gmail.com), 08-05-2015
-  modify  -  Feng Zhou (zhfe99@gmail.com), 08-17-2015
+  modify  -  Feng Zhou (zhfe99@gmail.com), 08-21-2015
 """
 import argparse
 import numpy as np
@@ -118,7 +118,9 @@ def shLog(trLrs, trLosss, trAccss, trTi0ss, teLosss, teAccss, teTi0ss):
     has = []
     for i in range(nCon):
         mk, _ = lib.genMkCl(2 * i)
-        ha, = lib.plt.plot(trEposs[i], 1.0 * trTiss[i] / 3600, 'r-', marker=mk, label='{}: tr time'.format(cons[i]))
+        import pdb; pdb.set_trace()
+
+        ha, = lib.plt.plot(trEposs[i], 1.0 * trTiss[i] / 3600, 'r-', label='{}: tr time'.format(cons[i]))
         has.append(ha)
 
         mk, _ = lib.genMkCl(2 * i + 1)

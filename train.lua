@@ -7,13 +7,14 @@
 --   CUDA_VISIBLE_DEVICES=1,2,3,4 th train.lua -dbe imgnet -ver v2 -con goobn_4gpu -gpu 0,1,2,3
 --   CUDA_VISIBLE_DEVICES=7 th train.lua -ver v1 -con alexbnS -deb
 --   CUDA_VISIBLE_DEVICES=7 th train.lua -ver v1 -con alexbnS2 -deb
+--   CUDA_VISIBLE_DEVICES=6 th train.lua -dbe bird -ver v1 -con alexbnS -deb
 --
 -- Cudnn R3
 --   export LD_LIBRARY_PATH=$apps/cudnn_v3:$LD_LIBRARY_PATH
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-20-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-21-2015
 
 require('torch')
 require('xlua')
@@ -33,8 +34,10 @@ opt = opts.parse(arg, 'train')
 local solConf = dofile(opt.CONF.protTr)
 local net = require('net')
 local model, loss, modelSv, modTs, optStat = net.newMod(solConf, opt)
+print(solConf)
+print(opt)
 
-local tmpFold = '/home/ma/feng/save/car/torch/tmp'
+local tmpFold = string.format('/home/ma/feng/save/%s/torch/tmp', opt.dbe)
 
 -- data loader
 local data_load = require('data_load')
@@ -70,8 +73,8 @@ local function Forward(DB, train, epoch, confusion)
     end
 
     if opt.deb then
-      optimator.modulesToOptState[modTs[2]][1].learningRate = params.learningRate * 0.1
-      optimator.modulesToOptState[modTs[2]][2].learningRate = params.learningRate * 0.1
+      optimator.modulesToOptState[modTs[2]][1].learningRate = params.learningRate * 1
+      optimator.modulesToOptState[modTs[2]][2].learningRate = params.learningRate * 1
       print(modTs[2])
       -- optimator.modulesToOptState[modTs[1]][1].weightDecay = params.weightDecay * 100
       -- local debugger = require('fb.debugger')

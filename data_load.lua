@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-01-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-18-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-21-2015
 
 require 'eladtools'
 require 'xlua'
@@ -12,7 +12,7 @@ local Threads = require 'threads'
 local ffi = require 'ffi'
 
 -- upvalue used by function
-local sampleSiz, InputSize, meanInfo, trLmdb, teLmdb, DataMean, DataStd
+local sampleSiz, InputSize, meanInfo, trLmdb, teLmdb, DataMean, DataStd, cmp
 
 local data_load = {}
 
@@ -53,7 +53,12 @@ function data_load.ExtractFromLMDBTrain(key, data)
   local class = data.c
 
   -- decompress
-  local img = image.decompressJPG(data.img)
+  local img
+  if cmp then
+    img = image.decompressJPG(data.img)
+  else
+    img = data.img:float() / 255
+  end
 
   -- random crop
   local nDim = img:dim()
@@ -85,7 +90,12 @@ function data_load.ExtractFromLMDBTest(key, data)
   local class = data.c
 
   -- decompress
-  local img = image.decompressJPG(data.img)
+  local img
+  if cmp then
+    img = image.decompressJPG(data.img)
+  else
+    img = data.img:float() / 255
+  end
 
   -- crop
   local nDim = img:dim()
@@ -136,6 +146,9 @@ function data_load.init(opt, solConf)
   local lib = require('lua_lib')
   lib.prIn('data_load init')
 
+  -- compress
+  cmp = solConf.cmp
+
   -- dimension
   sampleSiz = solConf.smpSiz
   InputSize = sampleSiz[2]
@@ -144,8 +157,12 @@ function data_load.init(opt, solConf)
   meanInfo = torch.load(opt.PATH.meanPath)
   DataMean = meanInfo.me
   DataStd = meanInfo.std
+
   -- train
   trLmdb = opt.PATH.trLmdb
+  if not cmp then
+    trLmdb = trLmdb .. '_ori'
+  end
   local trLmdb2 = trLmdb:gsub(paths.home, '/workplace/feng')
   if paths.dirp(trLmdb2) then
     trLmdb = trLmdb2
@@ -154,6 +171,9 @@ function data_load.init(opt, solConf)
 
   -- test
   teLmdb = opt.PATH.teLmdb
+  if not cmp then
+    teLmdb = teLmdb .. '_ori'
+  end
   local teLmdb2 = teLmdb:gsub(paths.home, '/workplace/feng')
   if paths.dirp(teLmdb2)  then
     teLmdb = teLmdb2
