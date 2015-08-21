@@ -4,21 +4,21 @@ Visualize the transformation.
 
 History
   create  -  Feng Zhou (zhfe99@gmail.com), 08-16-2015
-  modify  -  Feng Zhou (zhfe99@gmail.com), 08-20-2015
+  modify  -  Feng Zhou (zhfe99@gmail.com), 08-21-2015
 """
 import os
 import py_lib as lib
 
 tmpFold = os.path.join(os.environ['HOME'], 'save/car/torch/tmp')
-h5Path = '{}/test_{}_{}.h5'.format(tmpFold, 2, 1)
+h5Path = '{}/test_{}_{}.h5'.format(tmpFold, 1, 1)
 
 # read from hdf
 ha = lib.hdfRIn(h5Path)
 grid = lib.hdfR(ha, 'grid')
 input0 = lib.hdfR(ha, 'input0')
 input1 = lib.hdfR(ha, 'input1')
-# bias = lib.hdfR(ha, 'bias')
-# weight = lib.hdfR(ha, 'weight')
+bias = lib.hdfR(ha, 'bias')
+weight = lib.hdfR(ha, 'weight')
 lib.hdfROut(ha)
 
 # dimension
