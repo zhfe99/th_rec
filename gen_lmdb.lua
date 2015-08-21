@@ -5,7 +5,7 @@
 --   ./gen_lmdb.lua -dbe car -ver v1c
 --
 -- history
---   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
+--   create  -  Feng Zhou (zhfe99@gmail.com), 08-20-2015
 --   modify  -  Feng Zhou (zhfe99@gmail.com), 08-20-2015
 
 require 'eladtools'
