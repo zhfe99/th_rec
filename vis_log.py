@@ -118,13 +118,12 @@ def shLog(trLrs, trLosss, trAccss, trTi0ss, teLosss, teAccss, teTi0ss):
     has = []
     for i in range(nCon):
         mk, _ = lib.genMkCl(2 * i)
-        import pdb; pdb.set_trace()
 
         ha, = lib.plt.plot(trEposs[i], 1.0 * trTiss[i] / 3600, 'r-', label='{}: tr time'.format(cons[i]))
         has.append(ha)
 
         mk, _ = lib.genMkCl(2 * i + 1)
-        ha, = lib.plt.plot(teEposs[i], 1.0 * teTiss[i] / 3600, 'bs', marker=mk, label='{}: te time'.format(cons[i]))
+        ha, = lib.plt.plot(teEposs[i], 1.0 * teTiss[i] / 3600, 'bs', marker=mk, label='{}: te time'.format(cons[i]), markersize=3)
         has.append(ha)
     lib.plt.xlabel('#epochs')
     lib.plt.ylabel('hours')
