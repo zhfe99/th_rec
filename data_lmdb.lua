@@ -3,10 +3,11 @@
 --
 -- Example
 --   ./data_lmdb.lua -dbe car -ver v1c
+--   ./data_lmdb.lua -dbe car -ver v1c -cmp
 --
 -- history
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-20-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-21-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-22-2015
 
 require 'eladtools'
 require 'image'
@@ -25,8 +26,8 @@ cmd:text('Options:')
 cmd:addTime()
 cmd:option('-dbe', 'car', 'database name')
 cmd:option('-ver', 'v1c', 'version')
-cmd:option('-cmp', true, 'compress or not')
-cmd:option('-sizMa', 256, 'minimum image size')
+cmd:option('-cmp', false, 'compress or not')
+cmd:option('-sizMi', 256, 'minimum image size')
 local opt = cmd:parse(arg)
 
 -- data
@@ -64,7 +65,7 @@ function genLmdbFromList(env, imgFold, imgList, meanPath)
     local img0 = lib.imgLoad(filename)
 
     -- rescale
-    local img = lib.imgSizNew(img0, opt.sizMa)
+    local img = lib.imgSizNew(img0, opt.sizMi)
 
     -- update mean & std
     for j = 1, 3 do

@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-09-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-19-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-22-2015
 
 local lib = require('lua_lib')
 
@@ -30,8 +30,7 @@ function M.parse(arg, mode)
   cmd:option('-dbe', 'car', 'database name')
   cmd:option('-ver', 'v1c', 'version')
   cmd:option('-con', 'alex', 'configuration')
-  cmd:option('-threads', 8, 'number of threads')
-  cmd:option('-type', 'cuda', 'float or cuda')
+  cmd:option('-threads', 8, '#threads')
   cmd:option('-gpu', '0', 'gpu id, could be multiple')
   cmd:option('-shuffle', true, 'shuffle training samples')
   cmd:option('-cmp', true, 'compress or not')

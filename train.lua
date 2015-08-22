@@ -13,7 +13,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-21-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-22-2015
 
 require('torch')
 require('xlua')
@@ -36,7 +36,6 @@ local net = require('net')
 local model, loss, modelSv, mod1s, optStat, mod2s = net.newMod(solConf, opt)
 xlua.print(solConf)
 xlua.print(opt)
-
 
 -- data loader
 local data_load = require('data_load')
