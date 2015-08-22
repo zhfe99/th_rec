@@ -4,13 +4,13 @@ Visualize the transformation.
 
 History
   create  -  Feng Zhou (zhfe99@gmail.com), 08-16-2015
-  modify  -  Feng Zhou (zhfe99@gmail.com), 08-21-2015
+  modify  -  Feng Zhou (zhfe99@gmail.com), 08-22-2015
 """
 import os
 import py_lib as lib
 
 tmpFold = os.path.join(os.environ['HOME'], 'save/car/torch/tmp')
-h5Path = '{}/test_{}_{}.h5'.format(tmpFold, 11, 1)
+h5Path = '{}/test_{}_{}.h5'.format(tmpFold, 80, 1)
 
 # read from hdf
 ha = lib.hdfRIn(h5Path)
