@@ -122,57 +122,65 @@ end
 -- Input
 --   isBn    -  flag of using BN, true | false
 --   iniAlg  -  init method
+--   loc     -  localization network
 --
 -- Output
 --   model   -  model
 --   mods    -  sub-modules needed to re-train, m x
-function alex.newStnLoc(isBn, iniAlg)
+function alex.newStnLoc(isBn, iniAlg, loc)
   -- load old model
   local model = torch.load(modPath0)
+  local mod, k
 
-  -- remove the classifier layer
-  model:remove(2)
+  if loc == 'type1' then
+    -- remove the classifier layer
+    model:remove(2)
 
-  -- add a new classifier layer
-  local k = 128
-  local classifier = nn.Sequential()
-  classifier:add(nn.View(256 * 6 * 6))
-  classifier:add(nn.Dropout(0.5))
+    -- add a new classifier layer
+    k = 128
+    local classifier = nn.Sequential()
+    classifier:add(nn.View(256 * 6 * 6))
+    classifier:add(nn.Dropout(0.5))
 
-  local mod = nn.Linear(256 * 6 * 6, k)
-  classifier:add(mod)
+    mod = nn.Linear(256 * 6 * 6, k)
+    classifier:add(mod)
 
-  if isBn then
-    classifier:add(nn.BatchNormalization(k, 1e-3))
+    if isBn then
+      classifier:add(nn.BatchNormalization(k, 1e-3))
+    end
+    classifier:add(cudnn.ReLU(true))
+
+    model:add(classifier)
+
+    -- init
+    th.iniMod(classifier, iniAlg)
+
+  elseif loc == 'type2' then
+    -- remove the classifier layer
+    model:remove(2)
+
+    -- add a new classifier layer
+    k = 64
+    local classifier = nn.Sequential()
+    classifier:add(nn.View(256 * 6 * 6))
+    classifier:add(nn.Dropout(0.5))
+
+    mod = nn.Linear(256 * 6 * 6, k)
+    classifier:add(mod)
+
+    if isBn then
+      classifier:add(nn.BatchNormalization(k, 1e-3))
+    end
+    classifier:add(cudnn.ReLU(true))
+
+    model:add(classifier)
+
+    -- init
+    th.iniMod(classifier, iniAlg)
+
+  else
+    assert(nil, string.format('unknown loc: %s', loc))
   end
-  classifier:add(cudnn.ReLU(true))
-  -- classifier:add(nn.Threshold(0, 1e-6))
-
-  model:add(classifier)
-
-  -- remove last fully connected layer
-  -- local debugger = require('fb.debugger')
-  -- debugger.enter()
-  -- local mod0 = model.modules[2].modules[10]
-  -- model.modules[2]:remove(11)
-  -- model.modules[2]:remove(10)
-
-  -- model.modules[2]:remove(9)
-  -- model.modules[2]:remove(8)
-  -- model.modules[2]:remove(7)
-
-  -- model.modules[2]:remove(6)
-  -- model.modules[2]:remove(5)
-  -- model.modules[2]:remove(4)
-  -- model.modules[2]:remove(3)
-
-  -- insert a new one
-  -- local mod = nn.Linear(4096, nC)
-  -- model.modules[2]:insert(mod, 10)
-  -- model.modules[2]:add(nn.Dropout(0.5))
-
-  -- init
-  th.iniMod(classifier, iniAlg)
 
   return model, {mod}, k
 end
@@ -185,16 +193,17 @@ end
 --   isBn    -  flag of using BN, true | false
 --   iniAlg  -  init method
 --   tran    -  transformation name
+--   loc     -  locnet name
 --
 -- Output
 --   model   -  model
 --   mods    -  module needed to be update, m x
 --   modSs   -  module needed to be update, m x
-function alex.newStn(nC, isBn, iniAlg, tran)
+function alex.newStn(nC, isBn, iniAlg, tran, loc)
   local stn = require('model.stnet')
 
   -- locnet
-  local locnet, modLs, k = alex.newStnLoc(isBn, iniAlg)
+  local locnet, modLs, k = alex.newStnLoc(isBn, iniAlg, loc)
 
   -- stn net
   local inSiz = 224

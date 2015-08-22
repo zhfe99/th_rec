@@ -5,9 +5,8 @@
 --   CUDA_VISIBLE_DEVICES=0,1,2,3 th train.lua -dbe imgnet -ver v2 -con alexbn_4gpu -gpu 0,1,2,3
 --   CUDA_VISIBLE_DEVICES=4,5,6,7 th train.lua -dbe imgnet -ver v2 -con alexbn_4gpu -gpu 0,1,2,3
 --   CUDA_VISIBLE_DEVICES=1,2,3,4 th train.lua -dbe imgnet -ver v2 -con goobn_4gpu -gpu 0,1,2,3
---   CUDA_VISIBLE_DEVICES=7 th train.lua -ver v1 -con alexbnS -deb
---   CUDA_VISIBLE_DEVICES=7 th train.lua -ver v1 -con alexbnS2 -deb
---   CUDA_VISIBLE_DEVICES=6 th train.lua -dbe bird -ver v1 -con alexbnS -deb
+--   CUDA_VISIBLE_DEVICES=7 th train.lua -ver v1 -con alexbnS1 -deb
+--   CUDA_VISIBLE_DEVICES=0 th train.lua -ver v1 -con alexbnS1b -deb
 --
 -- Cudnn R3
 --   export LD_LIBRARY_PATH=$apps/cudnn_v3:$LD_LIBRARY_PATH
@@ -32,12 +31,12 @@ opt = opts.parse(arg, 'train')
 
 -- network
 local solConf = dofile(opt.CONF.protTr)
+local tmpFold = opt.CONF.tmpFold
 local net = require('net')
 local model, loss, modelSv, mod1s, optStat, mod2s = net.newMod(solConf, opt)
-print(solConf)
-print(opt)
+xlua.print(solConf)
+xlua.print(opt)
 
-local tmpFold = string.format('/home/ma/feng/save/%s/torch/tmp', opt.dbe)
 
 -- data loader
 local data_load = require('data_load')
@@ -58,6 +57,8 @@ local function Forward(DB, train, epoch, confusion)
 
   -- adjust optimizer
   if train then
+    -- local debugger = require('fb.debugger')
+    -- debugger.enter()
     local newReg, par0, par1, par2 = th.parEpo(epoch, solConf.lrs)
     optimator:setParameters(par0)
 

@@ -35,7 +35,7 @@ function net.newMod(solConf, opt)
     model, mods = alex.newT(nC, true, iniAlg)
 
   elseif lib.startswith(solConf.netNm, 'alexbnS') then
-    model, mods, modSs = alex.newStn(nC, true, iniAlg, solConf.tran)
+    model, mods, modSs = alex.newStn(nC, true, iniAlg, solConf.tran, solConf.loc)
 
   elseif lib.startswith(solConf.netNm, 'alexbn') then
     model, mods = alex.new(nC, true, iniAlg)
