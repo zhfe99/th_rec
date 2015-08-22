@@ -2,7 +2,8 @@
 -- Train using Torch.
 --
 -- Example
---   CUDA_VISIBLE_DEVICES=0,1,2,3 th train.lua -dbe imgnet -ver v2 -con alexbn_4gpu -gpu 0,1,2,3
+--   export CUDA_VISIBLE_DEVICES=0,1,2,3
+--   th train.lua -dbe imgnet -ver v2 -con alexbn_4gpu -gpu 0,1,2,3
 --   CUDA_VISIBLE_DEVICES=4,5,6,7 th train.lua -dbe imgnet -ver v2 -con alexbn_4gpu -gpu 0,1,2,3
 --   CUDA_VISIBLE_DEVICES=1,2,3,4 th train.lua -dbe imgnet -ver v2 -con goobn_4gpu -gpu 0,1,2,3
 --   CUDA_VISIBLE_DEVICES=7 th train.lua -ver v1 -con alexbnS1 -deb
@@ -24,18 +25,17 @@ require('trepl')
 require('fbcunn.Optim')
 local th = require('lua_th')
 local lib = require('lua_lib')
+local opts = require('opts')
+local net = require('net')
 
 -- argument
-local opts = require('opts')
 opt = opts.parse(arg, 'train')
 
 -- network
 local solConf = dofile(opt.CONF.protTr)
+lib.prTab(solConf, 'solConf')
 local tmpFold = opt.CONF.tmpFold
-local net = require('net')
-local model, loss, modelSv, mod1s, optStat, mod2s = net.newMod(solConf, opt)
-xlua.print(solConf)
-xlua.print(opt)
+local model, loss, modelSv, mod1s, mod2s, optStat = net.newMod(solConf, opt)
 
 -- data loader
 local data_load = require('data_load')

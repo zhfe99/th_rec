@@ -58,6 +58,8 @@ function M.parse(arg, mode)
   torch.setdefaulttensortype('torch.FloatTensor')
   torch.manualSeed(opt.seed)
 
+  lib.prTab(opt, 'opt')
+
   return opt
 end
 

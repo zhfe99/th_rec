@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-04-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-21-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-22-2015
 
 require 'cudnn'
 require 'cunn'
@@ -201,6 +201,8 @@ end
 --   modSs   -  module needed to be update, m x
 function alex.newStn(nC, isBn, iniAlg, tran, loc)
   local stn = require('model.stnet')
+  assert(tran)
+  assert(loc)
 
   -- locnet
   local locnet, modLs, k = alex.newStnLoc(isBn, iniAlg, loc)
