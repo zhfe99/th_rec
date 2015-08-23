@@ -14,7 +14,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-22-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-23-2015
 
 require('torch')
 require('xlua')
