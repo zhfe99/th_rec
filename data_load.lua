@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-01-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-21-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-23-2015
 
 require 'eladtools'
 require 'xlua'
@@ -147,7 +147,12 @@ function data_load.init(opt, solConf)
   lib.prIn('data_load init')
 
   -- compress
-  cmp = solConf.cmp or true
+  local cmp
+  if solConf.cmp == nil then
+    cmp = true
+  else
+    cmp = solConf.cmp
+  end
 
   -- dimension
   sampleSiz = solConf.smpSiz or {3, 224, 224}
