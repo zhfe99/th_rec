@@ -3,18 +3,12 @@
 --
 -- Example
 --   export CUDA_VISIBLE_DEVICES=0,1,2,3
---   th train.lua -dbe imgnet -ver v2 -con alexbn_4gpu -gpu 0,1,2,3
---   CUDA_VISIBLE_DEVICES=4,5,6,7 th train.lua -dbe imgnet -ver v2 -con alexbn_4gpu -gpu 0,1,2,3
---   CUDA_VISIBLE_DEVICES=1,2,3,4 th train.lua -dbe imgnet -ver v2 -con goobn_4gpu -gpu 0,1,2,3
---   CUDA_VISIBLE_DEVICES=7 th train.lua -ver v1 -con alexbnS1 -deb
---   CUDA_VISIBLE_DEVICES=0 th train.lua -ver v1 -con alexbnS1b -deb
---
--- Cudnn R3
---   export LD_LIBRARY_PATH=$apps/cudnn_v3:$LD_LIBRARY_PATH
+--   ./train.lua -dbe imgnet -ver v2 -con alexbn_4gpu -gpu 0,1,2,3
+--   ./train.lua -ver v1 -con alexbnS1 -deb
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-23-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-24-2015
 
 require('torch')
 require('xlua')
@@ -56,8 +50,6 @@ local function Forward(DB, train, epoch, confusion)
 
   -- adjust optimizer
   if train then
-    -- local debugger = require('fb.debugger')
-    -- debugger.enter()
     local newReg, par0, par1, par2 = th.parEpo(epoch, solConf.lrs)
     optimator:setParameters(par0)
 
