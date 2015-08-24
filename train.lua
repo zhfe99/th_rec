@@ -3,8 +3,8 @@
 --
 -- Example
 --   export CUDA_VISIBLE_DEVICES=0,1,2,3
---   ./train.lua -dbe imgnet -ver v2 -con alexbn_4gpu -gpu 0,1,2,3
---   ./train.lua -ver v1 -con alexbnS1 -deb
+--   ./train.lua -dbe imgnet -ver v2 -con alex_4gpu -gpu 0,1,2,3
+--   ./train.lua -ver v1 -con alexS1 -deb
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
