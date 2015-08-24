@@ -3,13 +3,14 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-05-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-19-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-23-2015
 
 require 'cudnn'
 require 'nn'
 local lib = require('lua_lib')
 local th = require('lua_th')
 local goo = {}
+local modPath0 = paths.concat(paths.home, 'save/imgnet/torch/model/imgnet_v2_goobn_2gpu.t7')
 
 ----------------------------------------------------------------------
 -- Create the inception component.
@@ -156,5 +157,37 @@ function goo.new(nC, isBn, iniAlg)
 
   return model, {}
 end
+
+----------------------------------------------------------------------
+-- Create alexnet model for fine-tuning.
+--
+-- Input
+--   nC      -  #classes
+--   isBn    -  flag of using batch normalization
+--   iniAlg  -  initialize method
+--
+-- Output
+--   model   -  pre-trained model
+--   mods    -  sub-modules needed to re-train, m x
+function goo.newT(nC, isBn, iniAlg)
+  local model = torch.load(modPath0)
+
+  local debugger = require('fb.debugger')
+  debugger.enter()
+
+  -- remove last fully connected layer
+  local mod0 = model.modules[2].modules[10]
+  model.modules[2]:remove(10)
+
+  -- insert a new one
+  local mod = nn.Linear(4096, nC)
+  model.modules[2]:insert(mod, 10)
+
+  -- init
+  th.iniMod(mod, iniAlg)
+
+  return model, {mod}
+end
+
 
 return goo

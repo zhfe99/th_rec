@@ -33,13 +33,19 @@ function net.newMod(solConf, opt)
   -- model & sub-modules
   local model, mod1s, mod2s
   if lib.startswith(solConf.netNm, 'alexTS') then
-    model, mod1s, mod2s = alex.newStn(nC, true, iniAlg, solConf.tran, solConf.loc)
+    model, mod1s, mod2s = alex.newTS(nC, true, iniAlg, solConf.tran, solConf.loc)
 
   elseif lib.startswith(solConf.netNm, 'alexT') then
     model, mod1s = alex.newT(nC, true, iniAlg)
 
   elseif lib.startswith(solConf.netNm, 'alex') then
     model, mod1s = alex.new(nC, true, iniAlg)
+
+  elseif lib.startswith(solConf.netNm, 'gooTS') then
+    model, mod1s, mod2s = goo.newTS(nC, true, iniAlg)
+
+  elseif lib.startswith(solConf.netNm, 'gooT') then
+    model, mod1s = goo.newT(nC, true, iniAlg)
 
   elseif lib.startswith(solConf.netNm, 'goo') then
     model, mod1s = goo.new(nC, true, iniAlg)

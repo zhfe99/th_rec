@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-04-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-22-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-23-2015
 
 require 'cudnn'
 require 'cunn'
@@ -186,7 +186,7 @@ function alex.newStnLoc(isBn, iniAlg, loc)
 end
 
 ----------------------------------------------------------------------
--- Create the alexnet model.
+-- Create the alexnet stn model with fine-tuning.
 --
 -- Input
 --   nC      -  #classes
@@ -199,7 +199,7 @@ end
 --   model   -  model
 --   mods    -  module needed to be update, m x
 --   modSs   -  module needed to be update, m x
-function alex.newStn(nC, isBn, iniAlg, tran, loc)
+function alex.newTS(nC, isBn, iniAlg, tran, loc)
   local stn = require('model.stnet')
   assert(tran)
   assert(loc)
