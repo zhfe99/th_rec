@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-05-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-23-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-24-2015
 
 require 'cudnn'
 require 'nn'
@@ -186,5 +186,92 @@ function goo.newT(nC, isBn, iniAlg)
   return model, {mod}
 end
 
+----------------------------------------------------------------------
+-- Create the localization net for STN.
+--
+-- Input
+--   isBn    -  flag of using BN, true | false
+--   iniAlg  -  init method
+--   loc     -  localization network
+--
+-- Output
+--   model   -  model
+--   mods    -  sub-modules needed to re-train, m x
+function goo.newStnLoc(isBn, iniAlg, loc)
+  -- load old model
+  local model = torch.load(modPath0)
+  local mod1, mod2, k
+
+  if loc == 'type1' then
+    local main = model.modules[2]
+
+    -- remove the classifier layer
+    main:remove(9)
+    main:remove(8)
+    main:remove(7)
+    main:remove(6)
+    -- local debugger = require('fb.debugger')
+    -- debugger.enter()
+
+    -- add a new 1x1 convolutional layer
+    k = 128
+    mod1 = cudnn.SpatialConvolution(1024, 128, 1, 1, 1, 1)
+    main:add(mod1)
+
+    -- add a fully-connected layer
+    main:add(nn.View(128 * 7 * 7))
+    mod2 = nn.Linear(128 * 7 * 7, k)
+    main:add(mod2)
+
+    -- init
+    th.iniMod(mod1, iniAlg)
+    th.iniMod(mod2, iniAlg)
+
+  else
+    assert(nil, string.format('unknown loc: %s', loc))
+  end
+
+  return model, {mod1, mod2}, k
+end
+
+----------------------------------------------------------------------
+-- Create the goonet stn model with fine-tuning.
+--
+-- Input
+--   nC      -  #classes
+--   isBn    -  flag of using BN, true | false
+--   iniAlg  -  init method
+--   tran    -  transformation name
+--   loc     -  locnet name
+--
+-- Output
+--   model   -  model
+--   mods    -  module needed to be update, m x
+--   modSs   -  module needed to be update, m x
+function goo.newTS(nC, isBn, iniAlg, tran, loc)
+  local stn = require('model.stnet')
+  assert(tran)
+  assert(loc)
+
+  -- locnet
+  local locnet, modLs, k = goo.newStnLoc(isBn, iniAlg, loc)
+
+  -- stn net
+  local inSiz = 224
+  local stnet, modSs = stn.new(locnet, isBn, tran, k, inSiz)
+
+  -- alex net
+  local goonet, modAs = goo.newT(nC, isBn, iniAlg)
+
+  -- concat
+  local model = nn.Sequential()
+  model:add(stnet)
+  model:add(goonet)
+
+  -- model needed to re-train
+  local mods = lib.tabCon(modLs, modSs, modAs)
+
+  return model, mods, modSs
+end
 
 return goo
