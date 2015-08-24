@@ -147,7 +147,6 @@ function data_load.init(opt, solConf)
   lib.prIn('data_load init')
 
   -- compress
-  local cmp
   if solConf.cmp == nil then
     cmp = true
   else

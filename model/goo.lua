@@ -10,7 +10,7 @@ require 'nn'
 local lib = require('lua_lib')
 local th = require('lua_th')
 local goo = {}
-local modPath0 = paths.concat(paths.home, 'save/imgnet/torch/model/imgnet_v2_goobn_2gpu.t7')
+local modPath0 = paths.concat(paths.home, 'save/imgnet/torch/model/imgnet_v2_goobn_4gpu.t7')
 
 ----------------------------------------------------------------------
 -- Create the inception component.
@@ -172,16 +172,13 @@ end
 function goo.newT(nC, isBn, iniAlg)
   local model = torch.load(modPath0)
 
-  local debugger = require('fb.debugger')
-  debugger.enter()
-
   -- remove last fully connected layer
-  local mod0 = model.modules[2].modules[10]
-  model.modules[2]:remove(10)
+  local mod0 = model.modules[2].modules[8]
+  model.modules[2]:remove(8)
 
   -- insert a new one
-  local mod = nn.Linear(4096, nC)
-  model.modules[2]:insert(mod, 10)
+  local mod = nn.Linear(1024, nC)
+  model.modules[2]:insert(mod, 8)
 
   -- init
   th.iniMod(mod, iniAlg)
