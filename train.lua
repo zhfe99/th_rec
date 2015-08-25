@@ -170,8 +170,8 @@ local function Forward(DB, train, epoch, confusion)
           lib.hdfW(ha, tmpWeight:float(), 'weight')
           lib.hdfW(ha, tmpBias:float(), 'bias')
           lib.hdfWOut(ha)
-          local debugger = require('fb.debugger')
-          debugger.enter()
+          -- local debugger = require('fb.debugger')
+          -- debugger.enter()
         end
       else
         y = model:forward(x)
