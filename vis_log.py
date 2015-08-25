@@ -15,7 +15,7 @@ Example
 
 History
   create  -  Feng Zhou (zhfe99@gmail.com), 08-05-2015
-  modify  -  Feng Zhou (zhfe99@gmail.com), 08-21-2015
+  modify  -  Feng Zhou (zhfe99@gmail.com), 08-24-2015
 """
 import argparse
 import numpy as np
@@ -23,6 +23,7 @@ import os
 import py_lib as lib
 import lua_th as th
 lib.init(prL=3)
+
 
 def shLog(trLrs, trLosss, trAccss, trTi0ss, teLosss, teAccss, teTi0ss):
     """
@@ -68,7 +69,8 @@ def shLog(trLrs, trLosss, trAccss, trTi0ss, teLosss, teAccss, teTi0ss):
     # show
     rows = 2
     cols = 3
-    Ax = lib.iniAx(1, rows, cols, [rows * 4, cols * 5], flat=False, hs=[2, 1], dpi=None)
+    Ax = lib.iniAx(1, rows, cols, [rows * 4, cols * 5],
+                   flat=False, hs=[2, 1], dpi=None)
 
     # show train
     lib.setAx(Ax[0, 0])
@@ -79,14 +81,16 @@ def shLog(trLrs, trLosss, trAccss, trTi0ss, teLosss, teAccss, teTi0ss):
         co1 += 1
         _, cl = lib.genMkCl(co1)
         xs = trEposs[i]
-        ha, = lib.plt.plot(xs, trLosss[i], '-', color=cl, label='{} tr'.format(cons[i]))
+        ha, = lib.plt.plot(xs, trLosss[i], '-',
+                           color=cl, label='{} tr'.format(cons[i]))
         has.append(ha)
 
         # testing loss
         co2 += 1
         xs = teEposs[i]
         mk, _ = lib.genMkCl(co2)
-        ha, = lib.plt.plot(xs, teLosss[i], 'r-', marker=mk, label='{}: te'.format(cons[i]))
+        ha, = lib.plt.plot(xs, teLosss[i], 'r-',
+                           marker=mk, label='{}: te'.format(cons[i]))
         has.append(ha)
 
     # lib.plt.xlabel(xaxis)
@@ -103,7 +107,8 @@ def shLog(trLrs, trLosss, trAccss, trTi0ss, teLosss, teAccss, teTi0ss):
     for i in range(nCon):
         co += 1
         mk, _ = lib.genMkCl(co)
-        ha, = lib.plt.plot(teEposs[i], teAccss[i], 'r-', marker=mk, label = '{}: te'.format(cons[i]))
+        ha, = lib.plt.plot(teEposs[i], teAccss[i], 'r-', marker=mk,
+                           label = '{}: te'.format(cons[i]))
         has.append(ha)
 
     # lib.plt.xlabel(xaxis)

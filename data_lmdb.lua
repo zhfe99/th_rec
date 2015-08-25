@@ -7,7 +7,7 @@
 --
 -- history
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-20-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-22-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-24-2015
 
 require 'eladtools'
 require 'image'
@@ -43,7 +43,7 @@ cmd:log(string.format('%s/%s_%s.log_lmdb', PATH.logFold, opt.dbe, opt.ver))
 --   imgFold   -  image fold
 --   imgList   -  image list
 --   meanPath  -  mean path (optional)
-function genLmdbFromList(env, imgFold, imgList, meanPath)
+local function genLmdbFromList(env, imgFold, imgList, meanPath)
   env:open()
   local txn = env:txn()
   local cursor = txn:cursor()
