@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-05-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-24-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-25-2015
 
 require 'cudnn'
 require 'nn'
@@ -217,11 +217,13 @@ function goo.newStnLoc(isBn, iniAlg, loc)
     k = 128
     mod1 = cudnn.SpatialConvolution(1024, 128, 1, 1, 1, 1)
     main:add(mod1)
+    main:add(cudnn.ReLU(true))
 
     -- add a fully-connected layer
     main:add(nn.View(128 * 7 * 7))
     mod2 = nn.Linear(128 * 7 * 7, k)
     main:add(mod2)
+    main:add(cudnn.ReLU(true))
 
     -- init
     th.iniMod(mod1, iniAlg)
@@ -260,7 +262,7 @@ function goo.newTS(nC, isBn, iniAlg, tran, loc)
   local inSiz = 224
   local stnet, modSs = stn.new(locnet, isBn, tran, k, inSiz)
 
-  -- alex net
+  -- goo net
   local goonet, modAs = goo.newT(nC, isBn, iniAlg)
 
   -- concat

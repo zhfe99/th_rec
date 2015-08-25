@@ -4,7 +4,7 @@ Visualize the transformation.
 
 History
   create  -  Feng Zhou (zhfe99@gmail.com), 08-16-2015
-  modify  -  Feng Zhou (zhfe99@gmail.com), 08-23-2015
+  modify  -  Feng Zhou (zhfe99@gmail.com), 08-25-2015
 """
 import os
 import sys
@@ -18,7 +18,7 @@ epo = int(sys.argv[4])
 
 tmpFold = os.path.join(os.environ['HOME'],
                        'save/{}/torch/tmp/{}_{}_{}'.format(dbe, dbe, ver, con))
-h5Path = '{}/test_{}_{}.h5'.format(tmpFold, epo, 1)
+h5Path = '{}/train_{}_{}.h5'.format(tmpFold, epo, 1)
 
 # read from hdf
 ha = lib.hdfRIn(h5Path)
