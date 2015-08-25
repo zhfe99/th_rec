@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-04-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-23-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-25-2015
 
 require 'cudnn'
 require 'cunn'
@@ -63,8 +63,8 @@ function alex.new(nC, isBn, iniAlg)
   if isBn then
     classifier:add(nn.BatchNormalization(4096, 1e-3))
   end
-  -- classifier:add(nn.Threshold(0, 1e-6))
-  features:add(cudnn.ReLU(true))
+  classifier:add(nn.Threshold(0, 1e-6))
+  -- features:add(cudnn.ReLU(true))
 
   classifier:add(nn.Dropout(0.5))
   local ln = nn.Linear(4096, 4096)
@@ -72,8 +72,8 @@ function alex.new(nC, isBn, iniAlg)
   if isBn then
     classifier:add(nn.BatchNormalization(4096, 1e-3))
   end
-  -- classifier:add(nn.Threshold(0, 1e-6))
-  features:add(cudnn.ReLU(true))
+  classifier:add(nn.Threshold(0, 1e-6))
+  -- features:add(cudnn.ReLU(true))
 
   classifier:add(nn.Linear(4096, nC))
   classifier:add(nn.LogSoftMax())
@@ -140,14 +140,14 @@ function alex.newStnLoc(isBn, iniAlg, loc)
     k = 128
     local classifier = nn.Sequential()
     classifier:add(nn.View(256 * 6 * 6))
-    classifier:add(nn.Dropout(0.5))
+    -- classifier:add(nn.Dropout(0.5))
 
     mod = nn.Linear(256 * 6 * 6, k)
     classifier:add(mod)
-
     if isBn then
       classifier:add(nn.BatchNormalization(k, 1e-3))
     end
+    -- classifier:add(nn.Threshold(0, 1e-6))
     classifier:add(cudnn.ReLU(true))
 
     model:add(classifier)
