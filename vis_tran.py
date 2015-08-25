@@ -18,7 +18,7 @@ epo = int(sys.argv[4])
 
 tmpFold = os.path.join(os.environ['HOME'],
                        'save/{}/torch/tmp/{}_{}_{}'.format(dbe, dbe, ver, con))
-h5Path = '{}/train_{}_{}.h5'.format(tmpFold, epo, 1)
+h5Path = '{}/test_{}_{}.h5'.format(tmpFold, epo, 1)
 
 # read from hdf
 ha = lib.hdfRIn(h5Path)
@@ -30,8 +30,8 @@ weight = lib.hdfR(ha, 'weight')
 lib.hdfROut(ha)
 
 # dimension
-nTop = 10
 n, h, w, _ = grid.shape
+nTop = min(input0.shape[0], 5)
 
 # show
 rows = 2
