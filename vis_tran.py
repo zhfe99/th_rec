@@ -8,6 +8,7 @@ History
 """
 import os
 import sys
+import numpy as np
 import py_lib as lib
 
 # input
@@ -31,16 +32,19 @@ lib.hdfROut(ha)
 
 # dimension
 n, h, w, _ = grid.shape
-nTop = min(input0.shape[0], 5)
+nTop = min(input0.shape[0], 30)
 
 # show
-rows = 2
-cols = nTop
-Ax = lib.iniAx(1, rows, cols, [3 * rows, 3 * cols], flat=False)
+rows = 3
+cols = int(np.ceil(nTop / rows))
+Ax = lib.iniAx(1, rows * 2, cols, [3 * rows * 2, 3 * cols], flat=False)
 
 for iTop in range(nTop):
+    row = int(np.floor(iTop / cols))
+    col = iTop % cols
+
     # original input
-    lib.shImg(input0[iTop, 0], ax=Ax[0, iTop])
+    lib.shImg(input0[iTop, 0], ax=Ax[row * 2, col])
 
     idxYs = [0, 0, h - 1, h - 1, 0]
     idxXs = [0, w - 1, w - 1, 0, 0]
@@ -56,7 +60,7 @@ for iTop in range(nTop):
     # import pdb; pdb.set_trace()
 
     # input
-    lib.shImg(input1[iTop, 0], ax=Ax[1, iTop])
+    lib.shImg(input1[iTop, 0], ax=Ax[row * 2 + 1, col])
 lib.show()
 
 lib.shSvPath('tmp.pdf')
