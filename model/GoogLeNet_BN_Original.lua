@@ -147,7 +147,9 @@ local branch2 = auxClassifier2(output2)
 local mainBranch = mainClassifier(part3(output2))
 local model = nn.gModule({input},{mainBranch, branch1, branch2})
 
+graph.dot(model.fg, 'Big MLP', 'goonet')
+
 local NLL = nn.ClassNLLCriterion()
 local loss = nn.ParallelCriterion(true):add(NLL):add(NLL,0.3):add(NLL,0.3)
 
-return {model = model, loss = loss}
+-- return {model = model, loss = loss}
