@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-09-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-23-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-26-2015
 
 local lib = require('lua_lib')
 
@@ -27,7 +27,7 @@ function M.parse(arg, mode)
   cmd:text('Options:')
   cmd:addTime()
   cmd:option('-seed', 2, 'manually set RNG seed')
-  cmd:option('-dbe', 'car', 'database name')
+  cmd:option('-dbe', 'bird', 'database name')
   cmd:option('-ver', 'v1', 'version')
   cmd:option('-con', 'alex', 'configuration')
   cmd:option('-threads', 8, '#threads')

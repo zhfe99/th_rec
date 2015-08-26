@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-18-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-25-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-26-2015
 
 local lib = require('lua_lib')
 local th = require('lua_th')
@@ -32,7 +32,10 @@ function net.newMod(solConf, opt)
 
   -- model & sub-modules
   local model, mod1s, mod2s
-  if lib.startswith(solConf.netNm, 'alexTS') then
+  if lib.startswith(solConf.netNm, 'alexTS2') then
+    model, mod1s, mod2s = alex.newTS2(nC, true, iniAlg, solConf.tran, solConf.loc, 2)
+
+  elseif lib.startswith(solConf.netNm, 'alexTS') then
     model, mod1s, mod2s = alex.newTS(nC, true, iniAlg, solConf.tran, solConf.loc)
 
   elseif lib.startswith(solConf.netNm, 'alexT') then
