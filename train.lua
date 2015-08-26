@@ -8,7 +8,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-25-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-26-2015
 
 require('torch')
 require('xlua')
@@ -57,14 +57,8 @@ local function Forward(DB, train, epoch, confusion)
     if newReg then
       optimator = nn.Optim(model, optStat)
     end
-    -- local debugger = require('fb.debugger')
-    -- debugger.enter()
 
-    -- local debugger = require('fb.debugger')
-    -- debugger.enter()
-    -- fine-tune model
-    -- lib.prTab(mod1s)
-    -- lib.prTab(mod2s)
+    -- set parameter
     th.setOptPar(optimator, mod1s, par1)
     th.setOptPar(optimator, mod2s, par2)
   end

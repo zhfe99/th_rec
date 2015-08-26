@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-04-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-25-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 08-26-2015
 
 require 'cudnn'
 require 'cunn'
@@ -117,6 +117,47 @@ function alex.newT(nC, isBn, iniAlg)
 end
 
 ----------------------------------------------------------------------
+-- Create alexnet model for fine-tuning.
+--
+-- Input
+--   m       -  #model
+--   nC      -  #classes
+--   isBn    -  flag of using batch normalization
+--   iniAlg  -  initialize method
+--
+-- Output
+--   model   -  pre-trained model
+--   mods    -  sub-modules needed to re-train, m x
+function alex.newT2(m, nC, isBn, iniAlg)
+  -- alex net
+  local model = nn.Sequential()
+
+  -- feature extraction
+  local alNets = nn.ParallelTable()
+  model:add(alNets)
+  for i = 1, m do
+    local alNet = torch.load(modPath0)
+    alNets:add(alNet)
+
+    -- remove last fully connected layer
+    alNet.modules[2]:remove(11)
+    alNet.modules[2]:remove(10)
+  end
+
+  -- concate the output
+  model:add(nn.JoinTable(2))
+
+  -- insert a new last layer
+  local mod = nn.Linear(4096 * 2, nC)
+  model:add(mod)
+
+  -- init
+  th.iniMod(mod, iniAlg)
+
+  return model, {mod}
+end
+
+----------------------------------------------------------------------
 -- Create the localization net for STN.
 --
 -- Input
@@ -218,6 +259,48 @@ function alex.newTS(nC, isBn, iniAlg, tran, loc)
   local model = nn.Sequential()
   model:add(stnet)
   model:add(alnet)
+
+  -- model needed to re-train
+  local mods = lib.tabCon(modLs, modSs, modAs)
+
+  return model, mods, modSs
+end
+
+----------------------------------------------------------------------
+-- Create the alexnet stn model with fine-tuning.
+--
+-- Input
+--   nC      -  #classes
+--   isBn    -  flag of using BN, true | false
+--   iniAlg  -  init method
+--   tran    -  transformation name
+--   loc     -  locnet name
+--   m       -  #transformation
+--
+-- Output
+--   model   -  model
+--   mods    -  module needed to be update, m x
+--   modSs   -  module needed to be update, m x
+function alex.newTS2(nC, isBn, iniAlg, tran, loc, m)
+  local stn = require('model.stnet')
+  assert(tran)
+  assert(loc)
+  assert(m)
+
+  -- concat
+  local model = nn.Sequential()
+
+  -- locnet
+  local locNet, modLs, k = alex.newStnLoc(isBn, iniAlg, loc)
+
+  -- stn net
+  local inSiz = 224
+  local stnNet, modSs = stn.new2(locNet, tran, k, inSiz, m)
+  model:add(stnNet)
+
+  -- alex net
+  local alNet, modAs = alex.newT2(m, nC, isBn, iniAlg)
+  model:add(alNet)
 
   -- model needed to re-train
   local mods = lib.tabCon(modLs, modSs, modAs)
