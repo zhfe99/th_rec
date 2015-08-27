@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-01-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-26-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
 
 require 'eladtools'
 require 'xlua'
@@ -21,7 +21,7 @@ local provider = {}
 --
 -- Input
 --   data  -  b x d x h x w
-local function Normalize(data)
+local function normalize(data)
   local data = data:float()
   for j = 1, 3 do
     data[{{}, j, {}, {}}]:add(-DataMean[j])
@@ -41,7 +41,7 @@ local function ExtractSampleFunc(data0, label0)
   local data = data0
   local label = label0
 
-  return Normalize(data), label
+  return normalize(data), label
 end
 
 ----------------------------------------------------------------------
@@ -200,7 +200,12 @@ local nImg, batchSiz, bufSiz, bufSts, nBuf, bufSrcs, iBuf, iBufSrc
 local MiniBatch
 local nBufSrc = 2
 
-function BufferNext(DB)
+----------------------------------------------------------------------
+-- Move the next buffer.
+--
+-- Input
+--   DB  -  lmdb provider
+local function BufferNext(DB)
   iBufSrc = iBufSrc % nBufSrc + 1
   if iBuf > nBuf then
     bufSrcs[iBufSrc] = nil
@@ -219,6 +224,15 @@ function BufferNext(DB)
   iBuf = iBuf + 1
 end
 
+----------------------------------------------------------------------
+-- Initalize forward passing.
+--
+-- Input
+--   DB       -  lmdb data provider
+--   train    -  train or test
+--   epoch    -  epoch id
+--   opt      -  option
+--   solConf  -  solver configuration
 function provider.fordInit(DB, train, epoch, opt, solConf)
   -- dimension
   nImg = DB:size()
@@ -264,6 +278,13 @@ function provider.fordInit(DB, train, epoch, opt, solConf)
   return MiniBatch, nImg, batchSiz
 end
 
+----------------------------------------------------------------------
+-- Reset forward.
+--
+-- Input
+--   DB     -  lmdb provider
+--   train  -  train or test
+--   opt    -  option
 function provider.fordReset(DB, train, opt)
   DB:Synchronize()
   MiniBatch:Reset()
@@ -273,7 +294,7 @@ function provider.fordReset(DB, train, opt)
     MiniBatch.Source:ShuffleItems()
   end
 
-  -- update buffer
+  -- update buffer asynchronously
   BufferNext(DB)
 end
 
