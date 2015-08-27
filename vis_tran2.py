@@ -3,8 +3,8 @@
 Visualize the transformation.
 
 History
-  create  -  Feng Zhou (zhfe99@gmail.com), 08-16-2015
-  modify  -  Feng Zhou (zhfe99@gmail.com), 08-20-2015
+  create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
+  modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
 """
 import os
 import py_lib as lib
