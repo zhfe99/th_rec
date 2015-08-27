@@ -41,7 +41,7 @@ local function ExtractSampleFunc(data0, label0)
   local data = data0
   local label = label0
 
-  return data_load.Normalize(data), label
+  return Normalize(data), label
 end
 
 ----------------------------------------------------------------------
@@ -124,6 +124,7 @@ function provider.newTr()
     ExtractFunction = ExtractFromLMDBTrain,
     Name = 'train'
   }
+  db:Threads()
   return db
 end
 
@@ -139,6 +140,7 @@ function provider.newTe()
     ExtractFunction = ExtractFromLMDBTest,
     Name = 'test'
   }
+  db:Threads()
   return db
 end
 

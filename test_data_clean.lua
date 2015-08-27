@@ -57,7 +57,7 @@ local function Forward(DB, train, epoch, confusion)
 
   -- each buffer
   while nImgCurr < nImg do
-    provider.fordReset(DB, train, opt)
+    dp.fordReset(DB, train, opt)
 
     -- each minibatch
     while MiniBatch:GetNextBatch() do
@@ -80,6 +80,9 @@ trDB:Threads()
 
 -- each epoch
 for epoch = 1, solConf.nEpo do
+  local debugger = require('fb.debugger')
+  debugger.enter()
+
   -- train
   local trLoss = Forward(trDB, true, epoch, confusion)
 
