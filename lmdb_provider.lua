@@ -11,17 +11,17 @@ require 'lmdb'
 local Threads = require 'threads'
 local ffi = require 'ffi'
 
--- upvalue used by function
+-- upvalue set in function init
 local sampleSiz, InputSize, meanInfo, trLmdb, teLmdb, DataMean, DataStd, cmp
 
-local data_load = {}
+local provider = {}
 
 ----------------------------------------------------------------------
 -- Normalize the data by subtracting the mean and dividing the scale.
 --
 -- Input
 --   data  -  b x d x h x w
-function data_load.Normalize(data)
+local function Normalize(data)
   local data = data:float()
   for j = 1, 3 do
     data[{{}, j, {}, {}}]:add(-DataMean[j])
@@ -37,7 +37,7 @@ end
 -- Input
 --   data0   -  original data
 --   label0  -  label
-function data_load.ExtractSampleFunc(data0, label0)
+local function ExtractSampleFunc(data0, label0)
   local data = data0
   local label = label0
 
@@ -54,7 +54,7 @@ end
 -- Output
 --   img    -  image
 --   class  -  class
-function data_load.ExtractFromLMDBTrain(key, data)
+local function ExtractFromLMDBTrain(key, data)
   -- class
   local class = data.c
 
@@ -91,7 +91,7 @@ end
 -- Output
 --   img    -  image
 --   class  -  class
-function data_load.ExtractFromLMDBTest(key, data)
+local function ExtractFromLMDBTest(key, data)
   -- class
   local class = data.c
 
@@ -117,11 +117,11 @@ end
 --
 -- Output
 --   db  -  data provider
-function data_load.newTrainDB()
+function provider.newTr()
   local db = eladtools.LMDBProvider {
     Source = lmdb.env({Path = trLmdb, RDONLY = true}),
     SampleSize = sampleSiz,
-    ExtractFunction = data_load.ExtractFromLMDBTrain,
+    ExtractFunction = ExtractFromLMDBTrain,
     Name = 'train'
   }
   return db
@@ -132,11 +132,11 @@ end
 --
 -- Output
 --   db  -  data provider
-function data_load.newTestDB()
+function provider.newTe()
   local db = eladtools.LMDBProvider {
     Source = lmdb.env({Path = teLmdb, RDONLY = true}),
     SampleSize = sampleSiz,
-    ExtractFunction = data_load.ExtractFromLMDBTest,
+    ExtractFunction = ExtractFromLMDBTest,
     Name = 'test'
   }
   return db
@@ -148,7 +148,7 @@ end
 -- Input
 --   opt      -  option
 --   solConf  -  solver configuration
-function data_load.init(opt, solConf)
+function provider.init(opt, solConf)
   local lib = require('lua_lib')
   lib.prIn('data_load init')
 
@@ -193,4 +193,86 @@ function data_load.init(opt, solConf)
   lib.prOut()
 end
 
-return data_load
+-- upvalue set in function fordInit
+local nImg, batchSiz, bufSiz, bufSts, nBuf, bufSrcs, iBuf, iBufSrc
+local MiniBatch
+local nBufSrc = 2
+
+function BufferNext(DB)
+  iBufSrc = iBufSrc % nBufSrc + 1
+  if iBuf > nBuf then
+    bufSrcs[iBufSrc] = nil
+    return
+  end
+
+  local bufSizi = math.min(bufSiz, nImg - bufSts[iBuf] + 1)
+  bufSizi = math.floor(bufSizi / batchSiz) * batchSiz
+
+  -- copy from LMDB provider
+  local smpSiz = sampleSiz or {3, 224, 224}
+  bufSrcs[iBufSrc].Data:resize(bufSizi, unpack(smpSiz))
+  bufSrcs[iBufSrc].Labels:resize(bufSizi)
+  local key = string.format('%07d', bufSts[iBuf])
+  DB:AsyncCacheSeq(key, bufSizi, bufSrcs[iBufSrc].Data, bufSrcs[iBufSrc].Labels)
+  iBuf = iBuf + 1
+end
+
+function provider.fordInit(DB, train, epoch, opt, solConf)
+  -- dimension
+  nImg = DB:size()
+
+  -- info
+  batchSiz = solConf.batchSiz
+  bufSiz = solConf.bufSiz
+
+
+  -- TODO: fix this for testing
+  nImg = math.floor(nImg / batchSiz) * batchSiz
+
+  -- buffers position
+  bufSts = torch.range(1, nImg, bufSiz):long()
+  nBuf = bufSts:size(1)
+  if train and opt.shuffle then
+    bufSts = bufSts:index(1, torch.randperm(nBuf):long())
+  end
+
+  -- create buffer src
+  bufSrcs = {}
+  for i = 1, nBufSrc do
+    bufSrcs[i] = DataProvider({Source = {torch.FloatTensor(),
+                                         torch.IntTensor()}})
+  end
+
+  -- next buffer
+  iBuf = 1
+  iBufSrc = 1
+
+  -- mini batch
+  MiniBatch = DataProvider {
+    Name = 'minibatch',
+    MaxNumItems = batchSiz,
+    Source = bufSrcs[iBufSrc],
+    ExtractFunction = ExtractSampleFunc,
+    TensorType = 'torch.CudaTensor'
+  }
+
+  -- init buffer
+  BufferNext(DB)
+
+  return MiniBatch, nImg, batchSiz
+end
+
+function provider.fordReset(DB, train, opt)
+  DB:Synchronize()
+  MiniBatch:Reset()
+  MiniBatch.Source = bufSrcs[iBufSrc]
+
+  if train and opt.shuffle then
+    MiniBatch.Source:ShuffleItems()
+  end
+
+  -- update buffer
+  BufferNext(DB)
+end
+
+return provider
