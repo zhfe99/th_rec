@@ -7,8 +7,8 @@
 --   ./train.lua -ver v1 -con alexS1 -deb
 --
 -- History
---   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-26-2015
+--   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
 
 require('torch')
 require('xlua')
@@ -24,12 +24,9 @@ local net = require('net')
 local dp = require('lmdb_provider')
 
 -- argument
-opt = opts.parse(arg, 'train')
+opt, solConf = opts.parse(arg, 'train')
 
 -- network
-local solConf = dofile(opt.CONF.protTr)
-lib.prTab(solConf, 'solConf')
-local tmpFold = opt.CONF.tmpFold
 local model, loss, modelSv, mod1s, mod2s, optStat = net.newMod(solConf, opt)
 
 -- data loader
@@ -55,6 +52,8 @@ local function Forward(DB, train, epoch, confusion)
 
     -- zero the momentum vector by throwing away previous state.
     if newReg then
+      local debugger = require('fb.debugger')
+      debugger.enter()
       optimator = nn.Optim(model, optStat)
     end
 
@@ -99,7 +98,7 @@ local function Forward(DB, train, epoch, confusion)
           local tmpIn1 = model:findModules('nn.Transpose')[2].output
           local tmpGrid = model:findModules('nn.AffineGridGeneratorBHWD')[1].output
 
-          ha = lib.hdfWIn(string.format('%s/train_%d_%d.h5', tmpFold, epoch, iMini))
+          ha = lib.hdfWIn(string.format('%s/train_%d_%d.h5', opt.CONF.tmpFold, epoch, iMini))
           lib.hdfW(ha, tmpIn0:float(), 'input0')
           lib.hdfW(ha, tmpIn1:float(), 'input1')
           lib.hdfW(ha, tmpGrid:float(), 'grid')
@@ -120,7 +119,7 @@ local function Forward(DB, train, epoch, confusion)
           local tmpIn1 = model:findModules('nn.Transpose')[2].output
           local tmpGrid = model:findModules('nn.AffineGridGeneratorBHWD')[1].output
 
-          ha = lib.hdfWIn(string.format('%s/test_%d_%d.h5', tmpFold, epoch, iMini))
+          ha = lib.hdfWIn(string.format('%s/test_%d_%d.h5', opt.CONF.tmpFold, epoch, iMini))
           lib.hdfW(ha, tmpIn0:float(), 'input0')
           lib.hdfW(ha, tmpIn1:float(), 'input1')
           lib.hdfW(ha, tmpGrid:float(), 'grid')

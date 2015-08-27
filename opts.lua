@@ -2,8 +2,8 @@
 -- Parse the arguments.
 --
 -- History
---   create  -  Feng Zhou (zhfe99@gmail.com), 08-09-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-26-2015
+--   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
 
 local lib = require('lua_lib')
 
@@ -18,6 +18,7 @@ local M = {}
 --
 -- Output
 --   opt   -  option
+--   solConf  -  solver configuration
 function M.parse(arg, mode)
 
   local cmd = torch.CmdLine()
@@ -58,9 +59,13 @@ function M.parse(arg, mode)
   torch.setdefaulttensortype('torch.FloatTensor')
   torch.manualSeed(opt.seed)
 
-  lib.prTab(opt, 'opt')
+  -- configuration
+  local solConf = dofile(opt.CONF.protTr)
 
-  return opt
+  lib.prTab(opt, 'opt')
+  lib.prTab(solConf, 'solConf')
+
+  return opt, solConf
 end
 
 return M
