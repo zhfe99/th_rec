@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-04-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-26-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
 
 require 'cudnn'
 require 'cunn'
@@ -150,6 +150,7 @@ function alex.newT2(m, nC, isBn, iniAlg)
   -- insert a new last layer
   local mod = nn.Linear(4096 * 2, nC)
   model:add(mod)
+  model:add(nn.LogSoftMax())
 
   -- init
   th.iniMod(mod, iniAlg)

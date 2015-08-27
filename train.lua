@@ -8,7 +8,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-26-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
 
 require('torch')
 require('xlua')
@@ -185,8 +185,8 @@ local function Forward(DB, train, epoch, confusion)
           lib.hdfW(ha, tmpWeight:float(), 'weight')
           lib.hdfW(ha, tmpBias:float(), 'bias')
           lib.hdfWOut(ha)
-          -- local debugger = require('fb.debugger')
-          -- debugger.enter()
+          local debugger = require('fb.debugger')
+          debugger.enter()
         end
       end
       loss_val = currLoss + loss_val
