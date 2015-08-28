@@ -42,6 +42,9 @@ function net.newMod(solConf, opt)
   elseif lib.startswith(solConf.netNm, 'alexT') then
     model, mod1s = alex.newT(nC, bn, ini)
 
+  elseif lib.startswith(solConf.netNm, 'alexd') then
+    model, mod1s = alex.newd(nC, bn, ini)
+
   elseif lib.startswith(solConf.netNm, 'alexc') then
     model, mod1s = alex.newc(nC, bn, ini)
 
