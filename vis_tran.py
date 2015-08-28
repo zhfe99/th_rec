@@ -23,7 +23,7 @@ h5Path = '{}/test_{}_{}.h5'.format(tmpFold, epo, 1)
 
 # read from hdf
 ha = lib.hdfRIn(h5Path)
-grid = lib.hdfR(ha, 'grid')
+grid = lib.hdfR(ha, 'grid1')
 input0 = lib.hdfR(ha, 'input0')
 input1 = lib.hdfR(ha, 'input1')
 bias = lib.hdfR(ha, 'bias')
@@ -32,10 +32,10 @@ lib.hdfROut(ha)
 
 # dimension
 n, h, w, _ = grid.shape
-nTop = min(input0.shape[0], 30)
+nTop = min(input0.shape[0], 10)
 
 # show
-rows = 3
+rows = 2
 cols = int(np.ceil(nTop / rows))
 Ax = lib.iniAx(1, rows * 2, cols, [3 * rows * 2, 3 * cols], flat=False)
 
