@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-18-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-26-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
 
 local lib = require('lua_lib')
 local th = require('lua_th')
@@ -27,31 +27,38 @@ local net = {}
 --   optStat  -  optimize state
 function net.newMod(solConf, opt)
   -- default parameter
-  local iniAlg = solConf.iniAlg or 'xavier_caffe'
+  local ini = solConf.ini or 'xavier_caffe'
+  local bn = solConf.bn or 1
   local nC = solConf.nC or #opt.DATA.cNms
 
   -- model & sub-modules
   local model, mod1s, mod2s
   if lib.startswith(solConf.netNm, 'alexTS2') then
-    model, mod1s, mod2s = alex.newTS2(nC, true, iniAlg, solConf.tran, solConf.loc, 2)
+    model, mod1s, mod2s = alex.newTS2(nC, bn, ini, solConf.tran, solConf.loc, 2)
 
   elseif lib.startswith(solConf.netNm, 'alexTS') then
-    model, mod1s, mod2s = alex.newTS(nC, true, iniAlg, solConf.tran, solConf.loc)
+    model, mod1s, mod2s = alex.newTS(nC, bn, ini, solConf.tran, solConf.loc)
 
   elseif lib.startswith(solConf.netNm, 'alexT') then
-    model, mod1s = alex.newT(nC, true, iniAlg)
+    model, mod1s = alex.newT(nC, bn, ini)
+
+  elseif lib.startswith(solConf.netNm, 'alexc') then
+    model, mod1s = alex.newc(nC, bn, ini)
 
   elseif lib.startswith(solConf.netNm, 'alex') then
-    model, mod1s = alex.new(nC, true, iniAlg)
+    model, mod1s = alex.new(nC, bn, ini)
 
   elseif lib.startswith(solConf.netNm, 'gooTS') then
-    model, mod1s, mod2s = goo.newTS(nC, true, iniAlg, solConf.tran, solConf.loc)
+    model, mod1s, mod2s = goo.newTS(nC, bn, ini, solConf.tran, solConf.loc)
 
   elseif lib.startswith(solConf.netNm, 'gooT') then
-    model, mod1s = goo.newT(nC, true, iniAlg)
+    model, mod1s = goo.newT(nC, bn, ini)
+
+  elseif lib.startswith(solConf.netNm, 'gooc') then
+    model, mod1s = goo.newc(nC, bn, ini)
 
   elseif lib.startswith(solConf.netNm, 'goo') then
-    model, mod1s = goo.new(nC, true, iniAlg)
+    model, mod1s = goo.new(nC, bn, ini)
 
   else
     assert(nil, string.format('unknown net: %s', solConf.netNm))
@@ -62,7 +69,15 @@ function net.newMod(solConf, opt)
   local idx2 = th.idxMod(model, mod2s)
 
   -- loss
-  local loss = nn.ClassNLLCriterion()
+  local loss
+  if lib.startswith(solConf.netNm, 'alex') then
+    loss = nn.ClassNLLCriterion()
+  elseif lib.startswith(solConf.netNm, 'gooc') then
+    local NLL = nn.ClassNLLCriterion()
+    loss = nn.ParallelCriterion(true):add(NLL):add(NLL,0.3):add(NLL,0.3)
+  else
+    loss = nn.ClassNLLCriterion()
+  end
 
   -- multi-gpu
   model = th.getModGpu(model, opt.gpus)
