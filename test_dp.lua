@@ -8,7 +8,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-26-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
 
 require('torch')
 require('xlua')
@@ -21,7 +21,7 @@ local th = require('lua_th')
 local lib = require('lua_lib')
 local opts = require('opts')
 local net = require('net')
-local dp = require('lmdb_provider')
+local dp = require('dp_lmdb')
 
 -- argument
 opt = opts.parse(arg, 'train')
@@ -41,50 +41,43 @@ dp.init(opt, solConf)
 --   DB     -  LMDB data provider
 --   train  -  train or test
 --   epoch  -  epoch index
-local function Forward(DB, train, epoch, confusion)
+local function Forward(DB, train, epoch)
   -- confusion:zero()
 
   -- init
-  local MiniBatch, nImg, batchSiz = dp.fordInit(DB, train, epoch, opt, solConf)
+  local nImg, batchSiz = dp.fordInit(DB, train, epoch, opt, solConf)
 
-  -- upvalue
-  local x = MiniBatch.Data
-  local yt = MiniBatch.Labels
-  local y = torch.Tensor()
+  -- check
   local nImgCurr = 0
   local loss_val = 0
   local currLoss = 0
 
   -- each buffer
   while nImgCurr < nImg do
-    dp.fordReset(DB, train, opt)
+    -- dp.fordReset(DB, train, opt)
 
     -- each minibatch
-    while MiniBatch:GetNextBatch() do
-      -- do somthing
+    local x, yt = dp.fordNextBatch(DB, train, opt)
+    local y = torch.Tensor()
 
+    -- do somthing
+    nImgCurr = nImgCurr + x:size(1)
 
-      nImgCurr = nImgCurr + x:size(1)
-      xlua.progress(nImgCurr, nImg)
-    end
+    -- clean
+    xlua.progress(nImgCurr, nImg)
     collectgarbage()
   end
-  xlua.progress(nImgCurr, nImg)
-
   return loss_val / math.ceil(nImg / batchSiz)
 end
 
 -- create threads for dataloader
 local trDB = dp.newTr()
-trDB:Threads()
 
 -- each epoch
 for epoch = 1, solConf.nEpo do
-  local debugger = require('fb.debugger')
-  debugger.enter()
 
   -- train
-  local trLoss = Forward(trDB, true, epoch, confusion)
+  local trLoss = Forward(trDB, true, epoch)
 
   -- save
   if epoch % solConf.nEpoSv == 0 then
