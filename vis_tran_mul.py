@@ -6,6 +6,9 @@ History
   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
 """
+import matplotlib as mpl
+mpl.use('Agg')
+
 import os
 import sys
 import numpy as np
