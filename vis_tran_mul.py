@@ -20,7 +20,7 @@ nEpo = int(sys.argv[4])
 tmpFold = os.path.join(os.environ['HOME'],
                        'save/{}/torch/tmp/{}_{}_{}'.format(dbe, dbe, ver, con))
 
-for iEpo in range(1, nEpo):
+for iEpo in range(1, nEpo + 1):
     h5Path = '{}/test_{}_{}.h5'.format(tmpFold, iEpo, 1)
     pdfPath = '{}/test_{}_{}.pdf'.format(tmpFold, iEpo, 1)
 
@@ -62,4 +62,4 @@ for iEpo in range(1, nEpo):
         lib.plt.axis('image')
         lib.shImg(input1[iTop, 0], ax=Ax[row * 2 + 1, col])
 
-    lib.shSvPath('tmp.pdf')
+    lib.shSvPath(pdfPath)
