@@ -114,6 +114,74 @@ end
 -- Output
 --   model   -  model
 --   mods    -  {}
+function alex.newd(nC, bn, ini)
+  -- conv1
+  local features = nn.Sequential()
+  features:add(cudnn.SpatialConvolution(3,96,11,11,4,4,2,2))       -- 224 -> 55
+  th.addSBN(features, 96, bn)
+  features:add(cudnn.ReLU(true))
+  features:add(cudnn.SpatialMaxPooling(3,3,2,2))                   -- 55 ->  27
+
+  -- conv2
+  features:add(cudnn.SpatialConvolution(96,256,5,5,1,1,2,2))       -- 27 -> 27
+  th.addSBN(features, 256, bn)
+  features:add(cudnn.ReLU(true))
+  features:add(cudnn.SpatialMaxPooling(3,3,2,2))                   -- 27 ->  13
+
+  -- conv3
+  features:add(cudnn.SpatialConvolution(256,384,3,3,1,1,1,1))      -- 13 ->  13
+  th.addSBN(features, 384, bn)
+  features:add(cudnn.ReLU(true))
+
+  -- conv4
+  features:add(cudnn.SpatialConvolution(384,256,3,3,1,1,1,1))      -- 13 ->  13
+  th.addSBN(features, 256, bn)
+  features:add(cudnn.ReLU(true))
+
+  -- conv5
+  features:add(cudnn.SpatialConvolution(256,256,3,3,1,1,1,1))      -- 13 ->  13
+  th.addSBN(features, 256, bn)
+  features:add(cudnn.ReLU(true))
+  features:add(cudnn.SpatialMaxPooling(3,3,2,2))                   -- 13 -> 6
+
+  -- full1
+  local classifier = nn.Sequential()
+  classifier:add(nn.View(256*6*6))
+  classifier:add(nn.Linear(256*6*6, 4096))
+  th.addBN(classifier, 4096, bn)
+  classifier:add(nn.Threshold(0, 1e-6))
+
+  -- full2
+  classifier:add(nn.Linear(4096, 4096))
+  th.addBN(classifier, 4096, bn)
+  classifier:add(nn.Threshold(0, 1e-6))
+
+  -- output
+  classifier:add(nn.Linear(4096, nC))
+  classifier:add(nn.LogSoftMax())
+
+  -- concatenate
+  local model = nn.Sequential()
+  model:add(features):add(classifier)
+
+  -- init
+  th.iniMod(model, ini)
+
+  return model, {}
+end
+
+
+----------------------------------------------------------------------
+-- Create the basic alexnet model.
+--
+-- Input
+--   nC      -  #classes
+--   bn      -  type of bn, 0 | 1 | 2
+--   ini     -  initialize method
+--
+-- Output
+--   model   -  model
+--   mods    -  {}
 function alex.new(nC, bn, ini)
   -- conv1
   local features = nn.Sequential()
