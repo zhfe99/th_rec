@@ -12,69 +12,153 @@ local th = require('lua_th')
 local alex = {}
 local modPath0 = paths.concat(paths.home, 'save/imgnet/torch/model/imgnet_v2_alexbn_2gpu.t7')
 
+local eps = 1e-5
+local isAff = false
+
+----------------------------------------------------------------------
+-- Create the basic alexnet model.
+--
+-- Input
+--   nC     -  #classes
+--   bn     -  type of BN
+--   ini    -  initialize method
+--
+-- Output
+--   model  -  model
+--   mods   -  {}
+function alex.newc(nC, bn, ini)
+  -- convolution
+  local features = nn.Sequential()
+
+  -- conv1
+  features:add(cudnn.SpatialConvolution(3,96,11,11,4,4,2,2))       -- 224 -> 55
+  features:add(cudnn.ReLU(true))
+  features:add(cudnn.SpatialMaxPooling(3,3,2,2))                   -- 55 ->  27
+
+  -- conv2
+  if isBn then
+    features:add(nn.SpatialBatchNormalization(96, nil, nil, false))
+  end
+  features:add(cudnn.SpatialConvolution(96,256,5,5,1,1,2,2))       -- 27 -> 27
+  features:add(cudnn.ReLU(true))
+  features:add(cudnn.SpatialMaxPooling(3,3,2,2))                   -- 27 ->  13
+
+  -- conv3
+  if isBn then
+    features:add(nn.SpatialBatchNormalization(256, nil, nil, false))
+  end
+  features:add(cudnn.SpatialConvolution(256,384,3,3,1,1,1,1))      -- 13 ->  13
+  features:add(cudnn.ReLU(true))
+
+  -- conv4
+  if isBn then
+    features:add(nn.SpatialBatchNormalization(384, 1e-3))
+  end
+  features:add(cudnn.SpatialConvolution(384,256,3,3,1,1,1,1))      -- 13 ->  13
+  features:add(cudnn.ReLU(true))
+
+  -- conv5
+  if isBn then
+    features:add(nn.SpatialBatchNormalization(256, nil, nil, false))
+  end
+  features:add(cudnn.SpatialConvolution(256,256,3,3,1,1,1,1))      -- 13 ->  13
+  features:add(cudnn.ReLU(true))
+  features:add(cudnn.SpatialMaxPooling(3,3,2,2))                   -- 13 -> 6
+
+  -- full1
+  if isBn then
+    features:add(nn.SpatialBatchNormalization(256, nil, nil, false))
+  end
+  local classifier = nn.Sequential()
+  classifier:add(nn.View(256*6*6))
+  classifier:add(nn.Dropout(0.5))
+  classifier:add(nn.Linear(256*6*6, 4096))
+  classifier:add(nn.Threshold(0, 1e-6))
+
+  -- full2
+  if isBn then
+    classifier:add(nn.BatchNormalization(4096, nil, nil, false))
+  end
+  classifier:add(nn.Dropout(0.5))
+  local ln = nn.Linear(4096, 4096)
+  classifier:add(ln)
+  classifier:add(nn.Threshold(0, 1e-6))
+
+  -- full3
+  if isBn then
+    classifier:add(nn.BatchNormalization(4096, nil, nil, false))
+  end
+  classifier:add(nn.Linear(4096, nC))
+
+  -- prob
+  classifier:add(nn.LogSoftMax())
+
+  -- concatenate
+  local model = nn.Sequential()
+  model:add(features):add(classifier)
+
+  -- init
+  th.iniMod(model, ini)
+
+  return model, {}
+end
+
 ----------------------------------------------------------------------
 -- Create the basic alexnet model.
 --
 -- Input
 --   nC      -  #classes
---   isBn    -  flag of using BN, true | false
---   iniAlg  -  initialize method
+--   bn      -  type of bn, 0 | 1 | 2
+--   ini     -  initialize method
 --
 -- Output
 --   model   -  model
 --   mods    -  {}
-function alex.new(nC, isBn, iniAlg)
-  -- convolution
+function alex.new(nC, bn, ini)
+  -- conv1
   local features = nn.Sequential()
   features:add(cudnn.SpatialConvolution(3,96,11,11,4,4,2,2))       -- 224 -> 55
-  if isBn then
-    features:add(nn.SpatialBatchNormalization(96, 1e-3))
-  end
+  th.addSBN(features, 96, bn)
   features:add(cudnn.ReLU(true))
   features:add(cudnn.SpatialMaxPooling(3,3,2,2))                   -- 55 ->  27
+
+  -- conv2
   features:add(cudnn.SpatialConvolution(96,256,5,5,1,1,2,2))       -- 27 -> 27
-  if isBn then
-    features:add(nn.SpatialBatchNormalization(256, 1e-3))
-  end
+  th.addSBN(features, 256, bn)
   features:add(cudnn.ReLU(true))
   features:add(cudnn.SpatialMaxPooling(3,3,2,2))                   -- 27 ->  13
+
+  -- conv3
   features:add(cudnn.SpatialConvolution(256,384,3,3,1,1,1,1))      -- 13 ->  13
-  if isBn then
-    features:add(nn.SpatialBatchNormalization(384, 1e-3))
-  end
+  th.addSBN(features, 384, bn)
   features:add(cudnn.ReLU(true))
+
+  -- conv4
   features:add(cudnn.SpatialConvolution(384,256,3,3,1,1,1,1))      -- 13 ->  13
-  if isBn then
-    features:add(nn.SpatialBatchNormalization(256, 1e-3))
-  end
+  th.addSBN(features, 256, bn)
   features:add(cudnn.ReLU(true))
+
+  -- conv5
   features:add(cudnn.SpatialConvolution(256,256,3,3,1,1,1,1))      -- 13 ->  13
-  if isBn then
-    features:add(nn.SpatialBatchNormalization(256, 1e-3))
-  end
+  th.addSBN(features, 256, bn)
   features:add(cudnn.ReLU(true))
   features:add(cudnn.SpatialMaxPooling(3,3,2,2))                   -- 13 -> 6
 
-  -- fully-connected
+  -- full1
   local classifier = nn.Sequential()
   classifier:add(nn.View(256*6*6))
   classifier:add(nn.Dropout(0.5))
   classifier:add(nn.Linear(256*6*6, 4096))
-  if isBn then
-    classifier:add(nn.BatchNormalization(4096, 1e-3))
-  end
+  th.addBN(classifier, 4096, bn)
   classifier:add(nn.Threshold(0, 1e-6))
-  -- features:add(cudnn.ReLU(true))
 
+  -- full2
   classifier:add(nn.Dropout(0.5))
-  local ln = nn.Linear(4096, 4096)
-  classifier:add(ln)
-  if isBn then
-    classifier:add(nn.BatchNormalization(4096, 1e-3))
-  end
+  classifier:add(nn.Linear(4096, 4096))
+  th.addBN(classifier, 4096, bn)
   classifier:add(nn.Threshold(0, 1e-6))
-  -- features:add(cudnn.ReLU(true))
 
+  -- output
   classifier:add(nn.Linear(4096, nC))
   classifier:add(nn.LogSoftMax())
 
@@ -83,7 +167,7 @@ function alex.new(nC, isBn, iniAlg)
   model:add(features):add(classifier)
 
   -- init
-  th.iniMod(model, iniAlg)
+  th.iniMod(model, ini)
 
   return model, {}
 end
@@ -92,18 +176,17 @@ end
 -- Create alexnet model for fine-tuning.
 --
 -- Input
---   nC      -  #classes
---   isBn    -  flag of using batch normalization
---   iniAlg  -  initialize method
+--   nC     -  #classes
+--   bn     -  type of BN
+--   ini    -  initialize method
 --
 -- Output
---   model   -  pre-trained model
---   mods    -  sub-modules needed to re-train, m x
-function alex.newT(nC, isBn, iniAlg)
+--   model  -  pre-trained model
+--   mods   -  sub-modules needed to re-train, m x
+function alex.newT(nC, bn, ini)
   local model = torch.load(modPath0)
 
   -- remove last fully connected layer
-  local mod0 = model.modules[2].modules[10]
   model.modules[2]:remove(10)
 
   -- insert a new one
@@ -111,7 +194,7 @@ function alex.newT(nC, isBn, iniAlg)
   model.modules[2]:insert(mod, 10)
 
   -- init
-  th.iniMod(mod, iniAlg)
+  th.iniMod(mod, ini)
 
   return model, {mod}
 end
@@ -122,13 +205,13 @@ end
 -- Input
 --   m       -  #model
 --   nC      -  #classes
---   isBn    -  flag of using batch normalization
---   iniAlg  -  initialize method
+--   bn      -  type of BN
+--   ini     -  initialize method
 --
 -- Output
 --   model   -  pre-trained model
 --   mods    -  sub-modules needed to re-train, m x
-function alex.newT2(m, nC, isBn, iniAlg)
+function alex.newT2(m, nC, isBn, ini)
   -- alex net
   local model = nn.Sequential()
 
@@ -148,12 +231,12 @@ function alex.newT2(m, nC, isBn, iniAlg)
   model:add(nn.JoinTable(2))
 
   -- insert a new last layer
-  local mod = nn.Linear(4096 * 2, nC)
+  local mod = nn.Linear(4096 * m, nC)
   model:add(mod)
   model:add(nn.LogSoftMax())
 
   -- init
-  th.iniMod(mod, iniAlg)
+  th.iniMod(mod, ini)
 
   return model, {mod}
 end
@@ -162,14 +245,14 @@ end
 -- Create the localization net for STN.
 --
 -- Input
---   isBn    -  flag of using BN, true | false
---   iniAlg  -  init method
---   loc     -  localization network
+--   bn     -  type of BN
+--   ini    -  init method
+--   loc    -  localization network
 --
 -- Output
---   model   -  model
---   mods    -  sub-modules needed to re-train, m x
-function alex.newStnLoc(isBn, iniAlg, loc)
+--   model  -  model
+--   mods   -  sub-modules needed to re-train, m x
+function alex.newStnLoc(bn, ini, loc)
   -- load old model
   local model = torch.load(modPath0)
   local mod, k
@@ -186,16 +269,14 @@ function alex.newStnLoc(isBn, iniAlg, loc)
 
     mod = nn.Linear(256 * 6 * 6, k)
     classifier:add(mod)
-    if isBn then
-      classifier:add(nn.BatchNormalization(k, 1e-3))
-    end
+    th.addBN(classifier, k, bn)
     -- classifier:add(nn.Threshold(0, 1e-6))
     classifier:add(cudnn.ReLU(true))
 
     model:add(classifier)
 
     -- init
-    th.iniMod(classifier, iniAlg)
+    th.iniMod(classifier, ini)
 
   elseif loc == 'type2' then
     -- remove the classifier layer
@@ -210,15 +291,13 @@ function alex.newStnLoc(isBn, iniAlg, loc)
     mod = nn.Linear(256 * 6 * 6, k)
     classifier:add(mod)
 
-    if isBn then
-      classifier:add(nn.BatchNormalization(k, 1e-3))
-    end
+    th.addBN(classifier, k, bn)
     classifier:add(cudnn.ReLU(true))
 
     model:add(classifier)
 
     -- init
-    th.iniMod(classifier, iniAlg)
+    th.iniMod(classifier, ini)
 
   else
     assert(nil, string.format('unknown loc: %s', loc))
@@ -231,30 +310,30 @@ end
 -- Create the alexnet stn model with fine-tuning.
 --
 -- Input
---   nC      -  #classes
---   isBn    -  flag of using BN, true | false
---   iniAlg  -  init method
---   tran    -  transformation name
---   loc     -  locnet name
+--   nC     -  #classes
+--   bn     -  type of BN
+--   ini    -  init method
+--   tran   -  transformation name
+--   loc    -  locnet name
 --
 -- Output
---   model   -  model
---   mods    -  module needed to be update, m x
---   modSs   -  module needed to be update, m x
-function alex.newTS(nC, isBn, iniAlg, tran, loc)
+--   model  -  model
+--   mods   -  module needed to be update, m x
+--   modSs  -  module needed to be update, m x
+function alex.newTS(nC, bn, ini, tran, loc)
   local stn = require('model.stnet')
   assert(tran)
   assert(loc)
 
   -- locnet
-  local locnet, modLs, k = alex.newStnLoc(isBn, iniAlg, loc)
+  local locnet, modLs, k = alex.newStnLoc(bn, ini, loc)
 
   -- stn net
   local inSiz = 224
-  local stnet, modSs = stn.new(locnet, isBn, tran, k, inSiz)
+  local stnet, modSs = stn.new(locnet, bn, tran, k, inSiz)
 
   -- alex net
-  local alnet, modAs = alex.newT(nC, isBn, iniAlg)
+  local alnet, modAs = alex.newT(nC, bn, ini)
 
   -- concat
   local model = nn.Sequential()
@@ -271,18 +350,18 @@ end
 -- Create the alexnet stn model with fine-tuning.
 --
 -- Input
---   nC      -  #classes
---   isBn    -  flag of using BN, true | false
---   iniAlg  -  init method
---   tran    -  transformation name
---   loc     -  locnet name
---   m       -  #transformation
+--   nC     -  #classes
+--   bn     -  type of BN
+--   ini    -  init method
+--   tran   -  transformation name
+--   loc    -  locnet name
+--   m      -  #transformation
 --
 -- Output
---   model   -  model
---   mods    -  module needed to be update, m x
---   modSs   -  module needed to be update, m x
-function alex.newTS2(nC, isBn, iniAlg, tran, loc, m)
+--   model  -  model
+--   mods   -  module needed to be update, m x
+--   modSs  -  module needed to be update, m x
+function alex.newTS2(nC, bn, ini, tran, loc, m)
   local stn = require('model.stnet')
   assert(tran)
   assert(loc)
@@ -292,7 +371,7 @@ function alex.newTS2(nC, isBn, iniAlg, tran, loc, m)
   local model = nn.Sequential()
 
   -- locnet
-  local locNet, modLs, k = alex.newStnLoc(isBn, iniAlg, loc)
+  local locNet, modLs, k = alex.newStnLoc(bn, ini, loc)
 
   -- stn net
   local inSiz = 224
@@ -300,7 +379,7 @@ function alex.newTS2(nC, isBn, iniAlg, tran, loc, m)
   model:add(stnNet)
 
   -- alex net
-  local alNet, modAs = alex.newT2(m, nC, isBn, iniAlg)
+  local alNet, modAs = alex.newT2(m, nC, bn, ini)
   model:add(alNet)
 
   -- model needed to re-train

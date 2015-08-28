@@ -25,7 +25,7 @@ local Inception = function(nInput, n1x1, n3x3r, n3x3, dn3x3r, dn3x3, nPoolProj, 
         local Module_3x3 = nn.Sequential()
         Module_3x3:add(SpatialConvolution(nInput,n3x3r,1,1)):add(ReLU(true))
 
-        if BNInception then 
+        if BNInception then
             Module_3x3:add(nn.SpatialBatchNormalization(n3x3r,nil,nil,false))
         end
 
@@ -37,13 +37,13 @@ local Inception = function(nInput, n1x1, n3x3r, n3x3, dn3x3r, dn3x3, nPoolProj, 
         local Module_d3x3 = nn.Sequential()
         Module_d3x3:add(SpatialConvolution(nInput,dn3x3r,1,1)):add(ReLU(true))
 
-        if BNInception then 
+        if BNInception then
             Module_d3x3:add(nn.SpatialBatchNormalization(dn3x3r,nil,nil,false))
         end
 
         Module_d3x3:add(SpatialConvolution(dn3x3r,dn3x3r,3,3,1,1,1,1)):add(ReLU(true))
 
-        if BNInception then 
+        if BNInception then
             Module_d3x3:add(nn.SpatialBatchNormalization(dn3x3r,nil,nil,false))
         end
 
@@ -58,6 +58,7 @@ local Inception = function(nInput, n1x1, n3x3r, n3x3, dn3x3r, dn3x3, nPoolProj, 
     elseif type_pool == 'max' then
         PoolProj:add(SpatialMaxPooling(3,3,stride,stride,1,1))
     end
+
     if nPoolProj > 0 then
         PoolProj:add(SpatialConvolution(nInput, nPoolProj, 1, 1))
     end
@@ -110,8 +111,6 @@ part3:add(nn.SpatialBatchNormalization(576,nil,nil,false))
 part3:add(Inception(576,0,128,192,192,256,0,'max',2))  --(4e) 576x14x14 -> 1024x7x7
 part3:add(ReLU(true))
 part3:add(nn.SpatialBatchNormalization(1024,nil,nil,false))
-
-
 part3:add(Inception(1024,352,192,320,160,224,128,'avg'))  --(5a) 1024x7x7 -> 1024x7x7
 part3:add(ReLU(true))
 part3:add(nn.SpatialBatchNormalization(1024,nil,nil,false))

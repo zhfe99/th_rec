@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-06-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-26-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
 
 require 'stn'
 
