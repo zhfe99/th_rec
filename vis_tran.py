@@ -32,7 +32,7 @@ lib.hdfROut(ha)
 
 # dimension
 n, h, w, _ = grid.shape
-nTop = min(input0.shape[0], 10)
+nTop = min(input0.shape[0], 16)
 
 # show
 rows = 2
