@@ -26,7 +26,7 @@ local dp = require('lmdb_provider')
 opt, solConf = opts.parse(arg, 'train')
 
 -- network
-local model, loss, modelSv, mod1s, mod2s, optStat = net.newMod(solConf, opt)
+local model, loss, modelSv, mod1s, mod2s, optStat = net.new(solConf, opt)
 local optimator
 
 -- data loader
