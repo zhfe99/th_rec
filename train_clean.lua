@@ -119,7 +119,6 @@ local function Forward(DB, train, epoch)
     xlua.progress(nImgCurr, nImg)
     collectgarbage()
   end
-  xlua.progress(nImgCurr, nImg)
 
   -- print
   local loss = loss_val / math.ceil(nImg / batchSiz)
