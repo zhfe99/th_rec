@@ -15,7 +15,10 @@ local stn = {}
 --   AffineTransformMatrixGenerator
 --   AffineGridGeneratorBHWD
 -- also
---   initialize nn.Linear
+--   initialize nn.Linear.
+--
+-- In: k x feature
+-- Out: inSiz x inSiz grid map
 --
 -- Input
 --   tran    -  transformation, 'aff' | 'sca' | 'tra' | 'rot' | 'tra2' | 'tras'
@@ -100,8 +103,8 @@ end
 ----------------------------------------------------------------------
 -- Create the stn model.
 --
--- This model take "one" image as input, and
--- output a table of "m" new images as output.
+-- In:  1 image
+-- Out: m images
 --
 -- Input
 --   locNet  -  localization network

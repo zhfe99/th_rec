@@ -9,7 +9,67 @@ local lib = require('lua_lib')
 local th = require('lua_th')
 local alex = require('model.alex')
 local goo = require('model.goo')
+local stn = require('model.stnet')
 local net = {}
+
+----------------------------------------------------------------------
+-- Create the STN model with fine-tuning.
+--
+-- In: 1 image
+-- Out: nC x softmax scores
+--
+-- Input
+--   base   -  base net name
+--   nC     -  #classes
+--   bn     -  type of BN
+--   ini    -  init method
+--   tran   -  transformation name
+--   loc    -  locnet name
+--   m      -  #transformation
+--
+-- Output
+--   model  -  model
+--   mods   -  module needed to be update, m x
+--   modSs  -  module needed to be update, m x
+function net.newStn(base, nC, bn, ini, tran, loc, m)
+  assert(tran)
+  assert(loc)
+  assert(m)
+
+  -- concat
+  local model = nn.Sequential()
+
+  -- localization net
+  local locNet, modLs, k
+  if base == 'alex' then
+    locNet, modLs, k = alex.newStnLoc(bn, ini, loc)
+  elseif base == 'goo' then
+    locNet, modLs, k = goo.newStnLoc(bn, ini, loc)
+  else
+    assert(nil, string.format('unknown base: %s', base))
+  end
+
+  -- stn net: 1 image => m images
+  local inSiz = 224
+  local stnNet, modSs = stn.new(locNet, tran, k, inSiz, m)
+  model:add(stnNet)
+
+  -- classify net: m images => nC x softmax scores
+  local clfyNet, modAs
+  if base == 'alex' then
+    clfyNet, modAs = alex.newStnClfy(nC, ini, m)
+  elseif base == 'goo' then
+    clfyNet, modAs = goo.newStnClfy(nC, ini, m)
+  else
+    assert(nil, string.format('unknown base: %s', base))
+  end
+  model:add(alNet)
+
+  -- model needed to re-train
+  local mods = lib.tabCon(modLs, modSs, modAs)
+
+  return model, mods, modSs
+end
 
 ----------------------------------------------------------------------
 -- Create a new model.
@@ -25,19 +85,22 @@ local net = {}
 --   mod1s    -  modules (level 1)
 --   mod2s    -  modules (level 2)
 --   optStat  -  optimize state
-function net.newMod(solConf, opt)
+function net.new(solConf, opt)
   -- default parameter
   local ini = solConf.ini or 'xavier_caffe'
+  local mStn = solConf.mStn or 1
   local bn = solConf.bn or 1
   local nC = solConf.nC or #opt.DATA.cNms
+  local tran = solConf.nC or 'aff'
+  local loc = solConf.loc or 'type1'
 
   -- model & sub-modules
   local model, mod1s, mod2s
-  if lib.startswith(solConf.netNm, 'alexTS2') then
-    model, mod1s, mod2s = alex.newTS2(nC, bn, ini, solConf.tran, solConf.loc, 2)
+  if lib.startswith(solConf.netNm, 'alexS') then
+    model, mod1s, mod2s = net.newStn('alex', nC, bn, ini, tran, loc, mStn)
 
-  elseif lib.startswith(solConf.netNm, 'alexTS') then
-    model, mod1s, mod2s = alex.newTS(nC, bn, ini, solConf.tran, solConf.loc)
+  elseif lib.startswith(solConf.netNm, 'gooS') then
+    model, mod1s, mod2s = net.newStn('goo', nC, bn, ini, tran, loc, mStn)
 
   elseif lib.startswith(solConf.netNm, 'alexT') then
     model, mod1s = alex.newT(nC, bn, ini)
@@ -50,9 +113,6 @@ function net.newMod(solConf, opt)
 
   elseif lib.startswith(solConf.netNm, 'alex') then
     model, mod1s = alex.new(nC, bn, ini)
-
-  elseif lib.startswith(solConf.netNm, 'gooTS') then
-    model, mod1s, mod2s = goo.newTS(nC, bn, ini, solConf.tran, solConf.loc)
 
   elseif lib.startswith(solConf.netNm, 'gooT') then
     model, mod1s = goo.newT(nC, bn, ini)

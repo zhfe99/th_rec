@@ -12,9 +12,6 @@ local th = require('lua_th')
 local alex = {}
 local modPath0 = paths.concat(paths.home, 'save/imgnet/torch/model/imgnet_v2_alexbn_2gpu.t7')
 
-local eps = 1e-5
-local isAff = false
-
 ----------------------------------------------------------------------
 -- Create the basic alexnet model.
 --
@@ -82,18 +79,20 @@ function alex.newd(nC, bn, ini)
   return model, {}
 end
 
-
 ----------------------------------------------------------------------
 -- Create the basic alexnet model.
 --
+-- In: an image
+-- Output: a nC-dimension softmax vector
+--
 -- Input
---   nC      -  #classes
---   bn      -  type of bn, 0 | 1 | 2
---   ini     -  initialize method
+--   nC     -  #classes
+--   bn     -  type of bn, 0 | 1 | 2
+--   ini    -  initialize method
 --
 -- Output
---   model   -  model
---   mods    -  {}
+--   model  -  model
+--   mods   -  {}
 function alex.new(nC, bn, ini)
   -- conv1
   local features = nn.Sequential()
@@ -155,6 +154,9 @@ end
 ----------------------------------------------------------------------
 -- Create alexnet model for fine-tuning.
 --
+-- In: 1 image
+-- Output: nC x softmax
+--
 -- Input
 --   nC     -  #classes
 --   bn     -  type of BN
@@ -182,8 +184,8 @@ end
 ----------------------------------------------------------------------
 -- Create alexnet model for fine-tuning.
 --
--- In: a table of "m" images
--- Out: a softmax vector
+-- In: m images
+-- Out: nC x softmax
 --
 -- Input
 --   nC     -  #classes
@@ -228,8 +230,8 @@ end
 ----------------------------------------------------------------------
 -- Create the localization net for STN.
 --
--- In: one image
--- Out: k-dimensional vector
+-- In: 1 image
+-- Out: k x vector
 --
 -- Input
 --   bn     -  type of BN
@@ -241,6 +243,7 @@ end
 -- Output
 --   model  -  model
 --   mods   -  sub-modules needed to re-train, m x
+--   k      -  k
 function alex.newStnLoc(bn, ini, loc)
   -- load old model
   local model = torch.load(modPath0)
@@ -292,88 +295,6 @@ function alex.newStnLoc(bn, ini, loc)
   end
 
   return model, {mod}, k
-end
-
-----------------------------------------------------------------------
--- Create the alexnet stn model with fine-tuning.
---
--- Input
---   nC     -  #classes
---   bn     -  type of BN
---   ini    -  init method
---   tran   -  transformation name
---   loc    -  locnet name
---
--- Output
---   model  -  model
---   mods   -  module needed to be update, m x
---   modSs  -  module needed to be update, m x
-function alex.newTS(nC, bn, ini, tran, loc)
-  local stn = require('model.stnet')
-  assert(tran)
-  assert(loc)
-
-  -- concat
-  local model = nn.Sequential()
-
-  -- locnet
-  local locnet, modLs, k = alex.newStnLoc(bn, ini, loc)
-
-  -- stn net
-  local inSiz = 224
-  local stnet, modSs = stn.new(locnet, bn, tran, k, inSiz)
-  model:add(stnet)
-
-  -- alex net
-  local alnet, modAs = alex.newT(nC, bn, ini)
-  model:add(alnet)
-
-  -- model needed to re-train
-  local mods = lib.tabCon(modLs, modSs, modAs)
-
-  return model, mods, modSs
-end
-
-----------------------------------------------------------------------
--- Create the alexnet stn model with fine-tuning.
---
--- Input
---   nC     -  #classes
---   bn     -  type of BN
---   ini    -  init method
---   tran   -  transformation name
---   loc    -  locnet name
---   m      -  #transformation
---
--- Output
---   model  -  model
---   mods   -  module needed to be update, m x
---   modSs  -  module needed to be update, m x
-function alex.newTS2(nC, bn, ini, tran, loc, m)
-  local stn = require('model.stnet')
-  assert(tran)
-  assert(loc)
-  assert(m)
-
-  -- concat
-  local model = nn.Sequential()
-
-  -- locnet
-  local locNet, modLs, k = alex.newStnLoc(bn, ini, loc)
-
-  -- stn net
-  local inSiz = 224
-  local stnNet, modSs = stn.new2(locNet, tran, k, inSiz, m)
-  model:add(stnNet)
-
-  -- alex net
-  local alNet, modAs = alex.newT2(m, nC, bn, ini)
-  model:add(alNet)
-
-  -- model needed to re-train
-  local mods = lib.tabCon(modLs, modSs, modAs)
-
-  return model, mods, modSs
 end
 
 return alex
