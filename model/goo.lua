@@ -2,7 +2,7 @@
 -- GoogLetNet Model.
 --
 -- History
---   create  -  Feng Zhou (zhfe99@gmail.com), 08-05-2015
+--   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
 --   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
 
 require 'cudnn'
@@ -211,27 +211,27 @@ end
 -- Create the inception component.
 --
 -- Input
---   input_size  -  input size
---   config      -  configuration
---   bn          -  type of BN
+--   k0       -  input dimension
+--   config   -  configuration
+--   bn       -  type of BN
 --
 -- Output
---   concat      -  inception module
-local function inception(input_size, config, bn)
+--   concat   -  inception module
+local function inception(k0, config, bn)
   local concat = nn.Concat(2)
   if config[1][1] ~= 0 then
     local conv1 = nn.Sequential()
     -- to del
     th.addSBN(conv1, 96, bn)
 
-    conv1:add(cudnn.SpatialConvolution(input_size, config[1][1], 1, 1, 1, 1))
+    conv1:add(cudnn.SpatialConvolution(k0, config[1][1], 1, 1, 1, 1))
     th.addSBN(conv1, config[1][1], bn)
     conv1:add(cudnn.ReLU(true))
     concat:add(conv1)
   end
 
   local conv3 = nn.Sequential()
-  conv3:add(cudnn.SpatialConvolution(input_size, config[2][1],1,1,1,1))
+  conv3:add(cudnn.SpatialConvolution(k0, config[2][1],1,1,1,1))
   th.addSBN(conv3, config[2][1], bn)
   conv3:add(cudnn.ReLU(true))
   conv3:add(cudnn.SpatialConvolution(config[2][1], config[2][2],3,3,1,1,1,1))
@@ -240,7 +240,7 @@ local function inception(input_size, config, bn)
   concat:add(conv3)
 
   local conv3xx = nn.Sequential()
-  conv3xx:add(cudnn.SpatialConvolution(input_size, config[3][1],1,1,1,1))
+  conv3xx:add(cudnn.SpatialConvolution(k0, config[3][1],1,1,1,1))
   th.addSBN(conv3xx, config[3][1], bn)
   conv3xx:add(cudnn.ReLU(true))
   conv3xx:add(cudnn.SpatialConvolution(config[3][1], config[3][2],3,3,1,1,1,1))
@@ -261,7 +261,7 @@ local function inception(input_size, config, bn)
     error('Unknown pooling')
   end
   if config[4][2] ~= 0 then
-    pool:add(cudnn.SpatialConvolution(input_size,config[4][2],1,1,1,1))
+    pool:add(cudnn.SpatialConvolution(k0,config[4][2],1,1,1,1))
     th.addSBN(pool, config[4][2], bn)
     pool:add(cudnn.ReLU(true))
   end
@@ -359,16 +359,18 @@ end
 ----------------------------------------------------------------------
 -- Create goonet model for fine-tuning.
 --
+-- In: m images
+-- Out: nC x softmax
+--
 -- Input
---   m      -  #model
 --   nC     -  #classes
---   bn     -  type of BN
 --   ini    -  initialize method
+--   m      -  #model
 --
 -- Output
 --   model  -  pre-trained model
 --   mods   -  sub-modules needed to re-train, m x
-function goo.newT2(m, nC, bn, ini)
+function goo.newStnClfy(nC, ini, m)
   -- alex net
   local model = nn.Sequential()
 
@@ -380,9 +382,8 @@ function goo.newT2(m, nC, bn, ini)
     gooNets:add(gooNet)
 
     -- remove last fully connected layer
+    gooNet.modules[2]:remove(9)
     gooNet.modules[2]:remove(8)
-    local debugger = require('fb.debugger')
-    debugger.enter()
   end
 
   -- concate the output
@@ -447,88 +448,6 @@ function goo.newStnLoc(bn, ini, loc)
   end
 
   return model, {mod1, mod2}, k
-end
-
-----------------------------------------------------------------------
--- Create the goonet stn model with fine-tuning.
---
--- Input
---   nC     -  #classes
---   bn     -  flag of using BN, true | false
---   ini    -  init method
---   tran   -  transformation name
---   loc    -  locnet name
---
--- Output
---   model  -  model
---   mods   -  module needed to be update, m x
---   modSs  -  module needed to be update, m x
-function goo.newTS(nC, bn, ini, tran, loc)
-  local stn = require('model.stnet')
-  assert(tran)
-  assert(loc)
-
-  -- locnet
-  local locnet, modLs, k = goo.newStnLoc(bn, ini, loc)
-
-  -- stn net
-  local inSiz = 224
-  local stnet, modSs = stn.new(locnet, tran, k, inSiz)
-
-  -- goo net
-  local goonet, modAs = goo.newT(nC, bn, ini)
-
-  -- concat
-  local model = nn.Sequential()
-  model:add(stnet)
-  model:add(goonet)
-
-  -- model needed to re-train
-  local mods = lib.tabCon(modLs, modSs, modAs)
-
-  return model, mods, modSs
-end
-
-----------------------------------------------------------------------
--- Create the alexnet stn model with fine-tuning.
---
--- Input
---   nC     -  #classes
---   bn     -  type of BN
---   ini    -  init method
---   tran   -  transformation name
---   loc    -  locnet name
---   m      -  #transformation
---
--- Output
---   model  -  model
---   mods   -  module needed to be update, m x
---   modSs  -  module needed to be update, m x
-function goo.newTS2(nC, bn, ini, tran, loc, m)
-  local stn = require('model.stnet')
-  assert(tran)
-  assert(loc)
-  assert(m)
-
-  -- concat
-  local model = nn.Sequential()
-
-  -- locnet
-  local locNet, modLs, k = goo.newStnLoc(bn, ini, loc)
-
-  -- stn net
-  local inSiz = 224
-  local stnNet, modSs = stn.new2(locNet, tran, k, inSiz, m)
-  model:add(stnNet)
-
-  -- alex net
-  local alNet, modAs = goo.newT2(m, nC, bn, ini)
-  model:add(alNet)
-
-  -- model needed to re-train
-  local mods = lib.tabCon(modLs, modSs, modAs)
-
-  return model, mods, modSs
 end
 
 return goo

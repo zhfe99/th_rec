@@ -74,6 +74,8 @@ local function Forward(DB, train, epoch)
           model:syncParameters()
         end
 
+        local debugger = require('fb.debugger')
+        debugger.enter()
         currLoss, y = optimator:optimize(optim.sgd, x, yt, loss)
         -- local debugger = require('fb.debugger')
         -- debugger.enter()

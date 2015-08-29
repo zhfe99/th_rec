@@ -26,7 +26,7 @@ local dp = require('dp_lmdb')
 opt, solConf = opts.parse(arg, 'train')
 
 -- network
-local model, loss, modelSv, mod1s, mod2s, optStat = net.newMod(solConf, opt)
+local model, loss, modelSv, mod1s, mod2s, optStat = net.new(solConf, opt)
 local optimator
 
 -- data loader
@@ -58,7 +58,7 @@ local function Forward(DB, train, epoch)
   while nImgCurr < nImg do
     iMini = iMini + 1
 
-    -- each minibatch
+    -- each mini batch
     local x, yt = dp.fordNextBatch(DB, train, opt)
     local y = torch.Tensor()
     local currLoss = 0
@@ -70,6 +70,8 @@ local function Forward(DB, train, epoch)
         model:syncParameters()
       end
 
+      -- local debugger = require('fb.debugger')
+      -- debugger.enter()
       currLoss, y = optimator:optimize(optim.sgd, x, yt, loss)
       -- local debugger = require('fb.debugger')
       -- debugger.enter()

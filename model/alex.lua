@@ -2,7 +2,7 @@
 -- AlexNet Model.
 --
 -- History
---   create  -  Feng Zhou (zhfe99@gmail.com), 08-04-2015
+--   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
 --   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
 
 require 'cudnn'

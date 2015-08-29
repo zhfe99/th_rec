@@ -2,7 +2,7 @@
 -- Provide the net.
 --
 -- History
---   create  -  Feng Zhou (zhfe99@gmail.com), 08-18-2015
+--   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
 --   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
 
 local lib = require('lua_lib')
@@ -63,7 +63,7 @@ function net.newStn(base, nC, bn, ini, tran, loc, m)
   else
     assert(nil, string.format('unknown base: %s', base))
   end
-  model:add(alNet)
+  model:add(clfyNet)
 
   -- model needed to re-train
   local mods = lib.tabCon(modLs, modSs, modAs)
