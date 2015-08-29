@@ -19,94 +19,6 @@ local isAff = false
 -- Create the basic alexnet model.
 --
 -- Input
---   nC     -  #classes
---   bn     -  type of BN
---   ini    -  initialize method
---
--- Output
---   model  -  model
---   mods   -  {}
-function alex.newc(nC, bn, ini)
-  -- convolution
-  local features = nn.Sequential()
-
-  -- conv1
-  features:add(cudnn.SpatialConvolution(3,96,11,11,4,4,2,2))       -- 224 -> 55
-  features:add(cudnn.ReLU(true))
-  features:add(cudnn.SpatialMaxPooling(3,3,2,2))                   -- 55 ->  27
-
-  -- conv2
-  if isBn then
-    features:add(nn.SpatialBatchNormalization(96, nil, nil, false))
-  end
-  features:add(cudnn.SpatialConvolution(96,256,5,5,1,1,2,2))       -- 27 -> 27
-  features:add(cudnn.ReLU(true))
-  features:add(cudnn.SpatialMaxPooling(3,3,2,2))                   -- 27 ->  13
-
-  -- conv3
-  if isBn then
-    features:add(nn.SpatialBatchNormalization(256, nil, nil, false))
-  end
-  features:add(cudnn.SpatialConvolution(256,384,3,3,1,1,1,1))      -- 13 ->  13
-  features:add(cudnn.ReLU(true))
-
-  -- conv4
-  if isBn then
-    features:add(nn.SpatialBatchNormalization(384, 1e-3))
-  end
-  features:add(cudnn.SpatialConvolution(384,256,3,3,1,1,1,1))      -- 13 ->  13
-  features:add(cudnn.ReLU(true))
-
-  -- conv5
-  if isBn then
-    features:add(nn.SpatialBatchNormalization(256, nil, nil, false))
-  end
-  features:add(cudnn.SpatialConvolution(256,256,3,3,1,1,1,1))      -- 13 ->  13
-  features:add(cudnn.ReLU(true))
-  features:add(cudnn.SpatialMaxPooling(3,3,2,2))                   -- 13 -> 6
-
-  -- full1
-  if isBn then
-    features:add(nn.SpatialBatchNormalization(256, nil, nil, false))
-  end
-  local classifier = nn.Sequential()
-  classifier:add(nn.View(256*6*6))
-  classifier:add(nn.Dropout(0.5))
-  classifier:add(nn.Linear(256*6*6, 4096))
-  classifier:add(nn.Threshold(0, 1e-6))
-
-  -- full2
-  if isBn then
-    classifier:add(nn.BatchNormalization(4096, nil, nil, false))
-  end
-  classifier:add(nn.Dropout(0.5))
-  local ln = nn.Linear(4096, 4096)
-  classifier:add(ln)
-  classifier:add(nn.Threshold(0, 1e-6))
-
-  -- full3
-  if isBn then
-    classifier:add(nn.BatchNormalization(4096, nil, nil, false))
-  end
-  classifier:add(nn.Linear(4096, nC))
-
-  -- prob
-  classifier:add(nn.LogSoftMax())
-
-  -- concatenate
-  local model = nn.Sequential()
-  model:add(features):add(classifier)
-
-  -- init
-  th.iniMod(model, ini)
-
-  return model, {}
-end
-
-----------------------------------------------------------------------
--- Create the basic alexnet model.
---
--- Input
 --   nC      -  #classes
 --   bn      -  type of bn, 0 | 1 | 2
 --   ini     -  initialize method
@@ -270,37 +182,41 @@ end
 ----------------------------------------------------------------------
 -- Create alexnet model for fine-tuning.
 --
+-- In: a table of "m" images
+-- Out: a softmax vector
+--
 -- Input
---   m       -  #model
---   nC      -  #classes
---   bn      -  type of BN
---   ini     -  initialize method
+--   nC     -  #classes
+--   ini    -  initialize method
+--   m      -  #input images
 --
 -- Output
---   model   -  pre-trained model
---   mods    -  sub-modules needed to re-train, m x
-function alex.newT2(m, nC, isBn, ini)
+--   model  -  model
+--   mods   -  sub-modules needed to re-train, m x
+function alex.newStnClfy(nC, ini, m)
   -- alex net
   local model = nn.Sequential()
 
   -- feature extraction
-  local alNets = nn.ParallelTable()
-  model:add(alNets)
+  local alexNets = nn.ParallelTable()
+  model:add(alexNets)
   for i = 1, m do
-    local alNet = torch.load(modPath0)
-    alNets:add(alNet)
+    local alexNet = torch.load(modPath0)
+    alexNets:add(alexNet)
 
     -- remove last fully connected layer
-    alNet.modules[2]:remove(11)
-    alNet.modules[2]:remove(10)
+    alexNet.modules[2]:remove(11)
+    alexNet.modules[2]:remove(10)
   end
 
   -- concate the output
   model:add(nn.JoinTable(2))
 
-  -- insert a new last layer
+  -- insert a new fully connected layer
   local mod = nn.Linear(4096 * m, nC)
   model:add(mod)
+
+  -- soft-max
   model:add(nn.LogSoftMax())
 
   -- init
@@ -312,10 +228,15 @@ end
 ----------------------------------------------------------------------
 -- Create the localization net for STN.
 --
+-- In: one image
+-- Out: k-dimensional vector
+--
 -- Input
 --   bn     -  type of BN
 --   ini    -  init method
---   loc    -  localization network
+--   loc    -  localization network, 'type1' | 'type2'
+--               'type1': k = 128, new Linear layer
+--               'type2': k = 128, no Linear layer
 --
 -- Output
 --   model  -  model
@@ -333,7 +254,6 @@ function alex.newStnLoc(bn, ini, loc)
     k = 128
     local classifier = nn.Sequential()
     classifier:add(nn.View(256 * 6 * 6))
-    -- classifier:add(nn.Dropout(0.5))
 
     mod = nn.Linear(256 * 6 * 6, k)
     classifier:add(mod)
@@ -393,19 +313,19 @@ function alex.newTS(nC, bn, ini, tran, loc)
   assert(tran)
   assert(loc)
 
+  -- concat
+  local model = nn.Sequential()
+
   -- locnet
   local locnet, modLs, k = alex.newStnLoc(bn, ini, loc)
 
   -- stn net
   local inSiz = 224
   local stnet, modSs = stn.new(locnet, bn, tran, k, inSiz)
+  model:add(stnet)
 
   -- alex net
   local alnet, modAs = alex.newT(nC, bn, ini)
-
-  -- concat
-  local model = nn.Sequential()
-  model:add(stnet)
   model:add(alnet)
 
   -- model needed to re-train

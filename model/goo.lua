@@ -357,6 +357,49 @@ function goo.newT(nC, bn, ini)
 end
 
 ----------------------------------------------------------------------
+-- Create goonet model for fine-tuning.
+--
+-- Input
+--   m      -  #model
+--   nC     -  #classes
+--   bn     -  type of BN
+--   ini    -  initialize method
+--
+-- Output
+--   model  -  pre-trained model
+--   mods   -  sub-modules needed to re-train, m x
+function goo.newT2(m, nC, bn, ini)
+  -- alex net
+  local model = nn.Sequential()
+
+  -- feature extraction
+  local gooNets = nn.ParallelTable()
+  model:add(gooNets)
+  for i = 1, m do
+    local gooNet = torch.load(modPath0)
+    gooNets:add(gooNet)
+
+    -- remove last fully connected layer
+    gooNet.modules[2]:remove(8)
+    local debugger = require('fb.debugger')
+    debugger.enter()
+  end
+
+  -- concate the output
+  model:add(nn.JoinTable(2))
+
+  -- insert a new last layer
+  local mod = nn.Linear(1024 * m, nC)
+  model:add(mod)
+  model:add(nn.LogSoftMax())
+
+  -- init
+  th.iniMod(mod, ini)
+
+  return model, {mod}
+end
+
+----------------------------------------------------------------------
 -- Create the localization net for STN.
 --
 -- Input
@@ -380,8 +423,6 @@ function goo.newStnLoc(bn, ini, loc)
     main:remove(8)
     main:remove(7)
     main:remove(6)
-    -- local debugger = require('fb.debugger')
-    -- debugger.enter()
 
     -- add a new 1x1 convolutional layer
     k = 128
@@ -412,16 +453,16 @@ end
 -- Create the goonet stn model with fine-tuning.
 --
 -- Input
---   nC      -  #classes
---   bn    -  flag of using BN, true | false
---   ini  -  init method
---   tran    -  transformation name
---   loc     -  locnet name
+--   nC     -  #classes
+--   bn     -  flag of using BN, true | false
+--   ini    -  init method
+--   tran   -  transformation name
+--   loc    -  locnet name
 --
 -- Output
---   model   -  model
---   mods    -  module needed to be update, m x
---   modSs   -  module needed to be update, m x
+--   model  -  model
+--   mods   -  module needed to be update, m x
+--   modSs  -  module needed to be update, m x
 function goo.newTS(nC, bn, ini, tran, loc)
   local stn = require('model.stnet')
   assert(tran)
@@ -441,6 +482,48 @@ function goo.newTS(nC, bn, ini, tran, loc)
   local model = nn.Sequential()
   model:add(stnet)
   model:add(goonet)
+
+  -- model needed to re-train
+  local mods = lib.tabCon(modLs, modSs, modAs)
+
+  return model, mods, modSs
+end
+
+----------------------------------------------------------------------
+-- Create the alexnet stn model with fine-tuning.
+--
+-- Input
+--   nC     -  #classes
+--   bn     -  type of BN
+--   ini    -  init method
+--   tran   -  transformation name
+--   loc    -  locnet name
+--   m      -  #transformation
+--
+-- Output
+--   model  -  model
+--   mods   -  module needed to be update, m x
+--   modSs  -  module needed to be update, m x
+function goo.newTS2(nC, bn, ini, tran, loc, m)
+  local stn = require('model.stnet')
+  assert(tran)
+  assert(loc)
+  assert(m)
+
+  -- concat
+  local model = nn.Sequential()
+
+  -- locnet
+  local locNet, modLs, k = goo.newStnLoc(bn, ini, loc)
+
+  -- stn net
+  local inSiz = 224
+  local stnNet, modSs = stn.new2(locNet, tran, k, inSiz, m)
+  model:add(stnNet)
+
+  -- alex net
+  local alNet, modAs = goo.newT2(m, nC, bn, ini)
+  model:add(alNet)
 
   -- model needed to re-train
   local mods = lib.tabCon(modLs, modSs, modAs)
