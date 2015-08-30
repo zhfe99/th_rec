@@ -32,7 +32,7 @@ function M.parse(arg, mode)
   cmd:option('-ver', 'v1', 'version')
   cmd:option('-con', 'alex', 'configuration')
   cmd:option('-threads', 8, '#threads')
-  cmd:option('-gpu', '0', 'gpu id, could be multiple')
+  cmd:option('-gpu', 1, '#GPUs')
   cmd:option('-shuffle', true, 'shuffle training samples')
   cmd:option('-cmp', true, 'compress or not')
   cmd:option('-local', true, 'using local data')
@@ -49,18 +49,22 @@ function M.parse(arg, mode)
   opt.DATA = th_lst.dbeInfoData(opt.PATH)
   opt.CONF = th_lst.dbeInfoConf(opt.PATH, con)
 
+  -- configuration
+  local solConf = dofile(opt.CONF.protTr)
+
   -- log
   cmd:log(opt.CONF.logPath .. '_' .. mode)
 
-  -- cuda
-  opt.gpus = lib.str2idx(opt.gpu)
+  -- gpu
+  if solConf.gpu then
+    opt.gpu = solConf.gpu
+  end
+  cutorch.setDevice(1)
+
+  -- other
   torch.setnumthreads(opt.threads)
-  cutorch.setDevice(opt.gpus[1] + 1)
   torch.setdefaulttensortype('torch.FloatTensor')
   torch.manualSeed(opt.seed)
-
-  -- configuration
-  local solConf = dofile(opt.CONF.protTr)
 
   lib.prTab(opt, 'opt')
   lib.prTab(solConf, 'solConf')

@@ -57,8 +57,8 @@ function tr_deb.debStn(model, tmpFold, epo, iMini, train, opt, solConf, denormal
     lib.hdfW(ha, tmpIns[iStn]:float(), string.format('input%d', iStn))
     lib.hdfW(ha, tmpGrids[iStn]:float(), string.format('grid%d', iStn))
   end
-  lib.hdfW(ha, tmpWeight:float(), 'weight')
-  lib.hdfW(ha, tmpBias:float(), 'bias')
+  -- lib.hdfW(ha, tmpWeight:float(), 'weight')
+  -- lib.hdfW(ha, tmpBias:float(), 'bias')
 
   lib.hdfWOut(ha)
 end

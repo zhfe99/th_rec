@@ -108,6 +108,7 @@ if __name__ == '__main__':
     dbe = args.inputs[0]
     ver = args.inputs[1]
     con = args.inputs[2]
+
     epos = lib.str2ran(args.epos)
     nEpo = len(epos)
     nStn = args.nStn

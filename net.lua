@@ -141,10 +141,10 @@ function net.new(solConf, opt)
   end
 
   -- multi-gpu
-  model = th.getModGpu(model, opt.gpus)
+  model = th.getModGpu(model, opt.gpu)
 
   -- convert inner data to gpu
-  if #opt.gpus == 1 then
+  if opt.gpu == 1 then
     model:cuda()
   end
   loss:cuda()
@@ -154,7 +154,7 @@ function net.new(solConf, opt)
   mod2s = th.subMod(model, idx2)
 
   -- save model
-  local modelSv = th.getModSv(model, #opt.gpus)
+  local modelSv = th.getModSv(model, opt.gpu)
 
   -- init optimization state
   local optStat = {

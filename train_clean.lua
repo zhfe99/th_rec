@@ -62,7 +62,7 @@ local function ford(DB, train, epo)
 
     -- do somthing
     if train then
-      if #opt.gpus > 1 then
+      if opt.gpu > 1 then
         model:zeroGradParameters()
         model:syncParameters()
       end
