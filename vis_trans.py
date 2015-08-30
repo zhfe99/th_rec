@@ -68,8 +68,9 @@ def shEpoTran(dbe, ver, con, nStn, epo):
             col = iTop
 
             # original input
-            import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             lib.shImg(input0[iTop].transpose((1, 2, 0)) * 255, ax=Ax[iStn * 2, col])
+            # lib.shImg(input0[iTop, 0], ax=Ax[iStn * 2, col])
 
             idxYs = [0, 0, h - 1, h - 1, 0]
             idxXs = [0, w - 1, w - 1, 0, 0]
@@ -84,7 +85,10 @@ def shEpoTran(dbe, ver, con, nStn, epo):
             lib.plt.axis('image')
 
             # input
+            import pdb; pdb.set_trace()
+
             lib.shImg(input[iTop].transpose((1, 2, 0)) * 255, ax=Ax[iStn * 2 + 1, col])
+            # lib.shImg(input[iTop, 0], ax=Ax[iStn * 2 + 1, col])
 
     # save
     lib.shSvPath(pdfPath)

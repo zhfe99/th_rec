@@ -40,8 +40,7 @@ function tr_deb.debStn(model, tmpFold, epo, iMini, train, opt, solConf, denormal
   for iStn = 1, nStn do
     tmpIns[iStn] = model:findModules('nn.Transpose')[iStn + 1].output:clone()
     tmpIns[iStn] = denormalize(tmpIns[iStn])
-    tmpGrids[iStn] = model:findModules('nn.AffineGridGeneratorBHWD')[iStn].output:clone()
-    tmpGrids[iStn] = denormalize(tmpGrids[iStn])
+    tmpGrids[iStn] = model:findModules('nn.AffineGridGeneratorBHWD')[iStn].output
   end
 
   -- hdf handler
