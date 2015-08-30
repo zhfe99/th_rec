@@ -6,8 +6,8 @@
 --   ./data_lmdb.lua -dbe car -ver v1c -cmp
 --
 -- history
---   create  -  Feng Zhou (zhfe99@gmail.com), 08-20-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-24-2015
+--   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
 
 require 'eladtools'
 require 'image'

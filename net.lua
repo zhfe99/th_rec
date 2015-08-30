@@ -86,6 +86,8 @@ end
 --   mod2s    -  modules (level 2)
 --   optStat  -  optimize state
 function net.new(solConf, opt)
+  lib.prIn('net.new')
+
   -- default parameter
   local ini = solConf.ini or 'xavier_caffe'
   local nStn = solConf.nStn or 1
@@ -141,10 +143,10 @@ function net.new(solConf, opt)
   end
 
   -- multi-gpu
-  model = th.getModGpu(model, opt.gpu)
+  model = th.getModGpu(model, opt.nGpu)
 
   -- convert inner data to gpu
-  if opt.gpu == 1 then
+  if opt.nGpu == 1 then
     model:cuda()
   end
   loss:cuda()
@@ -154,7 +156,7 @@ function net.new(solConf, opt)
   mod2s = th.subMod(model, idx2)
 
   -- save model
-  local modelSv = th.getModSv(model, opt.gpu)
+  local modelSv = th.getModSv(model, opt.nGpu)
 
   -- init optimization state
   local optStat = {
@@ -165,6 +167,7 @@ function net.new(solConf, opt)
     dampening = 0.0
   }
 
+  lib.prOut()
   return model, loss, modelSv, mod1s, mod2s, optStat
 end
 

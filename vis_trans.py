@@ -90,7 +90,9 @@ def shEpoTran(dbe, ver, con, nStn, epo):
             lib.shImg(inputNew, ax=Ax[iStn * 2 + 1, col])
 
         # mean
+        inMe0 = input0.mean(0)
         inMe = input.mean(0)
+        lib.shImg(inMe0.transpose((1, 2, 0)), ax=Ax[iStn * 2, nTop])
         lib.shImg(inMe.transpose((1, 2, 0)), ax=Ax[iStn * 2 + 1, nTop])
 
     # save

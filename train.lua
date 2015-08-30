@@ -22,6 +22,7 @@ local opts = require('opts')
 local net = require('net')
 local dp = require('dp_lmdb')
 local tr_deb = require('tr_deb')
+lib.prSet(5)
 
 -- argument
 opt, solConf = opts.parse(arg, 'train')
@@ -41,6 +42,8 @@ dp.init(opt, solConf)
 --   train  -  train or test
 --   epo    -  epoch
 local function ford(DB, train, epo)
+  lib.prIn('ford', 'train %s, epo %d', train, epo)
+
   -- confusion
   local confusion = optim.ConfusionMatrix(opt.DATA.cNms)
 
@@ -53,16 +56,17 @@ local function ford(DB, train, epo)
   local nImg, batchSiz, nMini = dp.fordInit(DB, train, epo, opt, solConf)
 
   -- each mini batch
-  local nImgCurr = 0
   local lossVal = 0
+  lib.prCIn('mini', nMini, .2)
   for iMini = 1, nMini do
+    lib.prC(iMini)
     local x, yt = dp.fordNextBatch(DB, train, opt)
     local y = torch.Tensor()
     local currLoss = 0
 
     -- do somthing
     if train then
-      if opt.gpu > 1 then
+      if opt.nGpu > 1 then
         model:zeroGradParameters()
         model:syncParameters()
       end
@@ -74,7 +78,7 @@ local function ford(DB, train, epo)
     end
     lossVal = currLoss + lossVal
 
-    -- table results - always take first prediction
+    -- table results
     if type(y) == 'table' then
       y = y[1]
     end
@@ -86,21 +90,22 @@ local function ford(DB, train, epo)
 
     -- update
     confusion:batchAdd(y, yt)
-    nImgCurr = nImgCurr + x:size(1)
-    xlua.progress(nImgCurr, nImg)
     collectgarbage()
   end
+  lib.prCOut(nMini)
 
-  -- print
+  -- print to log
   local loss = lossVal / nMini
   confusion:updateValids()
   local acc = confusion.totalValid
   if train then
-    print(string.format('epoch %d/%d, lr %f, wd %f', epo, solConf.nEpo, optimator.originalOptState.learningRate, optimator.originalOptState.weightDecay))
-    print(string.format('tr, loss %f, acc %f', loss, acc))
+    lib.pr('epoch %d/%d, lr %f, wd %f', epo, solConf.nEpo, optimator.originalOptState.learningRate, optimator.originalOptState.weightDecay)
+    lib.pr('tr, loss %f, acc %f', loss, acc)
   else
-    print(string.format('te, loss %f, acc %f', loss, acc))
+    lib.pr('te, loss %f, acc %f', loss, acc)
   end
+
+  lib.prOut()
 end
 
 -- create threads for dataloader
@@ -108,7 +113,10 @@ local trDB = dp.newTr()
 local teDB = dp.newTe()
 
 -- each epo
+lib.prCIn('epo', solConf.nEpo, 1)
 for epo = 1, solConf.nEpo do
+  lib.prC(epo)
+
   -- train
   model:training()
   ford(trDB, true, epo)
@@ -122,3 +130,4 @@ for epo = 1, solConf.nEpo do
   model:evaluate()
   ford(teDB, false, epo)
 end
+lib.prCOut(solConf.nEpo)

@@ -20,6 +20,7 @@ local M = {}
 --   opt      -  option
 --   solConf  -  solver configuration
 function M.parse(arg, mode)
+  lib.prIn('parse')
 
   local cmd = torch.CmdLine()
   cmd:text()
@@ -69,6 +70,7 @@ function M.parse(arg, mode)
   lib.prTab(opt, 'opt')
   lib.prTab(solConf, 'solConf')
 
+  lib.prOut()
   return opt, solConf
 end
 

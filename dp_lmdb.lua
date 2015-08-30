@@ -8,6 +8,7 @@
 require 'eladtools'
 require 'xlua'
 require 'lmdb'
+local lib = require('lua_lib')
 local Threads = require 'threads'
 local ffi = require 'ffi'
 
@@ -257,6 +258,8 @@ end
 --   batchSiz -  batch size
 --   nMini    -  #mini-batch
 function provider.fordInit(DB, train, epoch, opt, solConf)
+  lib.prIn('fordInit')
+
   -- dimension
   nImg = DB:size()
 
@@ -303,6 +306,8 @@ function provider.fordInit(DB, train, epoch, opt, solConf)
   nBat = bufSiz / batchSiz
   local nMini = nImg / batchSiz
 
+  lib.pr('nImg %d, batchSiz %d', nImg, batchSiz)
+  lib.prOut()
   return nImg, batchSiz, nMini
 end
 
