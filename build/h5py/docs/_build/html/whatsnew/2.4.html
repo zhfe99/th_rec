@@ -1,0 +1,165 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>What’s new in h5py 2.4 &mdash; h5py 2.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="h5py 2.5.0 documentation" href="../index.html" />
+    <link rel="up" title="“What’s new” documents" href="index.html" />
+    <link rel="next" title="What’s new in h5py 2.3" href="2.3.html" />
+    <link rel="prev" title="“What’s new” documents" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="2.3.html" title="What’s new in h5py 2.3"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="“What’s new” documents"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">h5py 2.5.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">&#8220;What&#8217;s new&#8221; documents</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="what-s-new-in-h5py-2-4">
+<h1>What&#8217;s new in h5py 2.4<a class="headerlink" href="#what-s-new-in-h5py-2-4" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="build-system-changes">
+<h2>Build system changes<a class="headerlink" href="#build-system-changes" title="Permalink to this headline">¶</a></h2>
+<p>The setup.py-based build system has been reworked to be more maintainable, and
+to fix certain long-standing bugs.  As a consequence, the options to setup.py
+have changed; a new top-level &#8220;configure&#8221; command handles options like
+<tt class="docutils literal"><span class="pre">--hdf5=/path/to/hdf5</span></tt> and <tt class="docutils literal"><span class="pre">--mpi</span></tt>.  Setup.py now works correctly under
+Python 3 when these options are used.</p>
+<p>Cython (0.17+) is now required when building from source on all platforms;
+the .c files are no longer shipped in the UNIX release.  The minimum NumPy
+version is now 1.6.1.</p>
+</div>
+<div class="section" id="files-will-now-auto-close">
+<h2>Files will now auto-close<a class="headerlink" href="#files-will-now-auto-close" title="Permalink to this headline">¶</a></h2>
+<p>Files are now automatically closed when all objects within them
+are unreachable. Previously, if File.close() was not explicitly called,
+files would remain open and &#8220;leaks&#8221; were possible if the File object
+was lost.</p>
+</div>
+<div class="section" id="thread-safety-improvements">
+<h2>Thread safety improvements<a class="headerlink" href="#thread-safety-improvements" title="Permalink to this headline">¶</a></h2>
+<p>Access to all APIs, high- and low-level, are now protected by a global lock.
+The entire API is now believed to be thread-safe.  Feedback and real-world
+testing is welcome.</p>
+</div>
+<div class="section" id="external-link-improvements">
+<h2>External link improvements<a class="headerlink" href="#external-link-improvements" title="Permalink to this headline">¶</a></h2>
+<p>External links now work if the target file is already open.  Previously
+this was not possible because of a mismatch in the file close strengths.</p>
+</div>
+<div class="section" id="thanks-to">
+<h2>Thanks to<a class="headerlink" href="#thanks-to" title="Permalink to this headline">¶</a></h2>
+<p>Many people, but especially:</p>
+<ul class="simple">
+<li>Matthieu Brucher</li>
+<li>Laurence Hole</li>
+<li>John Tyree</li>
+<li>Pierre de Buyl</li>
+<li>Matthew Brett</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">What&#8217;s new in h5py 2.4</a><ul>
+<li><a class="reference internal" href="#build-system-changes">Build system changes</a></li>
+<li><a class="reference internal" href="#files-will-now-auto-close">Files will now auto-close</a></li>
+<li><a class="reference internal" href="#thread-safety-improvements">Thread safety improvements</a></li>
+<li><a class="reference internal" href="#external-link-improvements">External link improvements</a></li>
+<li><a class="reference internal" href="#thanks-to">Thanks to</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">&#8220;What&#8217;s new&#8221; documents</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="2.3.html"
+                        title="next chapter">What&#8217;s new in h5py 2.3</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/whatsnew/2.4.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="2.3.html" title="What’s new in h5py 2.3"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="“What’s new” documents"
+             >previous</a> |</li>
+        <li><a href="../index.html">h5py 2.5.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" >&#8220;What&#8217;s new&#8221; documents</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Andrew Collette and contributors.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

@@ -11,7 +11,7 @@ Usage
     ...
 
 Example
-  python vis_log.py car v1c alex
+  python vis_log.py car v1c alx
 
 History
   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08

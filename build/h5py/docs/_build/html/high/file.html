@@ -1,0 +1,325 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>HDF5 File Objects &mdash; h5py 2.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="h5py 2.5.0 documentation" href="../index.html" />
+    <link rel="next" title="HDF5 Groups" href="group.html" />
+    <link rel="prev" title="Installation" href="../build.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="group.html" title="HDF5 Groups"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../build.html" title="Installation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">h5py 2.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="hdf5-file-objects">
+<span id="file"></span><h1>HDF5 File Objects<a class="headerlink" href="#hdf5-file-objects" title="Permalink to this headline">¶</a></h1>
+<p>File objects serve as your entry point into the world of HDF5.  In addition
+to the File-specific capabilities listed here, every File instance is
+also an <a class="reference internal" href="group.html#group"><em>HDF5 group</em></a> representing the <cite>root group</cite> of the file.</p>
+<div class="section" id="opening-creating-files">
+<span id="file-open"></span><h2>Opening &amp; creating files<a class="headerlink" href="#opening-creating-files" title="Permalink to this headline">¶</a></h2>
+<p>HDF5 files work generally like standard Python file objects.  They support
+standard modes like r/w/a, and should be closed when they are no longer in
+use.  However, there is obviously no concept of &#8220;text&#8221; vs &#8220;binary&#8221; mode.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s">&#39;myfile.hdf5&#39;</span><span class="p">,</span><span class="s">&#39;r&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The file name may be a byte string or unicode string. Valid modes are:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="14%" />
+<col width="86%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>r</td>
+<td>Readonly, file must exist</td>
+</tr>
+<tr class="row-even"><td>r+</td>
+<td>Read/write, file must exist</td>
+</tr>
+<tr class="row-odd"><td>w</td>
+<td>Create file, truncate if exists</td>
+</tr>
+<tr class="row-even"><td>w- or x</td>
+<td>Create file, fail if exists</td>
+</tr>
+<tr class="row-odd"><td>a</td>
+<td>Read/write if exists, create otherwise (default)</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="file-drivers">
+<span id="file-driver"></span><h2>File drivers<a class="headerlink" href="#file-drivers" title="Permalink to this headline">¶</a></h2>
+<p>HDF5 ships with a variety of different low-level drivers, which map the logical
+HDF5 address space to different storage mechanisms.  You can specify which
+driver you want to use when the file is opened:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s">&#39;myfile.hdf5&#39;</span><span class="p">,</span> <span class="n">driver</span><span class="o">=&lt;</span><span class="n">driver</span> <span class="n">name</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">driver_kwds</span><span class="o">&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For example, the HDF5 &#8220;core&#8221; driver can be used to create a purely in-memory
+HDF5 file, optionally written out to disk when it is closed.  Here&#8217;s a list
+of supported drivers and their options:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>None</dt>
+<dd><strong>Strongly recommended.</strong> Use the standard HDF5 driver appropriate
+for the current platform. On UNIX, this is the H5FD_SEC2 driver;
+on Windows, it is H5FD_WINDOWS.</dd>
+<dt>&#8216;sec2&#8217;</dt>
+<dd>Unbuffered, optimized I/O using standard POSIX functions.</dd>
+<dt>&#8216;stdio&#8217;</dt>
+<dd>Buffered I/O using functions from stdio.h.</dd>
+<dt>&#8216;core&#8217;</dt>
+<dd><p class="first">Memory-map the entire file; all operations are performed in
+memory and written back out when the file is closed.  Keywords:</p>
+<dl class="last docutils">
+<dt>backing_store:  If True (default), save changes to a real file</dt>
+<dd>when closing.  If False, the file exists purely
+in memory and is discarded when closed.</dd>
+<dt>block_size:     Increment (in bytes) by which memory is extended.</dt>
+<dd>Default is 64k.</dd>
+</dl>
+</dd>
+<dt>&#8216;family&#8217;</dt>
+<dd><p class="first">Store the file on disk as a series of fixed-length chunks.  Useful
+if the file system doesn&#8217;t allow large files.  Note: the filename
+you provide <em>must</em> contain a printf-style integer format code
+(e.g. %d&#8221;), which will be replaced by the file sequence number.
+Keywords:</p>
+<p class="last">memb_size:  Maximum file size (default is 2**31-1).</p>
+</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="version-bounding">
+<span id="file-version"></span><h2>Version Bounding<a class="headerlink" href="#version-bounding" title="Permalink to this headline">¶</a></h2>
+<p>HDF5 has been evolving for many years now.  By default, the library will
+write objects in the most compatible fashion possible, so that older versions
+will still be able to read files generated by modern programs.  However, there
+can be performance advantages if you are willing to forgo a certain level
+of backwards compatibility.  By using the &#8220;libver&#8221; option to File, you can
+specify the minimum and maximum sophistication of these structures:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s">&#39;name.hdf5&#39;</span><span class="p">,</span> <span class="n">libver</span><span class="o">=</span><span class="s">&#39;earliest&#39;</span><span class="p">)</span> <span class="c"># most compatible</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s">&#39;name.hdf5&#39;</span><span class="p">,</span> <span class="n">libver</span><span class="o">=</span><span class="s">&#39;latest&#39;</span><span class="p">)</span>   <span class="c"># most modern</span>
+</pre></div>
+</div>
+<p>Here &#8220;latest&#8221; means that HDF5 will always use the newest version of these
+structures without particular concern for backwards compatibility.  The
+&#8220;earliest&#8221; option means that HDF5 will make a <em>best effort</em> to be backwards
+compatible.</p>
+<p>The default is &#8220;earliest&#8221;.</p>
+</div>
+<div class="section" id="user-block">
+<span id="file-userblock"></span><h2>User block<a class="headerlink" href="#user-block" title="Permalink to this headline">¶</a></h2>
+<p>HDF5 allows the user to insert arbitrary data at the beginning of the file,
+in a reserved space called the <cite>user block</cite>.  The length of the user block
+must be specified when the file is created.  It can be either zero
+(the default) or a power of two greater than or equal to 512.  You
+can specify the size of the user block when creating a new file, via the
+<tt class="docutils literal"><span class="pre">userblock_size</span></tt> keyword to File; the userblock size of an open file can
+likewise be queried through the <tt class="docutils literal"><span class="pre">File.userblock_size</span></tt> property.</p>
+<p>Modifying the user block on an open file is not supported; this is a limitation
+of the HDF5 library.  However, once the file is closed you are free to read and
+write data at the start of the file, provided your modifications don&#8217;t leave
+the user block region.</p>
+</div>
+<div class="section" id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Unlike Python file objects, the attribute <tt class="docutils literal"><span class="pre">File.name</span></tt> gives the
+HDF5 name of the root group, &#8220;<tt class="docutils literal"><span class="pre">/</span></tt>&#8221;. To access the on-disk name, use
+<a class="reference internal" href="#File.filename" title="File.filename"><tt class="xref py py-attr docutils literal"><span class="pre">File.filename</span></tt></a>.</p>
+</div>
+<dl class="class">
+<dt id="File">
+<em class="property">class </em><tt class="descname">File</tt><big>(</big><em>name</em>, <em>mode=None</em>, <em>driver=None</em>, <em>libver=None</em>, <em>userblock_size</em>, <em>**kwds</em><big>)</big><a class="headerlink" href="#File" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open or create a new file.</p>
+<p>Note that in addition to the File-specific methods and properties listed
+below, File objects inherit the full interface of <a class="reference internal" href="group.html#Group" title="Group"><tt class="xref py py-class docutils literal"><span class="pre">Group</span></tt></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; Name of file (<cite>str</cite> or <cite>unicode</cite>), or an instance of
+<tt class="xref py py-class docutils literal"><span class="pre">h5f.FileID</span></tt> to bind to an existing
+file identifier.</li>
+<li><strong>mode</strong> &#8211; Mode in which to open file; one of
+(&#8220;w&#8221;, &#8220;r&#8221;, &#8220;r+&#8221;, &#8220;a&#8221;, &#8220;w-&#8221;).  See <a class="reference internal" href="#file-open"><em>Opening &amp; creating files</em></a>.</li>
+<li><strong>driver</strong> &#8211; File driver to use; see <a class="reference internal" href="#file-driver"><em>File drivers</em></a>.</li>
+<li><strong>libver</strong> &#8211; Compatibility bounds; see <a class="reference internal" href="#file-version"><em>Version Bounding</em></a>.</li>
+<li><strong>userblock_size</strong> &#8211; Size (in bytes) of the user block.  If nonzero,
+must be a power of 2 and at least 512.  See
+<a class="reference internal" href="#file-userblock"><em>User block</em></a>.</li>
+<li><strong>kwds</strong> &#8211; Driver-specific keywords; see <a class="reference internal" href="#file-driver"><em>File drivers</em></a>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="File.close">
+<tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#File.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close this file.  All open objects will become invalid.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="File.flush">
+<tt class="descname">flush</tt><big>(</big><big>)</big><a class="headerlink" href="#File.flush" title="Permalink to this definition">¶</a></dt>
+<dd><p>Request that the HDF5 library flush its buffers to disk.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="File.id">
+<tt class="descname">id</tt><a class="headerlink" href="#File.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Low-level identifier (an instance of <a class="reference external" href="http://api.h5py.org/h5f.html#h5py.h5f.FileID" title="(in Low-level API for h5py v2.2)"><tt class="xref py py-class docutils literal"><span class="pre">FileID</span></tt></a>).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="File.filename">
+<tt class="descname">filename</tt><a class="headerlink" href="#File.filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of this file on disk.  Generally a Unicode string; a byte string
+will be used if HDF5 returns a non-UTF-8 encoded string.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="File.mode">
+<tt class="descname">mode</tt><a class="headerlink" href="#File.mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>String indicating if the file is open readonly (&#8220;r&#8221;) or read-write
+(&#8220;r+&#8221;).  Will always be one of these two values, regardless of the
+mode used to open the file.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="File.driver">
+<tt class="descname">driver</tt><a class="headerlink" href="#File.driver" title="Permalink to this definition">¶</a></dt>
+<dd><p>String giving the driver used to open the file.  Refer to
+<a class="reference internal" href="#file-driver"><em>File drivers</em></a> for a list of drivers.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="File.libver">
+<tt class="descname">libver</tt><a class="headerlink" href="#File.libver" title="Permalink to this definition">¶</a></dt>
+<dd><p>2-tuple with library version settings.  See <a class="reference internal" href="#file-version"><em>Version Bounding</em></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="File.userblock_size">
+<tt class="descname">userblock_size</tt><a class="headerlink" href="#File.userblock_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Size of user block (in bytes).  Generally 0.  See <a class="reference internal" href="#file-userblock"><em>User block</em></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">HDF5 File Objects</a><ul>
+<li><a class="reference internal" href="#opening-creating-files">Opening &amp; creating files</a></li>
+<li><a class="reference internal" href="#file-drivers">File drivers</a></li>
+<li><a class="reference internal" href="#version-bounding">Version Bounding</a></li>
+<li><a class="reference internal" href="#user-block">User block</a></li>
+<li><a class="reference internal" href="#reference">Reference</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../build.html"
+                        title="previous chapter">Installation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="group.html"
+                        title="next chapter">HDF5 Groups</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/high/file.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="group.html" title="HDF5 Groups"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../build.html" title="Installation"
+             >previous</a> |</li>
+        <li><a href="../index.html">h5py 2.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Andrew Collette and contributors.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

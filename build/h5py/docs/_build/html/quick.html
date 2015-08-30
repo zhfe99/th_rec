@@ -1,0 +1,252 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Quick Start Guide &mdash; h5py 2.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="h5py 2.5.0 documentation" href="index.html" />
+    <link rel="next" title="Installation" href="build.html" />
+    <link rel="prev" title="HDF5 for Python" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="build.html" title="Installation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="HDF5 for Python"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">h5py 2.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="quick-start-guide">
+<span id="quick"></span><h1>Quick Start Guide<a class="headerlink" href="#quick-start-guide" title="Permalink to this headline">¶</a></h1>
+<p>If you&#8217;re having trouble installing h5py, refer to <a class="reference internal" href="build.html#install"><em>Installation</em></a>.</p>
+<div class="section" id="core-concepts">
+<h2>Core concepts<a class="headerlink" href="#core-concepts" title="Permalink to this headline">¶</a></h2>
+<p>An HDF5 file is a container for two kinds of objects: <cite>datasets</cite>, which are
+array-like collections of data, and <cite>groups</cite>, which are folder-like containers
+that hold datasets and other groups. The most fundamental thing to remember
+when using h5py is:</p>
+<blockquote>
+<div><strong>Groups work like dictionaries, and datasets work like NumPy arrays</strong></div></blockquote>
+<p>The very first thing you&#8217;ll need to do is create a new file:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">h5py</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s">&quot;mytestfile.hdf5&quot;</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="high/file.html#file"><em>File object</em></a> is your starting point.  It has a couple of
+methods which look interesting.  One of them is <tt class="docutils literal"><span class="pre">create_dataset</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&quot;mydataset&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">100</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&#39;i&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The object we created isn&#8217;t an array, but <a class="reference internal" href="high/dataset.html#dataset"><em>an HDF5 dataset</em></a>.
+Like NumPy arrays, datasets have both a shape and a data type:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(100,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="o">.</span><span class="n">dtype</span>
+<span class="go">dtype(&#39;int32&#39;)</span>
+</pre></div>
+</div>
+<p>They also support array-style slicing.  This is how you read and write data
+from a dataset in the file:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span>
+<span class="go">9</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">100</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span>
+<span class="go">array([ 0, 10, 20, 30, 40, 50, 60, 70, 80, 90])</span>
+</pre></div>
+</div>
+<p>For more, see <a class="reference internal" href="high/file.html#file"><em>HDF5 File Objects</em></a> and <a class="reference internal" href="high/dataset.html#dataset"><em>HDF5 Datasets</em></a>.</p>
+</div>
+<div class="section" id="groups-and-hierarchical-organization">
+<h2>Groups and hierarchical organization<a class="headerlink" href="#groups-and-hierarchical-organization" title="Permalink to this headline">¶</a></h2>
+<p>&#8220;HDF&#8221; stands for &#8220;Hierarchical Data Format&#8221;.  Every object in an HDF5 file
+has a name, and they&#8217;re arranged in a POSIX-style hierarchy with
+<tt class="docutils literal"><span class="pre">/</span></tt>-separators:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="o">.</span><span class="n">name</span>
+<span class="go">u&#39;/mydataset&#39;</span>
+</pre></div>
+</div>
+<p>The &#8220;folders&#8221; in this system are called <a class="reference internal" href="high/group.html#group"><em>groups</em></a>.  The <tt class="docutils literal"><span class="pre">File</span></tt> object we
+created is itself a group, in this case the <cite>root group</cite>, named <tt class="docutils literal"><span class="pre">/</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">name</span>
+<span class="go">u&#39;/&#39;</span>
+</pre></div>
+</div>
+<p>Creating a subgroup is accomplished via the aptly-named <tt class="docutils literal"><span class="pre">create_group</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">grp</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="s">&quot;subgroup&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>All <tt class="docutils literal"><span class="pre">Group</span></tt> objects also have the <tt class="docutils literal"><span class="pre">create_*</span></tt> methods like File:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset2</span> <span class="o">=</span> <span class="n">grp</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&quot;another_dataset&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">50</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&#39;f&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset2</span><span class="o">.</span><span class="n">name</span>
+<span class="go">u&#39;/subgroup/another_dataset&#39;</span>
+</pre></div>
+</div>
+<p>By the way, you don&#8217;t have to create all the intermediate groups manually.
+Specifying a full path works just fine:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset3</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&#39;subgroup2/dataset_three&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">10</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&#39;i&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset3</span><span class="o">.</span><span class="n">name</span>
+<span class="go">u&#39;/subgroup2/dataset_three&#39;</span>
+</pre></div>
+</div>
+<p>Groups support most of the Python dictionary-style interface.
+You retrieve objects in the file using the item-retrieval syntax:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dataset_three</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s">&#39;subgroup2/dataset_three&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Iterating over a group provides the names of its members:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="n">name</span>
+<span class="go">mydataset</span>
+<span class="go">subgroup</span>
+<span class="go">subgroup2</span>
+</pre></div>
+</div>
+<p>Containership testing also uses names:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="s">&quot;mydataset&quot;</span> <span class="ow">in</span> <span class="n">f</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s">&quot;somethingelse&quot;</span> <span class="ow">in</span> <span class="n">f</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>You can even use full path names:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="s">&quot;subgroup/another_dataset&quot;</span> <span class="ow">in</span> <span class="n">f</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>There are also the familiar <tt class="docutils literal"><span class="pre">keys()</span></tt>, <tt class="docutils literal"><span class="pre">values()</span></tt>, <tt class="docutils literal"><span class="pre">items()</span></tt> and
+<tt class="docutils literal"><span class="pre">iter()</span></tt> methods, as well as <tt class="docutils literal"><span class="pre">get()</span></tt>.</p>
+<p>Since iterating over a group only yields its directly-attached members,
+iterating over an entire file is accomplished with the <tt class="docutils literal"><span class="pre">Group</span></tt> methods
+<tt class="docutils literal"><span class="pre">visit()</span></tt> and <tt class="docutils literal"><span class="pre">visititems()</span></tt>, which take a callable:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">printname</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="n">name</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">printname</span><span class="p">)</span>
+<span class="go">mydataset</span>
+<span class="go">subgroup</span>
+<span class="go">subgroup/another_dataset</span>
+<span class="go">subgroup2</span>
+<span class="go">subgroup2/dataset_three</span>
+</pre></div>
+</div>
+<p>For more, see <a class="reference internal" href="high/group.html#group"><em>HDF5 Groups</em></a>.</p>
+</div>
+<div class="section" id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h2>
+<p>One of the best features of HDF5 is that you can store metadata right next
+to the data it describes.  All groups and datasets support attached named
+bits of data called <cite>attributes</cite>.</p>
+<p>Attributes are accessed through the <tt class="docutils literal"><span class="pre">attrs</span></tt> proxy object, which again
+implements the dictionary interface:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s">&#39;temperature&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">99.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s">&#39;temperature&#39;</span><span class="p">]</span>
+<span class="go">99.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s">&#39;temperature&#39;</span> <span class="ow">in</span> <span class="n">dset</span><span class="o">.</span><span class="n">attrs</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>For more, see <a class="reference internal" href="high/attr.html#attributes"><em>HDF5 Attributes</em></a>.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Quick Start Guide</a><ul>
+<li><a class="reference internal" href="#core-concepts">Core concepts</a></li>
+<li><a class="reference internal" href="#groups-and-hierarchical-organization">Groups and hierarchical organization</a></li>
+<li><a class="reference internal" href="#attributes">Attributes</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">HDF5 for Python</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="build.html"
+                        title="next chapter">Installation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/quick.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="build.html" title="Installation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="HDF5 for Python"
+             >previous</a> |</li>
+        <li><a href="index.html">h5py 2.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Andrew Collette and contributors.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

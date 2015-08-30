@@ -1,0 +1,214 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>What’s new in h5py 2.2 &mdash; h5py 2.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="h5py 2.5.0 documentation" href="../index.html" />
+    <link rel="up" title="“What’s new” documents" href="index.html" />
+    <link rel="next" title="What’s new in h5py 2.1" href="2.1.html" />
+    <link rel="prev" title="What’s new in h5py 2.3" href="2.3.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="2.1.html" title="What’s new in h5py 2.1"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="2.3.html" title="What’s new in h5py 2.3"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">h5py 2.5.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">&#8220;What&#8217;s new&#8221; documents</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="what-s-new-in-h5py-2-2">
+<h1>What&#8217;s new in h5py 2.2<a class="headerlink" href="#what-s-new-in-h5py-2-2" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="support-for-parallel-hdf5">
+<h2>Support for Parallel HDF5<a class="headerlink" href="#support-for-parallel-hdf5" title="Permalink to this headline">¶</a></h2>
+<p>On UNIX platforms, you can now take advantage of MPI and Parallel HDF5.
+Cython, <tt class="docutils literal"><span class="pre">mpi4py</span></tt> and an MPI-enabled build of HDF5 are required..
+See <a class="reference internal" href="../mpi.html#parallel"><em>Parallel HDF5</em></a> in the documentation for details.</p>
+</div>
+<div class="section" id="support-for-python-3-3">
+<h2>Support for Python 3.3<a class="headerlink" href="#support-for-python-3-3" title="Permalink to this headline">¶</a></h2>
+<p>Python 3.3 is now officially supported.</p>
+</div>
+<div class="section" id="mini-float-support-issue-141">
+<h2>Mini float support (issue #141)<a class="headerlink" href="#mini-float-support-issue-141" title="Permalink to this headline">¶</a></h2>
+<p>Two-byte floats (NumPy <tt class="docutils literal"><span class="pre">float16</span></tt>) are supported.</p>
+</div>
+<div class="section" id="hdf5-scale-offset-filter">
+<h2>HDF5 scale/offset filter<a class="headerlink" href="#hdf5-scale-offset-filter" title="Permalink to this headline">¶</a></h2>
+<p>The Scale/Offset filter added in HDF5 1.8 is now available.</p>
+</div>
+<div class="section" id="field-indexing-is-now-allowed-when-writing-to-a-dataset-issue-42">
+<h2>Field indexing is now allowed when writing to a dataset (issue #42)<a class="headerlink" href="#field-indexing-is-now-allowed-when-writing-to-a-dataset-issue-42" title="Permalink to this headline">¶</a></h2>
+<p>H5py has long supported reading only certain fields from a dataset:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">100</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">([(</span><span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="s">&#39;f&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;b&#39;</span><span class="p">,</span> <span class="s">&#39;i&#39;</span><span class="p">)]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">dset</span><span class="p">[</span><span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">100</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span><span class="o">.</span><span class="n">dtype</span>
+<span class="go">dtype(&#39;float32&#39;)</span>
+</pre></div>
+</div>
+<p>Now, field names are also allowed when writing to a dataset:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="p">[</span><span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="mi">20</span><span class="p">:</span><span class="mi">50</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="region-references-preserve-shape-issue-295">
+<h2>Region references preserve shape (issue #295)<a class="headerlink" href="#region-references-preserve-shape-issue-295" title="Permalink to this headline">¶</a></h2>
+<p>Previously, region references always resulted in a 1D selection, even when
+2D slicing was used:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ref</span> <span class="o">=</span> <span class="n">dset</span><span class="o">.</span><span class="n">regionref</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">dset</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(25,)</span>
+</pre></div>
+</div>
+<p>Shape is now preserved:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">dset</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(5, 5)</span>
+</pre></div>
+</div>
+<p>Additionally, the shape of both the target dataspace and the selection shape
+can be determined via new methods on the <tt class="docutils literal"><span class="pre">regionref</span></tt> proxy (now available
+on both datasets and groups):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">regionref</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
+<span class="go">(10, 10)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">regionref</span><span class="o">.</span><span class="n">selection</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
+<span class="go">(5, 5)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="committed-types-can-be-linked-to-datasets-and-attributes">
+<h2>Committed types can be linked to datasets and attributes<a class="headerlink" href="#committed-types-can-be-linked-to-datasets-and-attributes" title="Permalink to this headline">¶</a></h2>
+<p>HDF5 supports &#8220;shared&#8221; named types stored in the file:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="s">&quot;int64&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can now use these types when creating a new dataset or attribute, and
+HDF5 will &#8220;link&#8221; the dataset type to the named type:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&#39;int dataset&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">10</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">f</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s">&#39;int scalar attribute&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">f</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="move-method-on-group-objects">
+<h2><tt class="docutils literal"><span class="pre">move</span></tt> method on Group objects<a class="headerlink" href="#move-method-on-group-objects" title="Permalink to this headline">¶</a></h2>
+<p>It&#8217;s no longer necessary to move objects in a file by manually re-linking them:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="s">&#39;a&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="p">[</span><span class="s">&#39;b&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s">&#39;a&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">f</span><span class="p">[</span><span class="s">&#39;a&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The method <tt class="docutils literal"><span class="pre">Group.move</span></tt> allows this to be performed in one step:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="s">&#39;b&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Both the source and destination must be in the same file.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">What&#8217;s new in h5py 2.2</a><ul>
+<li><a class="reference internal" href="#support-for-parallel-hdf5">Support for Parallel HDF5</a></li>
+<li><a class="reference internal" href="#support-for-python-3-3">Support for Python 3.3</a></li>
+<li><a class="reference internal" href="#mini-float-support-issue-141">Mini float support (issue #141)</a></li>
+<li><a class="reference internal" href="#hdf5-scale-offset-filter">HDF5 scale/offset filter</a></li>
+<li><a class="reference internal" href="#field-indexing-is-now-allowed-when-writing-to-a-dataset-issue-42">Field indexing is now allowed when writing to a dataset (issue #42)</a></li>
+<li><a class="reference internal" href="#region-references-preserve-shape-issue-295">Region references preserve shape (issue #295)</a></li>
+<li><a class="reference internal" href="#committed-types-can-be-linked-to-datasets-and-attributes">Committed types can be linked to datasets and attributes</a></li>
+<li><a class="reference internal" href="#move-method-on-group-objects"><tt class="docutils literal"><span class="pre">move</span></tt> method on Group objects</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="2.3.html"
+                        title="previous chapter">What&#8217;s new in h5py 2.3</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="2.1.html"
+                        title="next chapter">What&#8217;s new in h5py 2.1</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/whatsnew/2.2.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="2.1.html" title="What’s new in h5py 2.1"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="2.3.html" title="What’s new in h5py 2.3"
+             >previous</a> |</li>
+        <li><a href="../index.html">h5py 2.5.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" >&#8220;What&#8217;s new&#8221; documents</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Andrew Collette and contributors.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

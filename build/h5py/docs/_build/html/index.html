@@ -1,0 +1,302 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>HDF5 for Python &mdash; h5py 2.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="h5py 2.5.0 documentation" href="#" />
+    <link rel="next" title="Quick Start Guide" href="quick.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="quick.html" title="Quick Start Guide"
+             accesskey="N">next</a> |</li>
+        <li><a href="#">h5py 2.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="hdf5-for-python">
+<h1>HDF5 for Python<a class="headerlink" href="#hdf5-for-python" title="Permalink to this headline">¶</a></h1>
+<p>The h5py package is a Pythonic interface to the HDF5 binary data format.</p>
+<p><a class="reference external" href="http://hdfgroup.org">HDF5</a> is an open-source library and file format for
+storing large amounts of numerical data, originally developed at NCSA.  It is
+widely used in the scientific community for everything from NASA&#8217;s Earth
+Observing System to the storage of data from laboratory experiments and
+simulations.  Over the past few years, HDF5 has rapidly emerged as the de-facto
+standard  technology in Python to store large numerical datasets.</p>
+<p>This is the reference documentation for the h5py package.  Check out
+the <a class="reference internal" href="quick.html#quick"><em>Quick Start Guide</em></a> if you&#8217;re new to h5py and HDF5.</p>
+<p>The lead author of h5py, Andrew Collette, also wrote
+<a class="reference external" href="http://shop.oreilly.com/product/0636920030249.do">an O&#8217;Reilly book</a>
+which provides a comprehensive, example-based introduction to using Python
+and HDF5 together.</p>
+<div class="section" id="getting-h5py">
+<h2>Getting h5py<a class="headerlink" href="#getting-h5py" title="Permalink to this headline">¶</a></h2>
+<p>Downloads are at <a class="reference external" href="http://www.h5py.org">http://www.h5py.org</a>.  It can be tricky to install all the
+C library dependencies for h5py, so check out the <a class="reference internal" href="build.html#install"><em>install guide</em></a>
+first.</p>
+</div>
+<div class="section" id="getting-help">
+<h2>Getting help<a class="headerlink" href="#getting-help" title="Permalink to this headline">¶</a></h2>
+<p>Tutorial and reference documentation is available here at <a class="reference external" href="http://docs.h5py.org">http://docs.h5py.org</a>.
+We also have a mailing list <a class="reference external" href="http://groups.google.com/d/forum/h5py">at Google Groups</a>.
+Anyone is welcome to post; the list is read by both users and the core developers
+of h5py.</p>
+</div>
+<div class="section" id="introductory-info">
+<h2>Introductory info<a class="headerlink" href="#introductory-info" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="quick.html">Quick Start Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quick.html#core-concepts">Core concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick.html#groups-and-hierarchical-organization">Groups and hierarchical organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick.html#attributes">Attributes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="build.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="build.html#for-python-beginners">For Python beginners</a></li>
+<li class="toctree-l2"><a class="reference internal" href="build.html#installing-on-windows">Installing on Windows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="build.html#installing-on-linux-and-mac-os-x">Installing on Linux and Mac OS X</a></li>
+<li class="toctree-l2"><a class="reference internal" href="build.html#running-the-test-suite">Running the test suite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="build.html#custom-installation">Custom installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="build.html#building-against-parallel-hdf5">Building against Parallel HDF5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="build.html#help-it-didn-t-work">Help! It didn&#8217;t work!</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="high-level-api-reference">
+<h2>High-level API reference<a class="headerlink" href="#high-level-api-reference" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="high/file.html">HDF5 File Objects</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="high/file.html#opening-creating-files">Opening &amp; creating files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="high/file.html#file-drivers">File drivers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="high/file.html#version-bounding">Version Bounding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="high/file.html#user-block">User block</a></li>
+<li class="toctree-l2"><a class="reference internal" href="high/file.html#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="high/group.html">HDF5 Groups</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="high/group.html#creating-groups">Creating groups</a></li>
+<li class="toctree-l2"><a class="reference internal" href="high/group.html#dict-interface-and-links">Dict interface and links</a></li>
+<li class="toctree-l2"><a class="reference internal" href="high/group.html#reference">Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="high/group.html#link-classes">Link classes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="high/dataset.html">HDF5 Datasets</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="high/dataset.html#creating-datasets">Creating datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="high/dataset.html#chunked-storage">Chunked storage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="high/dataset.html#resizable-datasets">Resizable datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="high/dataset.html#filter-pipeline">Filter pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="high/dataset.html#reading-writing-data">Reading &amp; writing data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="high/dataset.html#fancy-indexing">Fancy indexing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="high/dataset.html#length-and-iteration">Length and iteration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="high/dataset.html#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="high/attr.html">HDF5 Attributes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="high/attr.html#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="high/dims.html">HDF5 Dimension Scales</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="advanced-topics">
+<h2>Advanced topics<a class="headerlink" href="#advanced-topics" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuring h5py</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="config.html#library-configuration">Library configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#ipython">IPython</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="special.html">Special types</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="special.html#how-special-types-are-represented">How special types are represented</a></li>
+<li class="toctree-l2"><a class="reference internal" href="special.html#variable-length-strings">Variable-length strings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="special.html#arbitrary-vlen-data">Arbitrary vlen data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="special.html#enumerated-types">Enumerated types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="special.html#object-and-region-references">Object and region references</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="strings.html">Strings in HDF5</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="strings.html#the-most-important-thing">The Most Important Thing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="strings.html#how-to-store-raw-binary-data">How to store raw binary data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="strings.html#how-to-store-text-strings">How to store text strings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="strings.html#object-names">Object names</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="refs.html">Object and Region References</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="refs.html#using-object-references">Using object references</a></li>
+<li class="toctree-l2"><a class="reference internal" href="refs.html#using-region-references">Using region references</a></li>
+<li class="toctree-l2"><a class="reference internal" href="refs.html#storing-references-in-a-dataset">Storing references in a dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="refs.html#storing-references-in-an-attribute">Storing references in an attribute</a></li>
+<li class="toctree-l2"><a class="reference internal" href="refs.html#null-references">Null references</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mpi.html">Parallel HDF5</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mpi.html#how-does-parallel-hdf5-work">How does Parallel HDF5 work?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mpi.html#building-against-parallel-hdf5">Building against Parallel HDF5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mpi.html#using-parallel-hdf5-from-h5py">Using Parallel HDF5 from h5py</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mpi.html#collective-versus-independent-operations">Collective versus independent operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mpi.html#mpi-atomic-mode">MPI atomic mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mpi.html#more-information">More information</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="swmr.html">Single Writer Multiple Reader (SWMR)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="swmr.html#what-is-swmr">What is SWMR?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swmr.html#using-the-swmr-feature-from-h5py">Using the SWMR feature from h5py</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swmr.html#examples">Examples</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="low-level-api-reference">
+<h2>Low-level API reference<a class="headerlink" href="#low-level-api-reference" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="low.html">Low-Level Interface</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="meta-info-about-the-h5py-project">
+<h2>Meta-info about the h5py project<a class="headerlink" href="#meta-info-about-the-h5py-project" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="whatsnew/index.html">&#8220;What&#8217;s new&#8221; documents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="whatsnew/2.4.html">What&#8217;s new in h5py 2.4</a></li>
+<li class="toctree-l2"><a class="reference internal" href="whatsnew/2.3.html">What&#8217;s new in h5py 2.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="whatsnew/2.2.html">What&#8217;s new in h5py 2.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="whatsnew/2.1.html">What&#8217;s new in h5py 2.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="whatsnew/2.0.html">What&#8217;s new in h5py 2.0</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Bug Reports &amp; Contributions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#how-to-file-a-bug-report">How to File a Bug Report</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#how-to-get-your-code-into-h5py">How to Get Your Code into h5py</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#how-to-modify-h5py">How to Modify h5py</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#what-datatypes-are-supported">What datatypes are supported?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#what-compression-processing-filters-are-supported">What compression/processing filters are supported?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#what-file-drivers-are-available">What file drivers are available?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#what-s-the-difference-between-h5py-and-pytables">What&#8217;s the difference between h5py and PyTables?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#does-h5py-support-parallel-hdf5">Does h5py support Parallel HDF5?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#variable-length-vlen-data">Variable-length (VLEN) data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#enumerated-types">Enumerated types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#numpy-object-types">NumPy object types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#appending-data-to-a-dataset">Appending data to a dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#unicode">Unicode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#development">Development</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="licenses.html">Licenses and legal info</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="licenses.html#copyright-notice-and-statement-for-the-h5py-project">Copyright Notice and Statement for the h5py Project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="licenses.html#hdf5-copyright-statement">HDF5 Copyright Statement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="licenses.html#pytables-copyright-statement">PyTables Copyright Statement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="licenses.html#stdint-h-windows-version-license">stdint.h (Windows version) License</a></li>
+<li class="toctree-l2"><a class="reference internal" href="licenses.html#python-license">Python license</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">HDF5 for Python</a><ul>
+<li><a class="reference internal" href="#getting-h5py">Getting h5py</a></li>
+<li><a class="reference internal" href="#getting-help">Getting help</a></li>
+<li><a class="reference internal" href="#introductory-info">Introductory info</a></li>
+<li><a class="reference internal" href="#high-level-api-reference">High-level API reference</a></li>
+<li><a class="reference internal" href="#advanced-topics">Advanced topics</a></li>
+<li><a class="reference internal" href="#low-level-api-reference">Low-level API reference</a></li>
+<li><a class="reference internal" href="#meta-info-about-the-h5py-project">Meta-info about the h5py project</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="quick.html"
+                        title="next chapter">Quick Start Guide</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="quick.html" title="Quick Start Guide"
+             >next</a> |</li>
+        <li><a href="#">h5py 2.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Andrew Collette and contributors.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

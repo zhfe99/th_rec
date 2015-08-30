@@ -1,0 +1,234 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Object and Region References &mdash; h5py 2.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="h5py 2.5.0 documentation" href="index.html" />
+    <link rel="next" title="Parallel HDF5" href="mpi.html" />
+    <link rel="prev" title="Strings in HDF5" href="strings.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="mpi.html" title="Parallel HDF5"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="strings.html" title="Strings in HDF5"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">h5py 2.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="object-and-region-references">
+<span id="refs"></span><h1>Object and Region References<a class="headerlink" href="#object-and-region-references" title="Permalink to this headline">¶</a></h1>
+<p>In addition to soft and external links, HDF5 supplies one more mechanism to
+refer to objects and data in a file.  HDF5 <em>references</em> are low-level pointers
+to other objects.  The great advantage of references is that they can be
+stored and retrieved as data; you can create an attribute or an entire dataset
+of reference type.</p>
+<p>References come in two flavors, object references and region references.
+As the name suggests, object references point to a particular object in a file,
+either a dataset, group or named datatype.  Region references always point to
+a dataset, and additionally contain information about a certain selection
+(<em>dataset region</em>) on that dataset.  For example, if you have a dataset
+representing an image, you could specify a region of interest, and store it
+as an attribute on the dataset.</p>
+<div class="section" id="using-object-references">
+<span id="refs-object"></span><h2>Using object references<a class="headerlink" href="#using-object-references" title="Permalink to this headline">¶</a></h2>
+<p>It&#8217;s trivial to create a new object reference; every high-level object
+in h5py has a read-only property &#8220;ref&#8221;, which when accessed returns a new
+object reference:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">myfile</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s">&#39;myfile.hdf5&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mygroup</span> <span class="o">=</span> <span class="n">myfile</span><span class="p">[</span><span class="s">&#39;/some/group&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ref</span> <span class="o">=</span> <span class="n">mygroup</span><span class="o">.</span><span class="n">ref</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">ref</span>
+<span class="go">&lt;HDF5 object reference&gt;</span>
+</pre></div>
+</div>
+<p>&#8220;Dereferencing&#8221; these objects is straightforward; use the same syntax as when
+opening any other object:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mygroup2</span> <span class="o">=</span> <span class="n">myfile</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">mygroup2</span>
+<span class="go">&lt;HDF5 group &quot;/some/group&quot; (0 members)&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="using-region-references">
+<span id="refs-region"></span><h2>Using region references<a class="headerlink" href="#using-region-references" title="Permalink to this headline">¶</a></h2>
+<p>Region references always contain a selection.  You create them using the
+dataset property &#8220;regionref&#8221; and standard NumPy slicing syntax:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">myds</span> <span class="o">=</span> <span class="n">myfile</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&#39;dset&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">200</span><span class="p">,</span><span class="mi">200</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">regref</span> <span class="o">=</span> <span class="n">myds</span><span class="o">.</span><span class="n">regionref</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">regref</span>
+<span class="go">&lt;HDF5 region reference&gt;</span>
+</pre></div>
+</div>
+<p>The reference itself can now be used in place of slicing arguments to the
+dataset:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subset</span> <span class="o">=</span> <span class="n">myds</span><span class="p">[</span><span class="n">regref</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>There is one complication; since HDF5 region references don&#8217;t express shapes
+the same way as NumPy does, the data returned will be &#8220;flattened&#8221; into a
+1-D array:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subset</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(50,)</span>
+</pre></div>
+</div>
+<p>This is similar to the behavior of NumPy&#8217;s fancy indexing, which returns
+a 1D array for selections which don&#8217;t conform to a regular grid.</p>
+<p>In addition to storing a selection, region references inherit from object
+references, and can be used anywhere an object reference is accepted.  In this
+case the object they point to is the dataset used to create them.</p>
+</div>
+<div class="section" id="storing-references-in-a-dataset">
+<h2>Storing references in a dataset<a class="headerlink" href="#storing-references-in-a-dataset" title="Permalink to this headline">¶</a></h2>
+<p>HDF5 treats object and region references as data.  Consequently, there is a
+special HDF5 type to represent them.  However, NumPy has no equivalent type.
+Rather than implement a special &#8220;reference type&#8221; for NumPy, references are
+handled at the Python layer as plain, ordinary python objects.  To NumPy they
+are represented with the &#8220;object&#8221; dtype (kind &#8216;O&#8217;).  A small amount of
+metadata attached to the dtype tells h5py to interpret the data as containing
+reference objects.</p>
+<p>H5py contains a convenience function to create these &#8220;hinted dtypes&#8221; for you:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ref_dtype</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">special_dtype</span><span class="p">(</span><span class="n">ref</span><span class="o">=</span><span class="n">h5py</span><span class="o">.</span><span class="n">Reference</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">ref_dtype</span><span class="p">)</span>
+<span class="go">&lt;type &#39;numpy.dtype&#39;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ref_dtype</span><span class="o">.</span><span class="n">kind</span>
+<span class="go">&#39;O&#39;</span>
+</pre></div>
+</div>
+<p>The types accepted by this &#8220;ref=&#8221; keyword argument are h5py.Reference (for
+object references) and h5py.RegionReference (for region references).</p>
+<p>To create an array of references, use this dtype as you normally would:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ref_dataset</span> <span class="o">=</span> <span class="n">myfile</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&quot;MyRefs&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">100</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">ref_dtype</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can read from and write to the array as normal:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ref_dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">myfile</span><span class="o">.</span><span class="n">ref</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">ref_dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">&lt;HDF5 object reference&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="storing-references-in-an-attribute">
+<h2>Storing references in an attribute<a class="headerlink" href="#storing-references-in-an-attribute" title="Permalink to this headline">¶</a></h2>
+<p>Simply assign the reference to a name; h5py will figure it out and store it
+with the correct type:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">myref</span> <span class="o">=</span> <span class="n">myfile</span><span class="o">.</span><span class="n">ref</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">myfile</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s">&quot;Root group reference&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">myref</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="null-references">
+<h2>Null references<a class="headerlink" href="#null-references" title="Permalink to this headline">¶</a></h2>
+<p>When you create a dataset of reference type, the uninitialized elements are
+&#8220;null&#8221; references.  H5py uses the truth value of a reference object to
+indicate whether or not it is null:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="nb">bool</span><span class="p">(</span><span class="n">myfile</span><span class="o">.</span><span class="n">ref</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nullref</span> <span class="o">=</span> <span class="n">ref_dataset</span><span class="p">[</span><span class="mi">50</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="nb">bool</span><span class="p">(</span><span class="n">nullref</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Object and Region References</a><ul>
+<li><a class="reference internal" href="#using-object-references">Using object references</a></li>
+<li><a class="reference internal" href="#using-region-references">Using region references</a></li>
+<li><a class="reference internal" href="#storing-references-in-a-dataset">Storing references in a dataset</a></li>
+<li><a class="reference internal" href="#storing-references-in-an-attribute">Storing references in an attribute</a></li>
+<li><a class="reference internal" href="#null-references">Null references</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="strings.html"
+                        title="previous chapter">Strings in HDF5</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="mpi.html"
+                        title="next chapter">Parallel HDF5</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/refs.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="mpi.html" title="Parallel HDF5"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="strings.html" title="Strings in HDF5"
+             >previous</a> |</li>
+        <li><a href="index.html">h5py 2.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Andrew Collette and contributors.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,636 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>HDF5 Groups &mdash; h5py 2.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="h5py 2.5.0 documentation" href="../index.html" />
+    <link rel="next" title="HDF5 Datasets" href="dataset.html" />
+    <link rel="prev" title="HDF5 File Objects" href="file.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="dataset.html" title="HDF5 Datasets"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="file.html" title="HDF5 File Objects"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">h5py 2.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="hdf5-groups">
+<span id="group"></span><h1>HDF5 Groups<a class="headerlink" href="#hdf5-groups" title="Permalink to this headline">¶</a></h1>
+<p>Groups are the container mechanism by which HDF5 files are organized.  From
+a Python perspective, they operate somewhat like dictionaries.  In this case
+the &#8220;keys&#8221; are the names of group members, and the &#8220;values&#8221; are the members
+themselves (<a class="reference internal" href="#Group" title="Group"><tt class="xref py py-class docutils literal"><span class="pre">Group</span></tt></a> and <a class="reference internal" href="dataset.html#Dataset" title="Dataset"><tt class="xref py py-class docutils literal"><span class="pre">Dataset</span></tt></a>) objects.</p>
+<p>Group objects also contain most of the machinery which makes HDF5 useful.
+The <a class="reference internal" href="file.html#file"><em>File object</em></a> does double duty as the HDF5 <em>root group</em>, and
+serves as your entry point into the file:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s">&#39;foo.hdf5&#39;</span><span class="p">,</span><span class="s">&#39;w&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">name</span>
+<span class="go">u&#39;/&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+<span class="go">[]</span>
+</pre></div>
+</div>
+<p>Names of all objects in the file are all text strings (<tt class="docutils literal"><span class="pre">unicode</span></tt> on
+Py2, <tt class="docutils literal"><span class="pre">str</span></tt> on Py3).  These will be encoded with the HDF5-approved UTF-8
+encoding before being passed to the HDF5 C library.  Objects may also be
+retrieved using byte strings, which will be passed on to HDF5 as-is.</p>
+<div class="section" id="creating-groups">
+<span id="group-create"></span><h2>Creating groups<a class="headerlink" href="#creating-groups" title="Permalink to this headline">¶</a></h2>
+<p>New groups are easy to create:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">grp</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="s">&quot;bar&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grp</span><span class="o">.</span><span class="n">name</span>
+<span class="go">&#39;/bar&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subgrp</span> <span class="o">=</span> <span class="n">grp</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="s">&quot;baz&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subgrp</span><span class="o">.</span><span class="n">name</span>
+<span class="go">&#39;/bar/baz&#39;</span>
+</pre></div>
+</div>
+<p>Multiple intermediate groups can also be created implicitly:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">grp2</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="s">&quot;/some/long/path&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grp2</span><span class="o">.</span><span class="n">name</span>
+<span class="go">&#39;/some/long/path&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grp3</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s">&#39;/some/long&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grp3</span><span class="o">.</span><span class="n">name</span>
+<span class="go">&#39;/some/long&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="dict-interface-and-links">
+<span id="group-links"></span><h2>Dict interface and links<a class="headerlink" href="#dict-interface-and-links" title="Permalink to this headline">¶</a></h2>
+<p>Groups implement a subset of the Python dictionary convention.  They have
+methods like <tt class="docutils literal"><span class="pre">keys()</span></tt>, <tt class="docutils literal"><span class="pre">values()</span></tt> and support iteration.  Most importantly,
+they support the indexing syntax, and standard exceptions:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">myds</span> <span class="o">=</span> <span class="n">subgrp</span><span class="p">[</span><span class="s">&quot;MyDS&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">missing</span> <span class="o">=</span> <span class="n">subgrp</span><span class="p">[</span><span class="s">&quot;missing&quot;</span><span class="p">]</span>
+<span class="go">KeyError: &quot;Name doesn&#39;t exist (Symbol table: Object not found)&quot;</span>
+</pre></div>
+</div>
+<p>Objects can be deleted from the file using the standard syntax:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">subgroup</span><span class="p">[</span><span class="s">&quot;MyDataset&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When using h5py from Python 3, the keys(), values() and items() methods
+will return view-like objects instead of lists.  These objects support
+containership testing and iteration, but can&#8217;t be sliced like lists.</p>
+</div>
+<div class="section" id="hard-links">
+<span id="group-hardlinks"></span><h3>Hard links<a class="headerlink" href="#hard-links" title="Permalink to this headline">¶</a></h3>
+<p>What happens when assigning an object to a name in the group?  It depends on
+the type of object being assigned.  For NumPy arrays or other data, the default
+is to create an <a class="reference internal" href="dataset.html#dataset"><em>HDF5 datasets</em></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">grp</span><span class="p">[</span><span class="s">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">42</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">grp</span><span class="p">[</span><span class="s">&quot;name&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span>
+<span class="go">&lt;HDF5 dataset &quot;name&quot;: shape (), type &quot;&lt;i8&quot;&gt;</span>
+</pre></div>
+</div>
+<p>When the object being stored is an existing Group or Dataset, a new link is
+made to the object:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">grp</span><span class="p">[</span><span class="s">&quot;other name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">out</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grp</span><span class="p">[</span><span class="s">&quot;other name&quot;</span><span class="p">]</span>
+<span class="go">&lt;HDF5 dataset &quot;other name&quot;: shape (), type &quot;&lt;i8&quot;&gt;</span>
+</pre></div>
+</div>
+<p>Note that this is <cite>not</cite> a copy of the dataset!  Like hard links in a UNIX file
+system, objects in an HDF5 file can be stored in multiple groups:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="p">[</span><span class="s">&quot;other name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">f</span><span class="p">[</span><span class="s">&quot;name&quot;</span><span class="p">]</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="soft-links">
+<span id="group-softlinks"></span><h3>Soft links<a class="headerlink" href="#soft-links" title="Permalink to this headline">¶</a></h3>
+<p>Also like a UNIX filesystem, HDF5 groups can contain &#8220;soft&#8221; or symbolic links,
+which contain a text path instead of a pointer to the object itself.  You
+can easily create these in h5py by using <tt class="docutils literal"><span class="pre">h5py.SoftLink</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">myfile</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s">&#39;foo.hdf5&#39;</span><span class="p">,</span><span class="s">&#39;w&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">group</span> <span class="o">=</span> <span class="n">myfile</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="s">&quot;somegroup&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">myfile</span><span class="p">[</span><span class="s">&quot;alias&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">SoftLink</span><span class="p">(</span><span class="s">&#39;/somegroup&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If the target is removed, they will &#8220;dangle&#8221;:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">myfile</span><span class="p">[</span><span class="s">&#39;somegroup&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">myfile</span><span class="p">[</span><span class="s">&#39;alias&#39;</span><span class="p">]</span>
+<span class="go">KeyError: &#39;Component not found (Symbol table: Object not found)&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="external-links">
+<span id="group-extlinks"></span><h3>External links<a class="headerlink" href="#external-links" title="Permalink to this headline">¶</a></h3>
+<p>New in HDF5 1.8, external links are &#8220;soft links plus&#8221;, which allow you to
+specify the name of the file as well as the path to the desired object.  You
+can refer to objects in any file you wish.  Use similar syntax as for soft
+links:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">myfile</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s">&#39;foo.hdf5&#39;</span><span class="p">,</span><span class="s">&#39;w&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">myfile</span><span class="p">[</span><span class="s">&#39;ext link&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">ExternalLink</span><span class="p">(</span><span class="s">&quot;otherfile.hdf5&quot;</span><span class="p">,</span> <span class="s">&quot;/path/to/resource&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>When the link is accessed, the file &#8220;otherfile.hdf5&#8221; is opened, and object at
+&#8220;/path/to/resource&#8221; is returned.</p>
+<p>Since the object retrieved is in a different file, its &#8221;.file&#8221; and &#8221;.parent&#8221;
+properties will refer to objects in that file, <em>not</em> the file in which the
+link resides.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Currently, you can&#8217;t access an external link if the file it points to is
+already open.  This is related to how HDF5 manages file permissions
+internally.</p>
+</div>
+</div>
+</div>
+<div class="section" id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Group">
+<em class="property">class </em><tt class="descname">Group</tt><big>(</big><em>identifier</em><big>)</big><a class="headerlink" href="#Group" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generally Group objects are created by opening objects in the file, or
+by the method <a class="reference internal" href="#Group.create_group" title="Group.create_group"><tt class="xref py py-meth docutils literal"><span class="pre">Group.create_group()</span></tt></a>.  Call the constructor with
+a <a class="reference external" href="http://api.h5py.org/h5g.html#h5py.h5g.GroupID" title="(in Low-level API for h5py v2.2)"><tt class="xref py py-class docutils literal"><span class="pre">GroupID</span></tt></a> instance to create a new Group
+bound to an existing low-level identifier.</p>
+<dl class="method">
+<dt id="Group.__iter__">
+<tt class="descname">__iter__</tt><big>(</big><big>)</big><a class="headerlink" href="#Group.__iter__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate over the names of objects directly attached to the group.
+Use <a class="reference internal" href="#Group.visit" title="Group.visit"><tt class="xref py py-meth docutils literal"><span class="pre">Group.visit()</span></tt></a> or <a class="reference internal" href="#Group.visititems" title="Group.visititems"><tt class="xref py py-meth docutils literal"><span class="pre">Group.visititems()</span></tt></a> for recursive
+access to group members.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Group.__contains__">
+<tt class="descname">__contains__</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#Group.__contains__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dict-like containership testing.  <cite>name</cite> may be a relative or absolute
+path.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Group.__getitem__">
+<tt class="descname">__getitem__</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#Group.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve an object.  <cite>name</cite> may be a relative or absolute path, or
+an <a class="reference internal" href="../refs.html#refs"><em>object or region reference</em></a>. See <a class="reference internal" href="#group-links"><em>Dict interface and links</em></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Group.__setitem__">
+<tt class="descname">__setitem__</tt><big>(</big><em>name</em>, <em>value</em><big>)</big><a class="headerlink" href="#Group.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new link, or automatically create a dataset.
+See <a class="reference internal" href="#group-links"><em>Dict interface and links</em></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Group.keys">
+<tt class="descname">keys</tt><big>(</big><big>)</big><a class="headerlink" href="#Group.keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the names of directly attached group members.  On Py2, this is
+a list.  On Py3, it&#8217;s a set-like object.
+Use <a class="reference internal" href="#Group.visit" title="Group.visit"><tt class="xref py py-meth docutils literal"><span class="pre">Group.visit()</span></tt></a> or <a class="reference internal" href="#Group.visititems" title="Group.visititems"><tt class="xref py py-meth docutils literal"><span class="pre">Group.visititems()</span></tt></a> for recursive
+access to group members.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Group.values">
+<tt class="descname">values</tt><big>(</big><big>)</big><a class="headerlink" href="#Group.values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the objects contained in the group (Group and Dataset instances).
+Broken soft or external links show up as None.  On Py2, this is a list.
+On Py3, it&#8217;s a collection or bag-like object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Group.items">
+<tt class="descname">items</tt><big>(</big><big>)</big><a class="headerlink" href="#Group.items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get <tt class="docutils literal"><span class="pre">(name,</span> <span class="pre">value)</span></tt> pairs for object directly attached to this group.
+Values for broken soft or external links show up as None.  On Py2,
+this is a list.  On Py3, it&#8217;s a set-like object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Group.iterkeys">
+<tt class="descname">iterkeys</tt><big>(</big><big>)</big><a class="headerlink" href="#Group.iterkeys" title="Permalink to this definition">¶</a></dt>
+<dd><p>(Py2 only) Get an iterator over key names.  Exactly equivalent to
+<tt class="docutils literal"><span class="pre">iter(group)</span></tt>.
+Use <a class="reference internal" href="#Group.visit" title="Group.visit"><tt class="xref py py-meth docutils literal"><span class="pre">Group.visit()</span></tt></a> or <a class="reference internal" href="#Group.visititems" title="Group.visititems"><tt class="xref py py-meth docutils literal"><span class="pre">Group.visititems()</span></tt></a> for recursive
+access to group members.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Group.itervalues">
+<tt class="descname">itervalues</tt><big>(</big><big>)</big><a class="headerlink" href="#Group.itervalues" title="Permalink to this definition">¶</a></dt>
+<dd><p>(Py2 only) Get an iterator over objects attached to the group.
+Broken soft and external links will show up as <tt class="docutils literal"><span class="pre">None</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Group.iteritems">
+<tt class="descname">iteritems</tt><big>(</big><big>)</big><a class="headerlink" href="#Group.iteritems" title="Permalink to this definition">¶</a></dt>
+<dd><p>(Py2 only) Get an iterator over <tt class="docutils literal"><span class="pre">(name,</span> <span class="pre">value)</span></tt> pairs for objects
+directly attached to the group.  Broken soft and external link values
+show up as <tt class="docutils literal"><span class="pre">None</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Group.get">
+<tt class="descname">get</tt><big>(</big><em>name</em>, <em>default=None</em>, <em>getclass=False</em>, <em>getlink=False</em><big>)</big><a class="headerlink" href="#Group.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve an item, or information about an item.  <cite>name</cite> and <cite>default</cite>
+work like the standard Python <tt class="docutils literal"><span class="pre">dict.get</span></tt>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; Name of the object to retrieve.  May be a relative or
+absolute path.</li>
+<li><strong>default</strong> &#8211; If the object isn&#8217;t found, return this instead.</li>
+<li><strong>getclass</strong> &#8211; If True, return the class of object instead;
+<a class="reference internal" href="#Group" title="Group"><tt class="xref py py-class docutils literal"><span class="pre">Group</span></tt></a> or <a class="reference internal" href="dataset.html#Dataset" title="Dataset"><tt class="xref py py-class docutils literal"><span class="pre">Dataset</span></tt></a>.</li>
+<li><strong>getlink</strong> &#8211; If true, return the type of link via a <a class="reference internal" href="#HardLink" title="HardLink"><tt class="xref py py-class docutils literal"><span class="pre">HardLink</span></tt></a>,
+<a class="reference internal" href="#SoftLink" title="SoftLink"><tt class="xref py py-class docutils literal"><span class="pre">SoftLink</span></tt></a> or <a class="reference internal" href="#ExternalLink" title="ExternalLink"><tt class="xref py py-class docutils literal"><span class="pre">ExternalLink</span></tt></a> instance.
+If <tt class="docutils literal"><span class="pre">getclass</span></tt> is also True, returns the corresponding
+Link class without instantiating it.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Group.visit">
+<tt class="descname">visit</tt><big>(</big><em>callable</em><big>)</big><a class="headerlink" href="#Group.visit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively visit all objects in this group and subgroups.  You supply
+a callable with the signature:</p>
+<div class="highlight-python"><div class="highlight"><pre>callable(name) -&gt; None or return value
+</pre></div>
+</div>
+<p><cite>name</cite> will be the name of the object relative to the current group.
+Return None to continue visiting until all objects are exhausted.
+Returning anything else will immediately stop visiting and return
+that value from <tt class="docutils literal"><span class="pre">visit</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">find_foo</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="sd">&quot;&quot;&quot; Find first object with &#39;foo&#39; anywhere in the name &quot;&quot;&quot;</span>
+<span class="gp">... </span>    <span class="k">if</span> <span class="s">&#39;foo&#39;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="n">name</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">group</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">find_foo</span><span class="p">)</span>
+<span class="go">u&#39;some/subgroup/foo&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="Group.visititems">
+<tt class="descname">visititems</tt><big>(</big><em>callable</em><big>)</big><a class="headerlink" href="#Group.visititems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively visit all objects in this group and subgroups.  Like
+<a class="reference internal" href="#Group.visit" title="Group.visit"><tt class="xref py py-meth docutils literal"><span class="pre">Group.visit()</span></tt></a>, except your callable should have the signature:</p>
+<div class="highlight-python"><div class="highlight"><pre>callable(name, object) -&gt; None or return value
+</pre></div>
+</div>
+<p>In this case <cite>object</cite> will be a <a class="reference internal" href="#Group" title="Group"><tt class="xref py py-class docutils literal"><span class="pre">Group</span></tt></a> or <a class="reference internal" href="dataset.html#Dataset" title="Dataset"><tt class="xref py py-class docutils literal"><span class="pre">Dataset</span></tt></a>
+instance.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Group.move">
+<tt class="descname">move</tt><big>(</big><em>source</em>, <em>dest</em><big>)</big><a class="headerlink" href="#Group.move" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move an object or link in the file.  If <cite>source</cite> is a hard link, this
+effectively renames the object.  If a soft or external link, the
+link itself is moved.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>source</strong> (<em>String</em>) &#8211; Name of object or link to move.</li>
+<li><strong>dest</strong> (<em>String</em>) &#8211; New location for object or link.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Group.copy">
+<tt class="descname">copy</tt><big>(</big><em>source</em>, <em>dest</em>, <em>name=None</em>, <em>shallow=False</em>, <em>expand_soft=False</em>, <em>expand_external=False</em>, <em>expand_refs=False</em>, <em>without_attrs=False</em><big>)</big><a class="headerlink" href="#Group.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy an object or group.  The source and destination need not be in
+the same file.  If the source is a Group object, by default all objects
+within that group will be copied recursively.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>source</strong> &#8211; What to copy.  May be a path in the file or a Group/Dataset object.</li>
+<li><strong>dest</strong> &#8211; Where to copy it.  May be a path or Group object.</li>
+<li><strong>name</strong> &#8211; If the destination is a Group object, use this for the
+name of the copied object (default is basename).</li>
+<li><strong>shallow</strong> &#8211; Only copy immediate members of a group.</li>
+<li><strong>expand_soft</strong> &#8211; Expand soft links into new objects.</li>
+<li><strong>expand_external</strong> &#8211; Expand external links into new objects.</li>
+<li><strong>expand_refs</strong> &#8211; Copy objects which are pointed to by references.</li>
+<li><strong>without_attrs</strong> &#8211; Copy object(s) without copying HDF5 attributes.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Group.create_group">
+<tt class="descname">create_group</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#Group.create_group" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create and return a new group in the file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>String or None</em>) &#8211; Name of group to create.  May be an absolute
+or relative path.  Provide None to create an anonymous
+group, to be linked into the file later.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The new <a class="reference internal" href="#Group" title="Group"><tt class="xref py py-class docutils literal"><span class="pre">Group</span></tt></a> object.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Group.require_group">
+<tt class="descname">require_group</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#Group.require_group" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open a group in the file, creating it if it doesn&#8217;t exist.
+TypeError is raised if a conflicting object already exists.
+Parameters as in <a class="reference internal" href="#Group.create_group" title="Group.create_group"><tt class="xref py py-meth docutils literal"><span class="pre">Group.create_group()</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Group.create_dataset">
+<tt class="descname">create_dataset</tt><big>(</big><em>name</em>, <em>shape=None</em>, <em>dtype=None</em>, <em>data=None</em>, <em>**kwds</em><big>)</big><a class="headerlink" href="#Group.create_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new dataset.  Options are explained in <a class="reference internal" href="dataset.html#dataset-create"><em>Creating datasets</em></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; Name of dataset to create.  May be an absolute
+or relative path.  Provide None to create an anonymous
+dataset, to be linked into the file later.</li>
+<li><strong>shape</strong> &#8211; Shape of new dataset (Tuple).</li>
+<li><strong>dtype</strong> &#8211; Data type for new dataset</li>
+<li><strong>data</strong> &#8211; Initialize dataset to this (NumPy array).</li>
+<li><strong>chunks</strong> &#8211; Chunk shape, or True to enable auto-chunking.</li>
+<li><strong>maxshape</strong> &#8211; Dataset will be resizable up to this shape (Tuple).
+Automatically enables chunking.  Use None for the
+axes you want to be unlimited.</li>
+<li><strong>compression</strong> &#8211; Compression strategy.  See <a class="reference internal" href="dataset.html#dataset-compression"><em>Filter pipeline</em></a>.</li>
+<li><strong>compression_opts</strong> &#8211; Parameters for compression filter.</li>
+<li><strong>scaleoffset</strong> &#8211; See <a class="reference internal" href="dataset.html#dataset-scaleoffset"><em>Scale-Offset filter</em></a>.</li>
+<li><strong>shuffle</strong> &#8211; Enable shuffle filter (T/<strong>F</strong>).  See <a class="reference internal" href="dataset.html#dataset-shuffle"><em>Shuffle filter</em></a>.</li>
+<li><strong>fletcher32</strong> &#8211; Enable Fletcher32 checksum (T/<strong>F</strong>).  See <a class="reference internal" href="dataset.html#dataset-fletcher32"><em>Fletcher32 filter</em></a>.</li>
+<li><strong>fillvalue</strong> &#8211; This value will be used when reading
+uninitialized parts of the dataset.</li>
+<li><strong>track_times</strong> &#8211; Enable dataset creation timestamps (<strong>T</strong>/F).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Group.require_dataset">
+<tt class="descname">require_dataset</tt><big>(</big><em>name</em>, <em>shape=None</em>, <em>dtype=None</em>, <em>exact=None</em>, <em>**kwds</em><big>)</big><a class="headerlink" href="#Group.require_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open a dataset, creating it if it doesn&#8217;t exist.</p>
+<p>If keyword &#8220;exact&#8221; is False (default), an existing dataset must have
+the same shape and a conversion-compatible dtype to be returned.  If
+True, the shape and dtype must match exactly.</p>
+<p>Other dataset keywords (see create_dataset) may be provided, but are
+only used if a new dataset is to be created.</p>
+<p>Raises TypeError if an incompatible object already exists, or if the
+shape or dtype don&#8217;t match according to the above rules.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>exact</strong> &#8211; Require shape and type to match exactly (T/<strong>F</strong>)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Group.attrs">
+<tt class="descname">attrs</tt><a class="headerlink" href="#Group.attrs" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="attr.html#attributes"><em>HDF5 Attributes</em></a> for this group.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Group.id">
+<tt class="descname">id</tt><a class="headerlink" href="#Group.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>The groups&#8217;s low-level identifer; an instance of
+<a class="reference external" href="http://api.h5py.org/h5g.html#h5py.h5g.GroupID" title="(in Low-level API for h5py v2.2)"><tt class="xref py py-class docutils literal"><span class="pre">GroupID</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Group.ref">
+<tt class="descname">ref</tt><a class="headerlink" href="#Group.ref" title="Permalink to this definition">¶</a></dt>
+<dd><p>An HDF5 object reference pointing to this group.  See
+<a class="reference internal" href="../refs.html#refs-object"><em>Using object references</em></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Group.regionref">
+<tt class="descname">regionref</tt><a class="headerlink" href="#Group.regionref" title="Permalink to this definition">¶</a></dt>
+<dd><p>A proxy object allowing you to interrogate region references.
+See <a class="reference internal" href="../refs.html#refs-region"><em>Using region references</em></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Group.name">
+<tt class="descname">name</tt><a class="headerlink" href="#Group.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>String giving the full path to this group.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Group.file">
+<tt class="descname">file</tt><a class="headerlink" href="#Group.file" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="file.html#File" title="File"><tt class="xref py py-class docutils literal"><span class="pre">File</span></tt></a> instance in which this group resides.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Group.parent">
+<tt class="descname">parent</tt><a class="headerlink" href="#Group.parent" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#Group" title="Group"><tt class="xref py py-class docutils literal"><span class="pre">Group</span></tt></a> instance containing this group.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="link-classes">
+<h2>Link classes<a class="headerlink" href="#link-classes" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="HardLink">
+<em class="property">class </em><tt class="descname">HardLink</tt><a class="headerlink" href="#HardLink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exists only to support <a class="reference internal" href="#Group.get" title="Group.get"><tt class="xref py py-meth docutils literal"><span class="pre">Group.get()</span></tt></a>.  Has no state and provides no
+properties or methods.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="SoftLink">
+<em class="property">class </em><tt class="descname">SoftLink</tt><big>(</big><em>path</em><big>)</big><a class="headerlink" href="#SoftLink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exists to allow creation of soft links in the file.
+See <a class="reference internal" href="#group-softlinks"><em>Soft links</em></a>.  These only serve as containers for a path;
+they are not related in any way to a particular file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>String</em>) &#8211; Value of the soft link.</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="SoftLink.path">
+<tt class="descname">path</tt><a class="headerlink" href="#SoftLink.path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Value of the soft link</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ExternalLink">
+<em class="property">class </em><tt class="descname">ExternalLink</tt><big>(</big><em>filename</em>, <em>path</em><big>)</big><a class="headerlink" href="#ExternalLink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Like <a class="reference internal" href="#SoftLink" title="SoftLink"><tt class="xref py py-class docutils literal"><span class="pre">SoftLink</span></tt></a>, only they specify a filename in addition to a
+path.  See <a class="reference internal" href="#group-extlinks"><em>External links</em></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>filename</strong> (<em>String</em>) &#8211; Name of the file to which the link points</li>
+<li><strong>path</strong> (<em>String</em>) &#8211; Path to the object in the external file.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="ExternalLink.filename">
+<tt class="descname">filename</tt><a class="headerlink" href="#ExternalLink.filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of the external file</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ExternalLink.path">
+<tt class="descname">path</tt><a class="headerlink" href="#ExternalLink.path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to the object in the external file</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">HDF5 Groups</a><ul>
+<li><a class="reference internal" href="#creating-groups">Creating groups</a></li>
+<li><a class="reference internal" href="#dict-interface-and-links">Dict interface and links</a><ul>
+<li><a class="reference internal" href="#hard-links">Hard links</a></li>
+<li><a class="reference internal" href="#soft-links">Soft links</a></li>
+<li><a class="reference internal" href="#external-links">External links</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#reference">Reference</a></li>
+<li><a class="reference internal" href="#link-classes">Link classes</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="file.html"
+                        title="previous chapter">HDF5 File Objects</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="dataset.html"
+                        title="next chapter">HDF5 Datasets</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/high/group.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="dataset.html" title="HDF5 Datasets"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="file.html" title="HDF5 File Objects"
+             >previous</a> |</li>
+        <li><a href="../index.html">h5py 2.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Andrew Collette and contributors.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

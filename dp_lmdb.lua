@@ -83,6 +83,24 @@ local function normalize(data)
 end
 
 ----------------------------------------------------------------------
+-- De-normalize the data.
+--
+-- Input
+--   data  -  b x d x h x w
+--
+-- Output
+--   data  -  b x d x h x w
+function provider.denormalize(data)
+  local data = data:float()
+  for j = 1, 3 do
+    data[{{}, j, {}, {}}]:mul(DataStd[j])
+    data[{{}, j, {}, {}}]:add(DataMean[j])
+  end
+
+  return data
+end
+
+----------------------------------------------------------------------
 -- Extract from LMDB.
 --
 -- Input
@@ -233,6 +251,11 @@ end
 --   epoch    -  epoch id
 --   opt      -  option
 --   solConf  -  solver configuration
+--
+-- Output
+--   nImg     -  #total image
+--   batchSiz -  batch size
+--   nMini    -  #mini-batch
 function provider.fordInit(DB, train, epoch, opt, solConf)
   -- dimension
   nImg = DB:size()
@@ -278,8 +301,9 @@ function provider.fordInit(DB, train, epoch, opt, solConf)
   -- batch position
   iBat = 1
   nBat = bufSiz / batchSiz
+  local nMini = nImg / batchSiz
 
-  return nImg, batchSiz
+  return nImg, batchSiz, nMini
 end
 
 ----------------------------------------------------------------------

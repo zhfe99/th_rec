@@ -1,0 +1,268 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>HDF5 Attributes &mdash; h5py 2.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="h5py 2.5.0 documentation" href="../index.html" />
+    <link rel="next" title="HDF5 Dimension Scales" href="dims.html" />
+    <link rel="prev" title="HDF5 Datasets" href="dataset.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="dims.html" title="HDF5 Dimension Scales"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="dataset.html" title="HDF5 Datasets"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">h5py 2.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="hdf5-attributes">
+<span id="attributes"></span><h1>HDF5 Attributes<a class="headerlink" href="#hdf5-attributes" title="Permalink to this headline">¶</a></h1>
+<p>Attributes are a critical part of what makes HDF5 a &#8220;self-describing&#8221;
+format.  They are small named pieces of data attached directly to
+<a class="reference internal" href="group.html#Group" title="Group"><tt class="xref py py-class docutils literal"><span class="pre">Group</span></tt></a> and <a class="reference internal" href="dataset.html#Dataset" title="Dataset"><tt class="xref py py-class docutils literal"><span class="pre">Dataset</span></tt></a> objects.  This is the official way to
+store metadata in HDF5.</p>
+<p>Each Group or Dataset has a small proxy object attached to it, at
+<tt class="docutils literal"><span class="pre">&lt;obj&gt;.attrs</span></tt>.  Attributes have the following properties:</p>
+<ul class="simple">
+<li>They may be created from any scalar or NumPy array</li>
+<li>Each attribute should be small (generally &lt; 64k)</li>
+<li>There is no partial I/O (i.e. slicing); the entire attribute must be read.</li>
+</ul>
+<p>The <tt class="docutils literal"><span class="pre">.attrs</span></tt> proxy objects are of class <a class="reference internal" href="#AttributeManager" title="AttributeManager"><tt class="xref py py-class docutils literal"><span class="pre">AttributeManager</span></tt></a>, below.
+This class supports a dictionary-style interface.</p>
+<div class="section" id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="AttributeManager">
+<em class="property">class </em><tt class="descname">AttributeManager</tt><big>(</big><em>parent</em><big>)</big><a class="headerlink" href="#AttributeManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>AttributeManager objects are created directly by h5py.  You should
+access instances by <tt class="docutils literal"><span class="pre">group.attrs</span></tt> or <tt class="docutils literal"><span class="pre">dataset.attrs</span></tt>, not by manually
+creating them.</p>
+<dl class="method">
+<dt id="AttributeManager.__iter__">
+<tt class="descname">__iter__</tt><big>(</big><big>)</big><a class="headerlink" href="#AttributeManager.__iter__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an iterator over attribute names.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AttributeManager.__contains__">
+<tt class="descname">__contains__</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#AttributeManager.__contains__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if attribute <cite>name</cite> is attached to this object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AttributeManager.__getitem__">
+<tt class="descname">__getitem__</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#AttributeManager.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve an attribute.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AttributeManager.__setitem__">
+<tt class="descname">__setitem__</tt><big>(</big><em>name</em>, <em>val</em><big>)</big><a class="headerlink" href="#AttributeManager.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an attribute, overwriting any existing attribute.  The type
+and shape of the attribute are determined automatically by h5py.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AttributeManager.__delitem__">
+<tt class="descname">__delitem__</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#AttributeManager.__delitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete an attribute.  KeyError if it doesn&#8217;t exist.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AttributeManager.keys">
+<tt class="descname">keys</tt><big>(</big><big>)</big><a class="headerlink" href="#AttributeManager.keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the names of all attributes attached to this object.  On Py2, this
+is a list.  On Py3, it&#8217;s a set-like object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AttributeManager.values">
+<tt class="descname">values</tt><big>(</big><big>)</big><a class="headerlink" href="#AttributeManager.values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the values of all attributes attached to this object.  On Py2, this
+is a list.  On Py3, it&#8217;s a collection or bag-like object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AttributeManager.items">
+<tt class="descname">items</tt><big>(</big><big>)</big><a class="headerlink" href="#AttributeManager.items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get <tt class="docutils literal"><span class="pre">(name,</span> <span class="pre">value)</span></tt> tuples for all attributes attached to this object.
+On Py2, this is a list of tuples.  On Py3, it&#8217;s a collection or
+set-like object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AttributeManager.iterkeys">
+<tt class="descname">iterkeys</tt><big>(</big><big>)</big><a class="headerlink" href="#AttributeManager.iterkeys" title="Permalink to this definition">¶</a></dt>
+<dd><p>(Py2 only) Get an iterator over attribute names.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AttributeManager.itervalues">
+<tt class="descname">itervalues</tt><big>(</big><big>)</big><a class="headerlink" href="#AttributeManager.itervalues" title="Permalink to this definition">¶</a></dt>
+<dd><p>(Py2 only) Get an iterator over attribute values.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AttributeManager.iteritems">
+<tt class="descname">iteritems</tt><big>(</big><big>)</big><a class="headerlink" href="#AttributeManager.iteritems" title="Permalink to this definition">¶</a></dt>
+<dd><p>(Py2 only) Get an iterator over <tt class="docutils literal"><span class="pre">(name,</span> <span class="pre">value)</span></tt> pairs.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AttributeManager.get">
+<tt class="descname">get</tt><big>(</big><em>name</em>, <em>default=None</em><big>)</big><a class="headerlink" href="#AttributeManager.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve <cite>name</cite>, or <cite>default</cite> if no such attribute exists.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AttributeManager.create">
+<tt class="descname">create</tt><big>(</big><em>name</em>, <em>data</em>, <em>shape=None</em>, <em>dtype=None</em><big>)</big><a class="headerlink" href="#AttributeManager.create" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new attribute, with control over the shape and type.  Any
+existing attribute will be overwritten.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>String</em>) &#8211; Name of the new attribute</li>
+<li><strong>data</strong> &#8211; Value of the attribute; will be put through
+<tt class="docutils literal"><span class="pre">numpy.array(data)</span></tt>.</li>
+<li><strong>shape</strong> (<em>Tuple</em>) &#8211; Shape of the attribute.  Overrides <tt class="docutils literal"><span class="pre">data.shape</span></tt> if
+both are given, in which case the total number of
+points must be unchanged.</li>
+<li><strong>dtype</strong> (<em>NumPy dtype</em>) &#8211; Data type for the attribute.  Overrides <tt class="docutils literal"><span class="pre">data.dtype</span></tt>
+if both are given.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="AttributeManager.modify">
+<tt class="descname">modify</tt><big>(</big><em>name</em>, <em>value</em><big>)</big><a class="headerlink" href="#AttributeManager.modify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the value of an attribute while preserving its type and shape.
+Unlike <a class="reference internal" href="#AttributeManager.__setitem__" title="AttributeManager.__setitem__"><tt class="xref py py-meth docutils literal"><span class="pre">AttributeManager.__setitem__()</span></tt></a>, if the attribute already
+exists, only its value will be changed.  This can be useful for
+interacting with externally generated files, where the type and shape
+must not be altered.</p>
+<p>If the attribute doesn&#8217;t exist, it will be created with a default
+shape and type.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>String</em>) &#8211; Name of attribute to modify.</li>
+<li><strong>value</strong> &#8211; New value.  Will be put through <tt class="docutils literal"><span class="pre">numpy.array(value)</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">HDF5 Attributes</a><ul>
+<li><a class="reference internal" href="#reference">Reference</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="dataset.html"
+                        title="previous chapter">HDF5 Datasets</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="dims.html"
+                        title="next chapter">HDF5 Dimension Scales</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/high/attr.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="dims.html" title="HDF5 Dimension Scales"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="dataset.html" title="HDF5 Datasets"
+             >previous</a> |</li>
+        <li><a href="../index.html">h5py 2.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Andrew Collette and contributors.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

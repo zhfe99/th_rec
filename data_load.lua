@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 08-01-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-26-2015
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
 
 require 'eladtools'
 require 'xlua'
@@ -21,11 +21,32 @@ local data_load = {}
 --
 -- Input
 --   data  -  b x d x h x w
+--
+-- Output
+--   data  -  b x d x h x w
 function data_load.Normalize(data)
   local data = data:float()
   for j = 1, 3 do
     data[{{}, j, {}, {}}]:add(-DataMean[j])
     data[{{}, j, {}, {}}]:div(DataStd[j])
+  end
+
+  return data
+end
+
+----------------------------------------------------------------------
+-- De-normalize the data.
+--
+-- Input
+--   data  -  b x d x h x w
+--
+-- Output
+--   data  -  b x d x h x w
+function data_load.Denormalize(data)
+  local data = data:float()
+  for j = 1, 3 do
+    data[{{}, j, {}, {}}]:mul(DataStd[j])
+    data[{{}, j, {}, {}}]:add(DataMean[j])
   end
 
   return data

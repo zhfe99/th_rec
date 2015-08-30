@@ -1,0 +1,576 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>HDF5 Datasets &mdash; h5py 2.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="h5py 2.5.0 documentation" href="../index.html" />
+    <link rel="next" title="HDF5 Attributes" href="attr.html" />
+    <link rel="prev" title="HDF5 Groups" href="group.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="attr.html" title="HDF5 Attributes"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="group.html" title="HDF5 Groups"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">h5py 2.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="hdf5-datasets">
+<span id="dataset"></span><h1>HDF5 Datasets<a class="headerlink" href="#hdf5-datasets" title="Permalink to this headline">¶</a></h1>
+<p>Datasets are very similar to NumPy arrays.  They are homogenous collections of
+data elements, with an immutable datatype and (hyper)rectangular shape.
+Unlike NumPy arrays, they support a variety of transparent storage features
+such as compression, error-detection, and chunked I/O.</p>
+<p>They are represented in h5py by a thin proxy class which supports familiar
+NumPy operations like slicing, along with a variety of descriptive attributes:</p>
+<blockquote>
+<div><ul class="simple">
+<li><strong>shape</strong> attribute</li>
+<li><strong>size</strong> attribute</li>
+<li><strong>dtype</strong> attribute</li>
+</ul>
+</div></blockquote>
+<div class="section" id="creating-datasets">
+<span id="dataset-create"></span><h2>Creating datasets<a class="headerlink" href="#creating-datasets" title="Permalink to this headline">¶</a></h2>
+<p>New datasets are created using either <a class="reference internal" href="group.html#Group.create_dataset" title="Group.create_dataset"><tt class="xref py py-meth docutils literal"><span class="pre">Group.create_dataset()</span></tt></a> or
+<a class="reference internal" href="group.html#Group.require_dataset" title="Group.require_dataset"><tt class="xref py py-meth docutils literal"><span class="pre">Group.require_dataset()</span></tt></a>.  Existing datasets should be retrieved using
+the group indexing syntax (<tt class="docutils literal"><span class="pre">dset</span> <span class="pre">=</span> <span class="pre">group[&quot;name&quot;]</span></tt>).</p>
+<p>To make an empty dataset, all you have to do is specify a name, shape, and
+optionally the data type (defaults to <tt class="docutils literal"><span class="pre">'f'</span></tt>):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&quot;default&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">100</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&quot;ints&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">100</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&#39;i8&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You may initialize the dataset to an existing NumPy array:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&quot;init&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">arr</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Keywords <tt class="docutils literal"><span class="pre">shape</span></tt> and <tt class="docutils literal"><span class="pre">dtype</span></tt> may be specified along with <tt class="docutils literal"><span class="pre">data</span></tt>; if so,
+they will override <tt class="docutils literal"><span class="pre">data.shape</span></tt> and <tt class="docutils literal"><span class="pre">data.dtype</span></tt>.  It&#8217;s required that
+(1) the total number of points in <tt class="docutils literal"><span class="pre">shape</span></tt> match the total number of points
+in <tt class="docutils literal"><span class="pre">data.shape</span></tt>, and that (2) it&#8217;s possible to cast <tt class="docutils literal"><span class="pre">data.dtype</span></tt> to
+the requested <tt class="docutils literal"><span class="pre">dtype</span></tt>.</p>
+</div>
+<div class="section" id="chunked-storage">
+<span id="dataset-chunks"></span><h2>Chunked storage<a class="headerlink" href="#chunked-storage" title="Permalink to this headline">¶</a></h2>
+<p>An HDF5 dataset created with the default settings will be <cite>contiguous</cite>; in
+other words, laid out on disk in traditional C order.  Datasets may also be
+created using HDF5&#8217;s <cite>chunked</cite> storage layout.  This means the dataset is
+divided up into regularly-sized pieces which are stored haphazardly on disk,
+and indexed using a B-tree.</p>
+<p>Chunked storage makes it possible to resize datasets, and because the data
+is stored in fixed-size chunks, to use compression filters.</p>
+<p>To enable chunked storage, set the keyword <tt class="docutils literal"><span class="pre">chunks</span></tt> to a tuple indicating
+the chunk shape:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&quot;chunked&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span> <span class="n">chunks</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Data will be read and written in blocks with shape (100,100); for example,
+the data in <tt class="docutils literal"><span class="pre">dset[0:100,0:100]</span></tt> will be stored together in the file, as will
+the data points in range <tt class="docutils literal"><span class="pre">dset[400:500,</span> <span class="pre">100:200]</span></tt>.</p>
+<p>Chunking has performance implications.  It&#8217;s recommended to keep the total
+size of your chunks between 10 KiB and 1 MiB, larger for larger datasets.
+Also keep in mind that when any element in a chunk is accessed, the entire
+chunk is read from disk.</p>
+<p>Since picking a chunk shape can be confusing, you can have h5py guess a chunk
+shape for you:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&quot;autochunk&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span> <span class="n">chunks</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Auto-chunking is also enabled when using compression or <tt class="docutils literal"><span class="pre">maxshape</span></tt>, etc.,
+if a chunk shape is not manually specified.</p>
+</div>
+<div class="section" id="resizable-datasets">
+<span id="dataset-resize"></span><h2>Resizable datasets<a class="headerlink" href="#resizable-datasets" title="Permalink to this headline">¶</a></h2>
+<p>In HDF5, datasets can be resized once created up to a maximum size,
+by calling <a class="reference internal" href="#Dataset.resize" title="Dataset.resize"><tt class="xref py py-meth docutils literal"><span class="pre">Dataset.resize()</span></tt></a>.  You specify this maximum size when creating
+the dataset, via the keyword <tt class="docutils literal"><span class="pre">maxshape</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&quot;resizable&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">),</span> <span class="n">maxshape</span><span class="o">=</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">20</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Any (or all) axes may also be marked as &#8220;unlimited&#8221;, in which case they may
+be increased up to the HDF5 per-axis limit of 2**64 elements.  Indicate these
+axes using <tt class="docutils literal"><span class="pre">None</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&quot;unlimited&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">maxshape</span><span class="o">=</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Resizing an array with existing data works differently than in NumPy; if
+any axis shrinks, the data in the missing region is discarded.  Data does
+not &#8220;rearrange&#8221; itself as it does when resizing a NumPy array.</p>
+</div>
+</div>
+<div class="section" id="filter-pipeline">
+<span id="dataset-compression"></span><h2>Filter pipeline<a class="headerlink" href="#filter-pipeline" title="Permalink to this headline">¶</a></h2>
+<p>Chunked data may be transformed by the HDF5 <cite>filter pipeline</cite>.  The most
+common use is applying transparent compression.  Data is compressed on the
+way to disk, and automatically decompressed when read.  Once the dataset
+is created with a particular compression filter applied, data may be read
+and written as normal with no special steps required.</p>
+<p>Enable compression with the <tt class="docutils literal"><span class="pre">compression</span></tt> keyword to
+<a class="reference internal" href="group.html#Group.create_dataset" title="Group.create_dataset"><tt class="xref py py-meth docutils literal"><span class="pre">Group.create_dataset()</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&quot;zipped&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="n">compression</span><span class="o">=</span><span class="s">&quot;gzip&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Options for each filter may be specified with <tt class="docutils literal"><span class="pre">compression_opts</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&quot;zipped_max&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="n">compression</span><span class="o">=</span><span class="s">&quot;gzip&quot;</span><span class="p">,</span> <span class="n">compression_opts</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="lossless-compression-filters">
+<h3>Lossless compression filters<a class="headerlink" href="#lossless-compression-filters" title="Permalink to this headline">¶</a></h3>
+<dl class="docutils">
+<dt>GZIP filter (<tt class="docutils literal"><span class="pre">&quot;gzip&quot;</span></tt>)</dt>
+<dd>Available with every installation of HDF5, so it&#8217;s best where portability is
+required.  Good compression, moderate speed.  <tt class="docutils literal"><span class="pre">compression_opts</span></tt> sets the
+compression level and may be an integer from 0 to 9, default is 4.</dd>
+<dt>LZF filter (<tt class="docutils literal"><span class="pre">&quot;lzf&quot;</span></tt>)</dt>
+<dd>Available with every installation of h5py (C source code also available).
+Low to moderate compression, very fast.  No options.</dd>
+<dt>SZIP filter (<tt class="docutils literal"><span class="pre">&quot;szip&quot;</span></tt>)</dt>
+<dd>Patent-encumbered filter used in the NASA community.  Not available with all
+installations of HDF5 due to legal reasons.  Consult the HDF5 docs for filter
+options.</dd>
+</dl>
+</div>
+<div class="section" id="custom-compression-filters">
+<h3>Custom compression filters<a class="headerlink" href="#custom-compression-filters" title="Permalink to this headline">¶</a></h3>
+<p>In addition to the compression filters listed above, compression filters can be
+dynamically loaded by the underlying HDF5 library. This is done by passing a
+filter number to <a class="reference internal" href="group.html#Group.create_dataset" title="Group.create_dataset"><tt class="xref py py-meth docutils literal"><span class="pre">Group.create_dataset()</span></tt></a> as the <tt class="docutils literal"><span class="pre">compression</span></tt> parameter.
+The <tt class="docutils literal"><span class="pre">compression_opts</span></tt> parameter will then be passed to this filter.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The underlying implementation of the compression filter will have the
+<tt class="docutils literal"><span class="pre">H5Z_FLAG_OPTIONAL</span></tt> flag set. This indicates that if the compression
+filter doesn&#8217;t compress a block while writing, no error will be thrown. The
+filter will then be skipped when subsequently reading the block.</p>
+</div>
+</div>
+<div class="section" id="scale-offset-filter">
+<span id="dataset-scaleoffset"></span><h3>Scale-Offset filter<a class="headerlink" href="#scale-offset-filter" title="Permalink to this headline">¶</a></h3>
+<p>Filters enabled with the <tt class="docutils literal"><span class="pre">compression</span></tt> keywords are _lossless_; what comes
+out of the dataset is exactly what you put in.  HDF5 also includes a lossy
+filter which trades precision for storage space.</p>
+<p>Works with integer and floating-point data only.  Enable the scale-offset
+filter by setting <a class="reference internal" href="group.html#Group.create_dataset" title="Group.create_dataset"><tt class="xref py py-meth docutils literal"><span class="pre">Group.create_dataset()</span></tt></a> keyword <tt class="docutils literal"><span class="pre">scaleoffset</span></tt> to an
+integer.</p>
+<p>For integer data, this specifies the number of bits to retain.  Set to 0 to have
+HDF5 automatically compute the number of bits required for lossless compression
+of the chunk.  For floating-point data, indicates the number of digits after
+the decimal point to retain.</p>
+</div>
+<div class="section" id="shuffle-filter">
+<span id="dataset-shuffle"></span><h3>Shuffle filter<a class="headerlink" href="#shuffle-filter" title="Permalink to this headline">¶</a></h3>
+<p>Block-oriented compressors like GZIP or LZF work better when presented with
+runs of similar values.  Enabling the shuffle filter rearranges the bytes in
+the chunk and may improve compression ratio.  No significant speed penalty,
+lossless.</p>
+<p>Enable by setting <a class="reference internal" href="group.html#Group.create_dataset" title="Group.create_dataset"><tt class="xref py py-meth docutils literal"><span class="pre">Group.create_dataset()</span></tt></a> keyword <tt class="docutils literal"><span class="pre">shuffle</span></tt> to True.</p>
+</div>
+<div class="section" id="fletcher32-filter">
+<span id="dataset-fletcher32"></span><h3>Fletcher32 filter<a class="headerlink" href="#fletcher32-filter" title="Permalink to this headline">¶</a></h3>
+<p>Adds a checksum to each chunk to detect data corruption.  Attempts to read
+corrupted chunks will fail with an error.  No significant speed penalty.
+Obviously shouldn&#8217;t be used with lossy compression filters.</p>
+<p>Enable by setting <a class="reference internal" href="group.html#Group.create_dataset" title="Group.create_dataset"><tt class="xref py py-meth docutils literal"><span class="pre">Group.create_dataset()</span></tt></a> keyword <tt class="docutils literal"><span class="pre">fletcher32</span></tt> to True.</p>
+</div>
+</div>
+<div class="section" id="reading-writing-data">
+<span id="dataset-slicing"></span><h2>Reading &amp; writing data<a class="headerlink" href="#reading-writing-data" title="Permalink to this headline">¶</a></h2>
+<p>HDF5 datasets re-use the NumPy slicing syntax to read and write to the file.
+Slice specifications are translated directly to HDF5 &#8220;hyperslab&#8221;
+selections, and are a fast and efficient way to access data in the file. The
+following slicing arguments are recognized:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Indices: anything that can be converted to a Python long</li>
+<li>Slices (i.e. <tt class="docutils literal"><span class="pre">[:]</span></tt> or <tt class="docutils literal"><span class="pre">[0:10]</span></tt>)</li>
+<li>Field names, in the case of compound data</li>
+<li>At most one <tt class="docutils literal"><span class="pre">Ellipsis</span></tt> (<tt class="docutils literal"><span class="pre">...</span></tt>) object</li>
+</ul>
+</div></blockquote>
+<p>Here are a few examples (output omitted)</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&quot;MyDataset&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">),</span> <span class="s">&#39;f&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">:</span><span class="mi">10</span><span class="p">,</span><span class="mi">1</span><span class="p">:</span><span class="mi">9</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="o">...</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">6</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>For compound data, you can specify multiple field names alongside the
+numeric slices:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="p">[</span><span class="s">&quot;FieldA&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="p">[</span><span class="mi">0</span><span class="p">,:,</span><span class="mi">4</span><span class="p">:</span><span class="mi">5</span><span class="p">,</span> <span class="s">&quot;FieldA&quot;</span><span class="p">,</span> <span class="s">&quot;FieldB&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="s">&quot;FieldC&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>To retrieve the contents of a <cite>scalar</cite> dataset, you can use the same
+syntax as in NumPy:  <tt class="docutils literal"><span class="pre">result</span> <span class="pre">=</span> <span class="pre">dset[()]</span></tt>.  In other words, index into
+the dataset using an empty tuple.</p>
+<p>For simple slicing, broadcasting is supported:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="p">[</span><span class="mi">0</span><span class="p">,:,:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>  <span class="c"># Broadcasts to (10,10)</span>
+</pre></div>
+</div>
+<p>Broadcasting is implemented using repeated hyperslab selections, and is
+safe to use with very large target selections.  It is supported for the above
+&#8220;simple&#8221; (integer, slice and ellipsis) slicing only.</p>
+</div>
+<div class="section" id="fancy-indexing">
+<span id="dataset-fancy"></span><h2>Fancy indexing<a class="headerlink" href="#fancy-indexing" title="Permalink to this headline">¶</a></h2>
+<p>A subset of the NumPy fancy-indexing syntax is supported.  Use this with
+caution, as the underlying HDF5 mechanisms may have different performance
+than you expect.</p>
+<p>For any axis, you can provide an explicit list of points you want; for a
+dataset with shape (10, 10):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(10, 10)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">dset</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">8</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(3,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">dset</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">6</span><span class="p">,</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">9</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(5, 3)</span>
+</pre></div>
+</div>
+<p>The following restrictions exist:</p>
+<ul class="simple">
+<li>List selections may not be empty</li>
+<li>Selection coordinates must be given in increasing order</li>
+<li>Duplicate selections are ignored</li>
+<li>Very long lists (&gt; 1000 elements) may produce poor performance</li>
+</ul>
+<p>NumPy boolean &#8220;mask&#8221; arrays can also be used to specify a selection.  The
+result of this operation is a 1-D array with elements arranged in the
+standard NumPy (C-style) order.  Behind the scenes, this generates a laundry
+list of points to select, so be careful when using it with large masks:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">arr</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&quot;MyDataset&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">arr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">dset</span><span class="p">[</span><span class="n">arr</span> <span class="o">&gt;</span> <span class="mi">50</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(49,)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="length-and-iteration">
+<span id="dataset-iter"></span><h2>Length and iteration<a class="headerlink" href="#length-and-iteration" title="Permalink to this headline">¶</a></h2>
+<p>As with NumPy arrays, the <tt class="docutils literal"><span class="pre">len()</span></tt> of a dataset is the length of the first
+axis, and iterating over a dataset iterates over the first axis.  However,
+modifications to the yielded data are not recorded in the file.  Resizing a
+dataset while iterating has undefined results.</p>
+<p>On 32-bit platforms, <tt class="docutils literal"><span class="pre">len(dataset)</span></tt> will fail if the first axis is bigger
+than 2**32. It&#8217;s recommended to use <a class="reference internal" href="#Dataset.len" title="Dataset.len"><tt class="xref py py-meth docutils literal"><span class="pre">Dataset.len()</span></tt></a> for large datasets.</p>
+</div>
+<div class="section" id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Dataset">
+<em class="property">class </em><tt class="descname">Dataset</tt><big>(</big><em>identifier</em><big>)</big><a class="headerlink" href="#Dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dataset objects are typically created via <a class="reference internal" href="group.html#Group.create_dataset" title="Group.create_dataset"><tt class="xref py py-meth docutils literal"><span class="pre">Group.create_dataset()</span></tt></a>,
+or by retrieving existing datasets from a file.  Call this constructor to
+create a new Dataset bound to an existing
+<a class="reference external" href="http://api.h5py.org/h5d.html#h5py.h5d.DatasetID" title="(in Low-level API for h5py v2.2)"><tt class="xref py py-class docutils literal"><span class="pre">DatasetID</span></tt></a> identifier.</p>
+<dl class="method">
+<dt id="Dataset.__getitem__">
+<tt class="descname">__getitem__</tt><big>(</big><em>args</em><big>)</big><a class="headerlink" href="#Dataset.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>NumPy-style slicing to retrieve data.  See <a class="reference internal" href="#dataset-slicing"><em>Reading &amp; writing data</em></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Dataset.__setitem__">
+<tt class="descname">__setitem__</tt><big>(</big><em>args</em><big>)</big><a class="headerlink" href="#Dataset.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>NumPy-style slicing to write data.  See <a class="reference internal" href="#dataset-slicing"><em>Reading &amp; writing data</em></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Dataset.read_direct">
+<tt class="descname">read_direct</tt><big>(</big><em>array</em>, <em>source_sel=None</em>, <em>dest_sel=None</em><big>)</big><a class="headerlink" href="#Dataset.read_direct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read from an HDF5 dataset directly into a NumPy array, which can
+avoid making an intermediate copy as happens with slicing. The
+destination array must be C-contiguous and writable, and must have
+a datatype to which the source data may be cast.  Data type conversion
+will be carried out on the fly by HDF5.</p>
+<p><cite>source_sel</cite> and <cite>dest_sel</cite> indicate the range of points in the
+dataset and destination array respectively.  Use the output of
+<tt class="docutils literal"><span class="pre">numpy.s_[args]</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&quot;dset&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">100</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&#39;int64&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">100</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&#39;int32&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="o">.</span><span class="n">read_direct</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">s_</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">10</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">s_</span><span class="p">[</span><span class="mi">50</span><span class="p">:</span><span class="mi">60</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="Dataset.astype">
+<tt class="descname">astype</tt><big>(</big><em>dtype</em><big>)</big><a class="headerlink" href="#Dataset.astype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a context manager allowing you to read data as a particular
+type.  Conversion is handled by HDF5 directly, on the fly:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&quot;bigint&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1000</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&#39;int64&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">dset</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s">&#39;int16&#39;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">out</span> <span class="o">=</span> <span class="n">dset</span><span class="p">[:]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span><span class="o">.</span><span class="n">dtype</span>
+<span class="go">dtype(&#39;int16&#39;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="Dataset.resize">
+<tt class="descname">resize</tt><big>(</big><em>size</em>, <em>axis=None</em><big>)</big><a class="headerlink" href="#Dataset.resize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the shape of a dataset.  <cite>size</cite> may be a tuple giving the new
+dataset shape, or an integer giving the new length of the specified
+<cite>axis</cite>.</p>
+<p>Datasets may be resized only up to <a class="reference internal" href="#Dataset.maxshape" title="Dataset.maxshape"><tt class="xref py py-attr docutils literal"><span class="pre">Dataset.maxshape</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Dataset.len">
+<tt class="descname">len</tt><big>(</big><big>)</big><a class="headerlink" href="#Dataset.len" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the size of the first axis.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Dataset.shape">
+<tt class="descname">shape</tt><a class="headerlink" href="#Dataset.shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>NumPy-style shape tuple giving dataset dimensions.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Dataset.dtype">
+<tt class="descname">dtype</tt><a class="headerlink" href="#Dataset.dtype" title="Permalink to this definition">¶</a></dt>
+<dd><p>NumPy dtype object giving the dataset&#8217;s type.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Dataset.size">
+<tt class="descname">size</tt><a class="headerlink" href="#Dataset.size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Integer giving the total number of elements in the dataset.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Dataset.maxshape">
+<tt class="descname">maxshape</tt><a class="headerlink" href="#Dataset.maxshape" title="Permalink to this definition">¶</a></dt>
+<dd><p>NumPy-style shape tuple indicating the maxiumum dimensions up to which
+the dataset may be resized.  Axes with <tt class="docutils literal"><span class="pre">None</span></tt> are unlimited.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Dataset.chunks">
+<tt class="descname">chunks</tt><a class="headerlink" href="#Dataset.chunks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tuple giving the chunk shape, or None if chunked storage is not used.
+See <a class="reference internal" href="#dataset-chunks"><em>Chunked storage</em></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Dataset.compression">
+<tt class="descname">compression</tt><a class="headerlink" href="#Dataset.compression" title="Permalink to this definition">¶</a></dt>
+<dd><p>String with the currently applied compression filter, or None if
+compression is not enabled for this dataset.  See <a class="reference internal" href="#dataset-compression"><em>Filter pipeline</em></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Dataset.compression_opts">
+<tt class="descname">compression_opts</tt><a class="headerlink" href="#Dataset.compression_opts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Options for the compression filter.  See <a class="reference internal" href="#dataset-compression"><em>Filter pipeline</em></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Dataset.scaleoffset">
+<tt class="descname">scaleoffset</tt><a class="headerlink" href="#Dataset.scaleoffset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setting for the HDF5 scale-offset filter (integer), or None if
+scale-offset compression is not used for this dataset.
+See <a class="reference internal" href="#dataset-scaleoffset"><em>Scale-Offset filter</em></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Dataset.shuffle">
+<tt class="descname">shuffle</tt><a class="headerlink" href="#Dataset.shuffle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether the shuffle filter is applied (T/F).  See <a class="reference internal" href="#dataset-shuffle"><em>Shuffle filter</em></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Dataset.fletcher32">
+<tt class="descname">fletcher32</tt><a class="headerlink" href="#Dataset.fletcher32" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether Fletcher32 checksumming is enabled (T/F).  See <a class="reference internal" href="#dataset-fletcher32"><em>Fletcher32 filter</em></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Dataset.fillvalue">
+<tt class="descname">fillvalue</tt><a class="headerlink" href="#Dataset.fillvalue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Value used when reading uninitialized portions of the dataset, or None
+if no fill value has been defined, in which case HDF5 will use a
+type-appropriate default value.  Can&#8217;t be changed after the dataset is
+created.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Dataset.dims">
+<tt class="descname">dims</tt><a class="headerlink" href="#Dataset.dims" title="Permalink to this definition">¶</a></dt>
+<dd><p>Access to <a class="reference internal" href="dims.html#dimension-scales"><em>HDF5 Dimension Scales</em></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Dataset.attrs">
+<tt class="descname">attrs</tt><a class="headerlink" href="#Dataset.attrs" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="attr.html#attributes"><em>HDF5 Attributes</em></a> for this dataset.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Dataset.id">
+<tt class="descname">id</tt><a class="headerlink" href="#Dataset.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>The dataset&#8217;s low-level identifer; an instance of
+<a class="reference external" href="http://api.h5py.org/h5d.html#h5py.h5d.DatasetID" title="(in Low-level API for h5py v2.2)"><tt class="xref py py-class docutils literal"><span class="pre">DatasetID</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Dataset.ref">
+<tt class="descname">ref</tt><a class="headerlink" href="#Dataset.ref" title="Permalink to this definition">¶</a></dt>
+<dd><p>An HDF5 object reference pointing to this dataset.  See
+<a class="reference internal" href="../refs.html#refs-object"><em>Using object references</em></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Dataset.regionref">
+<tt class="descname">regionref</tt><a class="headerlink" href="#Dataset.regionref" title="Permalink to this definition">¶</a></dt>
+<dd><p>Proxy object for creating HDF5 region references.  See
+<a class="reference internal" href="../refs.html#refs-region"><em>Using region references</em></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Dataset.name">
+<tt class="descname">name</tt><a class="headerlink" href="#Dataset.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>String giving the full path to this dataset.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Dataset.file">
+<tt class="descname">file</tt><a class="headerlink" href="#Dataset.file" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="file.html#File" title="File"><tt class="xref py py-class docutils literal"><span class="pre">File</span></tt></a> instance in which this dataset resides</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Dataset.parent">
+<tt class="descname">parent</tt><a class="headerlink" href="#Dataset.parent" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="group.html#Group" title="Group"><tt class="xref py py-class docutils literal"><span class="pre">Group</span></tt></a> instance containing this dataset.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">HDF5 Datasets</a><ul>
+<li><a class="reference internal" href="#creating-datasets">Creating datasets</a></li>
+<li><a class="reference internal" href="#chunked-storage">Chunked storage</a></li>
+<li><a class="reference internal" href="#resizable-datasets">Resizable datasets</a></li>
+<li><a class="reference internal" href="#filter-pipeline">Filter pipeline</a><ul>
+<li><a class="reference internal" href="#lossless-compression-filters">Lossless compression filters</a></li>
+<li><a class="reference internal" href="#custom-compression-filters">Custom compression filters</a></li>
+<li><a class="reference internal" href="#scale-offset-filter">Scale-Offset filter</a></li>
+<li><a class="reference internal" href="#shuffle-filter">Shuffle filter</a></li>
+<li><a class="reference internal" href="#fletcher32-filter">Fletcher32 filter</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#reading-writing-data">Reading &amp; writing data</a></li>
+<li><a class="reference internal" href="#fancy-indexing">Fancy indexing</a></li>
+<li><a class="reference internal" href="#length-and-iteration">Length and iteration</a></li>
+<li><a class="reference internal" href="#reference">Reference</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="group.html"
+                        title="previous chapter">HDF5 Groups</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="attr.html"
+                        title="next chapter">HDF5 Attributes</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/high/dataset.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="attr.html" title="HDF5 Attributes"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="group.html" title="HDF5 Groups"
+             >previous</a> |</li>
+        <li><a href="../index.html">h5py 2.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Andrew Collette and contributors.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

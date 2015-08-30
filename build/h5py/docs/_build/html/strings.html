@@ -1,0 +1,266 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Strings in HDF5 &mdash; h5py 2.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="h5py 2.5.0 documentation" href="index.html" />
+    <link rel="next" title="Object and Region References" href="refs.html" />
+    <link rel="prev" title="Special types" href="special.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="refs.html" title="Object and Region References"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="special.html" title="Special types"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">h5py 2.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="strings-in-hdf5">
+<span id="strings"></span><h1>Strings in HDF5<a class="headerlink" href="#strings-in-hdf5" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="the-most-important-thing">
+<h2>The Most Important Thing<a class="headerlink" href="#the-most-important-thing" title="Permalink to this headline">¶</a></h2>
+<p>If you remember nothing else, remember this:</p>
+<blockquote>
+<div><strong>All strings in HDF5 hold encoded text.</strong></div></blockquote>
+<p>You <em>can&#8217;t</em> store arbitrary binary data in HDF5 strings.  Not only will this
+break, it will break in odd, hard-to-discover ways that will leave
+you confused and cursing.</p>
+</div>
+<div class="section" id="how-to-store-raw-binary-data">
+<span id="str-binary"></span><h2>How to store raw binary data<a class="headerlink" href="#how-to-store-raw-binary-data" title="Permalink to this headline">¶</a></h2>
+<p>If you have a non-text blob in a Python byte string (as opposed to ASCII or
+UTF-8 encoded text, which is fine), you should wrap it in a <tt class="docutils literal"><span class="pre">void</span></tt> type for
+storage. This will map to the HDF5 OPAQUE datatype, and will prevent your
+blob from getting mangled by the string machinery.</p>
+<p>Here&#8217;s an example of how to store binary data in an attribute, and then
+recover it:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">binary_blob</span> <span class="o">=</span> <span class="n">b</span><span class="s">&quot;Hello</span><span class="se">\x00</span><span class="s">Hello</span><span class="se">\x00</span><span class="s">&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s">&quot;attribute_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">void</span><span class="p">(</span><span class="n">binary_blob</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">dset</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s">&quot;attribute_name&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">binary_blob</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">tostring</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="how-to-store-text-strings">
+<h2>How to store text strings<a class="headerlink" href="#how-to-store-text-strings" title="Permalink to this headline">¶</a></h2>
+<p>At the high-level interface, h5py exposes three kinds of strings.  Each maps
+to a specific type within Python (but see <em class="xref std std-ref">str_py3</em> below):</p>
+<ul class="simple">
+<li>Fixed-length ASCII (NumPy <tt class="docutils literal"><span class="pre">S</span></tt> type)</li>
+<li>Variable-length ASCII (Python 2 <tt class="docutils literal"><span class="pre">str</span></tt>, Python 3 <tt class="docutils literal"><span class="pre">bytes</span></tt>)</li>
+<li>Variable-length UTF-8 (Python 2 <tt class="docutils literal"><span class="pre">unicode</span></tt>, Python 3 <tt class="docutils literal"><span class="pre">str</span></tt>)</li>
+</ul>
+<div class="section" id="compatibility">
+<h3>Compatibility<a class="headerlink" href="#compatibility" title="Permalink to this headline">¶</a></h3>
+<p>If you want to write maximally-compatible files and don&#8217;t want to read the
+whole chapter:</p>
+<ul class="simple">
+<li>Use <tt class="docutils literal"><span class="pre">numpy.string_</span></tt> for scalar attributes</li>
+<li>Use the NumPy <tt class="docutils literal"><span class="pre">S</span></tt> dtype for datasets and array attributes</li>
+</ul>
+</div>
+<div class="section" id="fixed-length-ascii">
+<h3>Fixed-length ASCII<a class="headerlink" href="#fixed-length-ascii" title="Permalink to this headline">¶</a></h3>
+<p>These are created when you use <tt class="docutils literal"><span class="pre">numpy.string_</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">string_</span><span class="p">(</span><span class="s">&quot;Hello&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>or the <tt class="docutils literal"><span class="pre">S</span></tt> dtype:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&quot;string_ds&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">100</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&quot;S10&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In the file, these map to fixed-width ASCII strings.  One byte per character
+is used.  The representation is &#8220;null-padded&#8221;, which is the internal
+representation used by NumPy (and the only one which round-trips through HDF5).</p>
+<p>Technically, these strings are supposed to store <cite>only</cite> ASCII-encoded text,
+although in practice anything you can store in NumPy will round-trip.  But
+for compatibility with other progams using HDF5 (IDL, MATLAB, etc.), you
+should use ASCII only.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This is the most-compatible way to store a string.  Everything else
+can read it.</p>
+</div>
+</div>
+<div class="section" id="variable-length-ascii">
+<h3>Variable-length ASCII<a class="headerlink" href="#variable-length-ascii" title="Permalink to this headline">¶</a></h3>
+<p>These are created when you assign a byte string to an attribute:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s">&quot;attr&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="s">&quot;Hello&quot;</span>
+</pre></div>
+</div>
+<p>or when you create a dataset with an explicit &#8220;bytes&#8221; vlen type:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dt</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">special_dtype</span><span class="p">(</span><span class="n">vlen</span><span class="o">=</span><span class="nb">bytes</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">100</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dt</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that they&#8217;re <cite>not</cite> fully identical to Python byte strings.  You can
+only store ASCII-encoded text, without NULL bytes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="s">&quot;Hello</span><span class="se">\x00</span><span class="s">there&quot;</span>
+<span class="go">ValueError: VLEN strings do not support embedded NULLs</span>
+</pre></div>
+</div>
+<p>In the file, these are created as variable-length strings with character set
+H5T_CSET_ASCII.</p>
+</div>
+<div class="section" id="variable-length-utf-8">
+<h3>Variable-length UTF-8<a class="headerlink" href="#variable-length-utf-8" title="Permalink to this headline">¶</a></h3>
+<p>These are created when you assign a <tt class="docutils literal"><span class="pre">unicode</span></tt> string to an attribute:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s">u&quot;Hello&quot;</span>
+</pre></div>
+</div>
+<p>or if you create a dataset with an explicit <tt class="docutils literal"><span class="pre">unicode</span></tt> vlen type:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dt</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">special_dtype</span><span class="p">(</span><span class="n">vlen</span><span class="o">=</span><span class="nb">unicode</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">100</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dt</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>They can store any character a Python unicode string can store, with the
+exception of NULLs.  In the file these are created as variable-length strings
+with character set H5T_CSET_UTF8.</p>
+</div>
+<div class="section" id="exceptions-for-python-3">
+<h3>Exceptions for Python 3<a class="headerlink" href="#exceptions-for-python-3" title="Permalink to this headline">¶</a></h3>
+<p>Most strings in the HDF5 world are stored in ASCII, which means they map to
+byte strings.  But in Python 3, there&#8217;s a strict separation between <cite>data</cite> and
+<cite>text</cite>, which intentionally makes it painful to handle encoded strings
+directly.</p>
+<p>So, when reading or writing scalar string attributes, on Python 3 they will
+<cite>always</cite> be returned as type <tt class="docutils literal"><span class="pre">str</span></tt>, regardless of the underlying storage
+mechanism.  The regular rules for writing apply; to get a fixed-width ASCII
+string, use <tt class="docutils literal"><span class="pre">numpy.string_</span></tt>, and to get a variable-length ASCII string, use
+<tt class="docutils literal"><span class="pre">bytes</span></tt>.</p>
+</div>
+<div class="section" id="what-about-numpy-s-u-type">
+<h3>What about NumPy&#8217;s <tt class="docutils literal"><span class="pre">U</span></tt> type?<a class="headerlink" href="#what-about-numpy-s-u-type" title="Permalink to this headline">¶</a></h3>
+<p>NumPy also has a Unicode type, a UTF-32 fixed-width format (4-byte characters).
+HDF5 has no support for wide characters.  Rather than trying to hack around
+this and &#8220;pretend&#8221; to support it, h5py will raise an error when attempting
+to create datasets or attributes of this type.</p>
+</div>
+</div>
+<div class="section" id="object-names">
+<h2>Object names<a class="headerlink" href="#object-names" title="Permalink to this headline">¶</a></h2>
+<p>Unicode strings are used exclusively for object names in the file:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">name</span>
+<span class="go">u&#39;/&#39;</span>
+</pre></div>
+</div>
+<p>You can supply either byte or unicode strings (on both Python 2 and Python 3)
+when creating or retrieving objects. If a byte string is supplied,
+it will be used as-is; Unicode strings will be encoded down to UTF-8.</p>
+<p>In the file, h5py uses the most-compatible representation; H5T_CSET_ASCII for
+characters in the ASCII range; H5T_CSET_UTF8 otherwise.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">grp</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">b</span><span class="s">&quot;name&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grp2</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">u&quot;name2&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Strings in HDF5</a><ul>
+<li><a class="reference internal" href="#the-most-important-thing">The Most Important Thing</a></li>
+<li><a class="reference internal" href="#how-to-store-raw-binary-data">How to store raw binary data</a></li>
+<li><a class="reference internal" href="#how-to-store-text-strings">How to store text strings</a><ul>
+<li><a class="reference internal" href="#compatibility">Compatibility</a></li>
+<li><a class="reference internal" href="#fixed-length-ascii">Fixed-length ASCII</a></li>
+<li><a class="reference internal" href="#variable-length-ascii">Variable-length ASCII</a></li>
+<li><a class="reference internal" href="#variable-length-utf-8">Variable-length UTF-8</a></li>
+<li><a class="reference internal" href="#exceptions-for-python-3">Exceptions for Python 3</a></li>
+<li><a class="reference internal" href="#what-about-numpy-s-u-type">What about NumPy&#8217;s <tt class="docutils literal"><span class="pre">U</span></tt> type?</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#object-names">Object names</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="special.html"
+                        title="previous chapter">Special types</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="refs.html"
+                        title="next chapter">Object and Region References</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/strings.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="refs.html" title="Object and Region References"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="special.html" title="Special types"
+             >previous</a> |</li>
+        <li><a href="index.html">h5py 2.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Andrew Collette and contributors.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

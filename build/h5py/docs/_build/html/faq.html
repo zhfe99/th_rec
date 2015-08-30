@@ -1,0 +1,428 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>FAQ &mdash; h5py 2.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="h5py 2.5.0 documentation" href="index.html" />
+    <link rel="next" title="Licenses and legal info" href="licenses.html" />
+    <link rel="prev" title="Bug Reports &amp; Contributions" href="contributing.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="licenses.html" title="Licenses and legal info"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="contributing.html" title="Bug Reports &amp; Contributions"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">h5py 2.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="faq">
+<span id="id1"></span><h1>FAQ<a class="headerlink" href="#faq" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="what-datatypes-are-supported">
+<h2>What datatypes are supported?<a class="headerlink" href="#what-datatypes-are-supported" title="Permalink to this headline">¶</a></h2>
+<p>Below is a complete list of types for which h5py supports reading, writing and
+creating datasets. Each type is mapped to a native NumPy type.</p>
+<p>Fully supported types:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="27%" />
+<col width="48%" />
+<col width="24%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Type</th>
+<th class="head">Precisions</th>
+<th class="head">Notes</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Integer</td>
+<td>1, 2, 4 or 8 byte, BE/LE, signed/unsigned</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>Float</td>
+<td>2, 4, 8, 12, 16 byte, BE/LE</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>Complex</td>
+<td>8 or 16 byte, BE/LE</td>
+<td>Stored as HDF5 struct</td>
+</tr>
+<tr class="row-odd"><td>Compound</td>
+<td>Arbitrary names and offsets</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>Strings (fixed-length)</td>
+<td>Any length</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>Strings (variable-length)</td>
+<td>Any length, ASCII or Unicode</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>Opaque (kind &#8216;V&#8217;)</td>
+<td>Any length</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>Boolean</td>
+<td>NumPy 1-byte bool</td>
+<td>Stored as HDF5 enum</td>
+</tr>
+<tr class="row-even"><td>Array</td>
+<td>Any supported type</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>Enumeration</td>
+<td>Any NumPy integer type</td>
+<td>Read/write as integers</td>
+</tr>
+<tr class="row-even"><td>References</td>
+<td>Region and object</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p>Unsupported types:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="64%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Type</th>
+<th class="head">Status</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>HDF5 VLEN (non-string)</td>
+<td>Pull requests welcome</td>
+</tr>
+<tr class="row-odd"><td>HDF5 &#8220;time&#8221; type</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>NumPy &#8220;U&#8221; strings</td>
+<td>No HDF5 equivalent</td>
+</tr>
+<tr class="row-odd"><td>NumPy generic &#8220;O&#8221;</td>
+<td>Not planned</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="what-compression-processing-filters-are-supported">
+<h2>What compression/processing filters are supported?<a class="headerlink" href="#what-compression-processing-filters-are-supported" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="32%" />
+<col width="40%" />
+<col width="28%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Filter</th>
+<th class="head">Function</th>
+<th class="head">Availability</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>DEFLATE/GZIP</td>
+<td>Standard HDF5 compression</td>
+<td>All platforms</td>
+</tr>
+<tr class="row-odd"><td>SHUFFLE</td>
+<td>Increase compression ratio</td>
+<td>All platforms</td>
+</tr>
+<tr class="row-even"><td>FLETCHER32</td>
+<td>Error detection</td>
+<td>All platforms</td>
+</tr>
+<tr class="row-odd"><td>Scale-offset</td>
+<td>Integer/float scaling and truncation</td>
+<td>All platforms</td>
+</tr>
+<tr class="row-even"><td>SZIP</td>
+<td>Fast, patented compression for int/float</td>
+<td><ul class="first last simple">
+<li>UNIX: if supplied with HDF5.</li>
+<li>Windows: read-only</li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference external" href="http://alfven.org/lzf">LZF</a></td>
+<td>Very fast compression, all types</td>
+<td>Ships with h5py, C source
+available</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="what-file-drivers-are-available">
+<h2>What file drivers are available?<a class="headerlink" href="#what-file-drivers-are-available" title="Permalink to this headline">¶</a></h2>
+<p>A number of different HDF5 &#8220;drivers&#8221;, which provide different modes of access
+to the filesystem, are accessible in h5py via the high-level interface. The
+currently supported drivers are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="33%" />
+<col width="41%" />
+<col width="26%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Driver</th>
+<th class="head">Purpose</th>
+<th class="head">Notes</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>sec2</td>
+<td>Standard optimized driver</td>
+<td>Default on UNIX/Windows</td>
+</tr>
+<tr class="row-odd"><td>stdio</td>
+<td>Buffered I/O using stdio.h</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>core</td>
+<td>In-memory file (optionally backed to disk)</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>family</td>
+<td>Multi-file driver</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>mpio</td>
+<td>Parallel HDF5 file access</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="what-s-the-difference-between-h5py-and-pytables">
+<h2>What&#8217;s the difference between h5py and PyTables?<a class="headerlink" href="#what-s-the-difference-between-h5py-and-pytables" title="Permalink to this headline">¶</a></h2>
+<p>The two projects have different design goals. PyTables presents a database-like
+approach to data storage, providing features like indexing and fast &#8220;in-kernel&#8221;
+queries on dataset contents. It also has a custom system to represent data types.</p>
+<p>In contrast, h5py is an attempt to map the HDF5 feature set to NumPy as closely
+as possible. For example, the high-level type system uses NumPy dtype objects
+exclusively, and method and attribute naming follows Python and NumPy
+conventions for dictionary and array access (i.e. &#8221;.dtype&#8221; and &#8221;.shape&#8221;
+attributes for datasets, <tt class="docutils literal"><span class="pre">group[name]</span></tt> indexing syntax for groups, etc).</p>
+<p>Underneath the &#8220;high-level&#8221; interface to h5py (i.e. NumPy-array-like objects;
+what you&#8217;ll typically be using) is a large Cython layer which calls into C.
+This &#8220;low-level&#8221; interface provides access to nearly all of the HDF5 C API.
+This layer is object-oriented with respect to HDF5 identifiers, supports
+reference counting, automatic translation between NumPy and HDF5 type objects,
+translation between the HDF5 error stack and Python exceptions, and more.</p>
+<p>This greatly simplifies the design of the complicated high-level interface, by
+relying on the &#8220;Pythonicity&#8221; of the C API wrapping.</p>
+<p>There&#8217;s also a PyTables perspective on this question at the
+<a class="reference external" href="http://www.pytables.org/moin/FAQ#HowdoesPyTablescomparewiththeh5pyproject.3F">PyTables FAQ</a>.</p>
+</div>
+<div class="section" id="does-h5py-support-parallel-hdf5">
+<h2>Does h5py support Parallel HDF5?<a class="headerlink" href="#does-h5py-support-parallel-hdf5" title="Permalink to this headline">¶</a></h2>
+<p>Starting with version 2.2, h5py supports Parallel HDF5 on UNIX platforms.
+<tt class="docutils literal"><span class="pre">mpi4py</span></tt> is required, as well as an MPIO-enabled build of HDF5.
+Check out <a class="reference internal" href="mpi.html#parallel"><em>Parallel HDF5</em></a> for details.</p>
+</div>
+<div class="section" id="variable-length-vlen-data">
+<h2>Variable-length (VLEN) data<a class="headerlink" href="#variable-length-vlen-data" title="Permalink to this headline">¶</a></h2>
+<p>Variable-length byte and unicode strings are supported by h5py. However, generic
+(non-string) VLEN data cannot yet be processed. Please note that since strings
+in HDF5 are encoded as ASCII or UTF-8, NUL bytes are not allowed in strings.</p>
+</div>
+<div class="section" id="enumerated-types">
+<h2>Enumerated types<a class="headerlink" href="#enumerated-types" title="Permalink to this headline">¶</a></h2>
+<p>HDF5 enumerated types are supported as. As NumPy has no native enum type, they
+are treated on the Python side as integers with a small amount of metadata
+attached to the dtype.</p>
+</div>
+<div class="section" id="numpy-object-types">
+<h2>NumPy object types<a class="headerlink" href="#numpy-object-types" title="Permalink to this headline">¶</a></h2>
+<p>Storage of generic objects (NumPy dtype &#8220;O&#8221;) is not implemented and not
+planned to be implemented, as the design goal for h5py is to expose the HDF5
+feature set, not add to it.  However, objects picked to the &#8220;plain-text&#8221; protocol
+(protocol 0) can be stored in HDF5 as strings.</p>
+</div>
+<div class="section" id="appending-data-to-a-dataset">
+<h2>Appending data to a dataset<a class="headerlink" href="#appending-data-to-a-dataset" title="Permalink to this headline">¶</a></h2>
+<p>The short response is that h5py is NumPy-like, not database-like. Unlike the
+HDF5 packet-table interface (and PyTables), there is no concept of appending
+rows. Rather, you can expand the shape of the dataset to fit your needs. For
+example, if I have a series of time traces 1024 points long, I can create an
+extendable dataset to store them:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span> <span class="o">=</span> <span class="n">myfile</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s">&quot;MyDataset&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span> <span class="n">maxshape</span><span class="o">=</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="mi">1024</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(10,1024)</span>
+</pre></div>
+</div>
+<p>The keyword argument &#8220;maxshape&#8221; tells HDF5 that the first dimension of the
+dataset can be expanded to any size, while the second dimension is limited to a
+maximum size of 1024. We create the dataset with room for an initial ensemble
+of 10 time traces. If we later want to store 10 more time traces, the dataset
+can be expanded along the first axis:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>   <span class="c"># or dset.resize((20,1024))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dset</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(20, 1024)</span>
+</pre></div>
+</div>
+<p>Each axis can be resized up to the maximum values in &#8220;maxshape&#8221;. Things to note:</p>
+<ul class="simple">
+<li>Unlike NumPy arrays, when you resize a dataset the indices of existing data
+do not change; each axis grows or shrinks independently</li>
+<li>The dataset rank (number of dimensions) is fixed when it is created</li>
+</ul>
+</div>
+<div class="section" id="unicode">
+<h2>Unicode<a class="headerlink" href="#unicode" title="Permalink to this headline">¶</a></h2>
+<p>As of h5py 2.0.0, Unicode is supported for file names as well as for objects
+in the file. When object names are read, they are returned as Unicode by default.</p>
+<p>However, HDF5 has no predefined datatype to represent fixed-width UTF-16 or
+UTF-32 (NumPy format) strings. Therefore, the NumPy &#8216;U&#8217; datatype is not supported.</p>
+</div>
+<div class="section" id="development">
+<h2>Development<a class="headerlink" href="#development" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="building-from-git">
+<h3>Building from Git<a class="headerlink" href="#building-from-git" title="Permalink to this headline">¶</a></h3>
+<p>We moved to GitHub in December of 2012 (<a class="reference external" href="http://github.com/h5py/h5py">http://github.com/h5py/h5py</a>).</p>
+<p>We use the following conventions for branches and tags:</p>
+<ul class="simple">
+<li>master: integration branch for the next minor (or major) version</li>
+<li>2.0, 2.1, 2.2, etc: bugfix branches for released versions</li>
+<li>tags 2.0.0, 2.0.1, etc: Released bugfix versions</li>
+</ul>
+</div>
+<div class="section" id="to-build-from-a-git-checkout">
+<h3>To build from a Git checkout:<a class="headerlink" href="#to-build-from-a-git-checkout" title="Permalink to this headline">¶</a></h3>
+<p>Clone the project:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ git clone https://github.com/h5py/h5py.git
+$ cd h5py
+</pre></div>
+</div>
+<p>(Optional) Choose which branch to build from (e.g. a stable branch):</p>
+<div class="highlight-python"><div class="highlight"><pre>$ git checkout 2.1
+</pre></div>
+</div>
+<p>Build the project. If given, /path/to/hdf5 should point to a directory
+containing a compiled, shared-library build of HDF5 (containing things like &#8220;include&#8221; and &#8220;lib&#8221;):</p>
+<div class="highlight-python"><div class="highlight"><pre>$ python setup.py build [--hdf5=/path/to/hdf5]
+</pre></div>
+</div>
+<p>(Optional) Run the unit tests:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ python setup.py test
+</pre></div>
+</div>
+<p>Report any failing tests to the mailing list (h5py at googlegroups), or by filing a bug report at GitHub.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">FAQ</a><ul>
+<li><a class="reference internal" href="#what-datatypes-are-supported">What datatypes are supported?</a></li>
+<li><a class="reference internal" href="#what-compression-processing-filters-are-supported">What compression/processing filters are supported?</a></li>
+<li><a class="reference internal" href="#what-file-drivers-are-available">What file drivers are available?</a></li>
+<li><a class="reference internal" href="#what-s-the-difference-between-h5py-and-pytables">What&#8217;s the difference between h5py and PyTables?</a></li>
+<li><a class="reference internal" href="#does-h5py-support-parallel-hdf5">Does h5py support Parallel HDF5?</a></li>
+<li><a class="reference internal" href="#variable-length-vlen-data">Variable-length (VLEN) data</a></li>
+<li><a class="reference internal" href="#enumerated-types">Enumerated types</a></li>
+<li><a class="reference internal" href="#numpy-object-types">NumPy object types</a></li>
+<li><a class="reference internal" href="#appending-data-to-a-dataset">Appending data to a dataset</a></li>
+<li><a class="reference internal" href="#unicode">Unicode</a></li>
+<li><a class="reference internal" href="#development">Development</a><ul>
+<li><a class="reference internal" href="#building-from-git">Building from Git</a></li>
+<li><a class="reference internal" href="#to-build-from-a-git-checkout">To build from a Git checkout:</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="contributing.html"
+                        title="previous chapter">Bug Reports &amp; Contributions</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="licenses.html"
+                        title="next chapter">Licenses and legal info</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/faq.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="licenses.html" title="Licenses and legal info"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="contributing.html" title="Bug Reports &amp; Contributions"
+             >previous</a> |</li>
+        <li><a href="index.html">h5py 2.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Andrew Collette and contributors.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

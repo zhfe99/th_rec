@@ -1,0 +1,141 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>High-Level Reference &mdash; h5py 2.5.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="h5py 2.5.0 documentation" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="../index.html">h5py 2.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="high-level-reference">
+<h1>High-Level Reference<a class="headerlink" href="#high-level-reference" title="Permalink to this headline">¶</a></h1>
+<p>The &#8220;high-level interface&#8221; (as distinct from the large, C-like API that talks
+directly to HDF5) is how most users will interact with h5py.  It consists of
+a small number of classes which represent the main HDF5 abstractions like
+file, groups, and datasets.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file.html">HDF5 File Objects</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file.html#opening-creating-files">Opening &amp; creating files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file.html#file-drivers">File drivers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file.html#version-bounding">Version Bounding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file.html#user-block">User block</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file.html#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="group.html">HDF5 Groups</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="group.html#creating-groups">Creating groups</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group.html#dict-interface-and-links">Dict interface and links</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="group.html#hard-links">Hard links</a></li>
+<li class="toctree-l3"><a class="reference internal" href="group.html#soft-links">Soft links</a></li>
+<li class="toctree-l3"><a class="reference internal" href="group.html#external-links">External links</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="group.html#reference">Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group.html#link-classes">Link classes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dataset.html">HDF5 Datasets</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dataset.html#creating-datasets">Creating datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dataset.html#chunked-storage">Chunked storage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dataset.html#resizable-datasets">Resizable datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dataset.html#filter-pipeline">Filter pipeline</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dataset.html#lossless-compression-filters">Lossless compression filters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dataset.html#custom-compression-filters">Custom compression filters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dataset.html#scale-offset-filter">Scale-Offset filter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dataset.html#shuffle-filter">Shuffle filter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dataset.html#fletcher32-filter">Fletcher32 filter</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dataset.html#reading-writing-data">Reading &amp; writing data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dataset.html#fancy-indexing">Fancy indexing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dataset.html#length-and-iteration">Length and iteration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dataset.html#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="attr.html">HDF5 Attributes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="attr.html#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dims.html">HDF5 Dimension Scales</a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/high/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="../index.html">h5py 2.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Andrew Collette and contributors.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

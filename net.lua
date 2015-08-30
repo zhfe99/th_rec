@@ -7,7 +7,7 @@
 
 local lib = require('lua_lib')
 local th = require('lua_th')
-local alex = require('model.alex')
+local alx = require('model.alx')
 local goo = require('model.goo')
 local stn = require('model.stnet')
 local net = {}
@@ -41,8 +41,8 @@ function net.newStn(base, nC, bn, ini, tran, loc, m)
 
   -- localization net
   local locNet, modLs, k
-  if base == 'alex' then
-    locNet, modLs, k = alex.newStnLoc(bn, ini, loc)
+  if base == 'alx' then
+    locNet, modLs, k = alx.newStnLoc(bn, ini, loc)
   elseif base == 'goo' then
     locNet, modLs, k = goo.newStnLoc(bn, ini, loc)
   else
@@ -56,8 +56,8 @@ function net.newStn(base, nC, bn, ini, tran, loc, m)
 
   -- classify net: m images => nC x softmax scores
   local clfyNet, modAs
-  if base == 'alex' then
-    clfyNet, modAs = alex.newStnClfy(nC, ini, m)
+  if base == 'alx' then
+    clfyNet, modAs = alx.newStnClfy(nC, ini, m)
   elseif base == 'goo' then
     clfyNet, modAs = goo.newStnClfy(nC, ini, m)
   else
@@ -88,31 +88,31 @@ end
 function net.new(solConf, opt)
   -- default parameter
   local ini = solConf.ini or 'xavier_caffe'
-  local mStn = solConf.mStn or 1
+  local nStn = solConf.nStn or 1
   local bn = solConf.bn or 1
   local nC = solConf.nC or #opt.DATA.cNms
-  local tran = solConf.nC or 'aff'
+  local tran = solConf.tran or 'aff'
   local loc = solConf.loc or 'type1'
 
   -- model & sub-modules
   local model, mod1s, mod2s
-  if lib.startswith(solConf.netNm, 'alexS') then
-    model, mod1s, mod2s = net.newStn('alex', nC, bn, ini, tran, loc, mStn)
+  if lib.startswith(solConf.netNm, 'alxS') then
+    model, mod1s, mod2s = net.newStn('alx', nC, bn, ini, tran, loc, nStn)
 
   elseif lib.startswith(solConf.netNm, 'gooS') then
-    model, mod1s, mod2s = net.newStn('goo', nC, bn, ini, tran, loc, mStn)
+    model, mod1s, mod2s = net.newStn('goo', nC, bn, ini, tran, loc, nStn)
 
-  elseif lib.startswith(solConf.netNm, 'alexT') then
-    model, mod1s = alex.newT(nC, bn, ini)
+  elseif lib.startswith(solConf.netNm, 'alxT') then
+    model, mod1s = alx.newT(nC, bn, ini)
 
-  elseif lib.startswith(solConf.netNm, 'alexd') then
-    model, mod1s = alex.newd(nC, bn, ini)
+  elseif lib.startswith(solConf.netNm, 'alxd') then
+    model, mod1s = alx.newd(nC, bn, ini)
 
-  elseif lib.startswith(solConf.netNm, 'alexc') then
-    model, mod1s = alex.newc(nC, bn, ini)
+  elseif lib.startswith(solConf.netNm, 'alxc') then
+    model, mod1s = alx.newc(nC, bn, ini)
 
-  elseif lib.startswith(solConf.netNm, 'alex') then
-    model, mod1s = alex.new(nC, bn, ini)
+  elseif lib.startswith(solConf.netNm, 'alx') then
+    model, mod1s = alx.new(nC, bn, ini)
 
   elseif lib.startswith(solConf.netNm, 'gooT') then
     model, mod1s = goo.newT(nC, bn, ini)
@@ -133,9 +133,7 @@ function net.new(solConf, opt)
 
   -- loss
   local loss
-  if lib.startswith(solConf.netNm, 'alex') then
-    loss = nn.ClassNLLCriterion()
-  elseif lib.startswith(solConf.netNm, 'gooc') then
+  if lib.startswith(solConf.netNm, 'gooc') then
     local NLL = nn.ClassNLLCriterion()
     loss = nn.ParallelCriterion(true):add(NLL):add(NLL,0.3):add(NLL,0.3)
   else
