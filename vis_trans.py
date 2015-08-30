@@ -54,8 +54,11 @@ def shEpoTran(dbe, ver, con, nStn, epo):
     nTop = min(input0.shape[0], 7)
 
     # show
-    cols = nTop
+    cols = nTop + 1
     Ax = lib.iniAx(1, nStn * 2, cols, [3 * nStn * 2, 3 * cols], flat=False)
+
+    lib.setAx(Ax[0, nTop])
+    lib.plt.axis('off')
 
     # each transformer
     for iStn in range(nStn):
@@ -85,6 +88,10 @@ def shEpoTran(dbe, ver, con, nStn, epo):
             # input
             inputNew = input[iTop].transpose((1, 2, 0))
             lib.shImg(inputNew, ax=Ax[iStn * 2 + 1, col])
+
+        # mean
+        inMe = input.mean(0)
+        lib.shImg(inMe.transpose((1, 2, 0)), ax=Ax[iStn * 2 + 1, nTop])
 
     # save
     # lib.show()
