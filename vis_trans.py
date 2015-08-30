@@ -13,10 +13,9 @@ import matplotlib as mpl
 mpl.use('Agg')
 import argparse
 import os
-import sys
-import numpy as np
 import py_lib as lib
 lib.prSet(3)
+
 
 # fold
 def shEpoTran(dbe, ver, con, nStn, epo):
@@ -68,9 +67,8 @@ def shEpoTran(dbe, ver, con, nStn, epo):
             col = iTop
 
             # original input
-            # import pdb; pdb.set_trace()
-            lib.shImg(input0[iTop].transpose((1, 2, 0)) * 255, ax=Ax[iStn * 2, col])
-            # lib.shImg(input0[iTop, 0], ax=Ax[iStn * 2, col])
+            input0New = input0[iTop].transpose((1, 2, 0))
+            lib.shImg(input0New, ax=Ax[iStn * 2, col])
 
             idxYs = [0, 0, h - 1, h - 1, 0]
             idxXs = [0, w - 1, w - 1, 0, 0]
@@ -85,12 +83,11 @@ def shEpoTran(dbe, ver, con, nStn, epo):
             lib.plt.axis('image')
 
             # input
-            import pdb; pdb.set_trace()
-
-            lib.shImg(input[iTop].transpose((1, 2, 0)) * 255, ax=Ax[iStn * 2 + 1, col])
-            # lib.shImg(input[iTop, 0], ax=Ax[iStn * 2 + 1, col])
+            inputNew = input[iTop].transpose((1, 2, 0))
+            lib.shImg(inputNew, ax=Ax[iStn * 2 + 1, col])
 
     # save
+    # lib.show()
     lib.shSvPath(pdfPath)
 
 if __name__ == '__main__':
