@@ -13,11 +13,11 @@ local M = {}
 -- Parse options.
 --
 -- Input
---   arg   -  input
---   mode  -  mode, 'train' | 'test' | 'demo'
+--   arg      -  input
+--   mode     -  mode, 'train' | 'test' | 'demo'
 --
 -- Output
---   opt   -  option
+--   opt      -  option
 --   solConf  -  solver configuration
 function M.parse(arg, mode)
 
@@ -30,12 +30,12 @@ function M.parse(arg, mode)
   cmd:option('-seed', 2, 'manually set RNG seed')
   cmd:option('-dbe', 'bird', 'database name')
   cmd:option('-ver', 'v1', 'version')
-  cmd:option('-con', 'alex', 'configuration')
+  cmd:option('-con', 'alx', 'configuration')
   cmd:option('-threads', 8, '#threads')
   cmd:option('-nGpu', 1, '#GPUs')
   cmd:option('-shuffle', true, 'shuffle training samples')
-  cmd:option('-cmp', true, 'compress or not')
-  cmd:option('-local', true, 'using local data')
+  cmd:option('-cmp', true, 'using compressed data or not')
+  cmd:option('-local', true, 'using local data or not')
   cmd:option('-deb', false, 'debug mode')
   opt = cmd:parse(arg or {})
 
