@@ -20,7 +20,7 @@ local th = require('lua_th')
 local lib = require('lua_lib')
 local opts = require('opts')
 local net = require('net')
-local dp = require('dp_lmdb')
+local dp = require('dp_mnist')
 local tr_deb = require('tr_deb')
 lib.prSet(5)
 

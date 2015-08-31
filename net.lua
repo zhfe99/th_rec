@@ -9,6 +9,7 @@ local lib = require('lua_lib')
 local th = require('lua_th')
 local alx = require('model.alx')
 local goo = require('model.goo')
+local len = require('model.len')
 local stn = require('model.stnet')
 local net = {}
 

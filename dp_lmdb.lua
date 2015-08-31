@@ -18,57 +18,6 @@ local sampleSiz, InputSize, meanInfo, trLmdb, teLmdb, DataMean, DataStd, cmp
 local provider = {}
 
 ----------------------------------------------------------------------
--- Initialize data-loader.
---
--- Input
---   opt      -  option
---   solConf  -  solver configuration
-function provider.init(opt, solConf)
-  local lib = require('lua_lib')
-  lib.prIn('data_load init')
-
-  -- compress
-  if solConf.cmp == nil then
-    cmp = true
-  else
-    cmp = solConf.cmp
-  end
-
-  -- dimension
-  sampleSiz = solConf.smpSiz or {3, 224, 224}
-  InputSize = sampleSiz[2]
-
-  -- mean
-  meanInfo = torch.load(opt.PATH.meanPath)
-  DataMean = meanInfo.me
-  DataStd = meanInfo.std
-
-  -- train
-  trLmdb = opt.PATH.trLmdb
-  if not cmp then
-    trLmdb = trLmdb .. '_ori'
-  end
-  local trLmdb2 = trLmdb:gsub(paths.home, '/workplace/feng')
-  if paths.dirp(trLmdb2) then
-    trLmdb = trLmdb2
-    lib.pr('local tr lmdb: %s', trLmdb)
-  end
-
-  -- test
-  teLmdb = opt.PATH.teLmdb
-  if not cmp then
-    teLmdb = teLmdb .. '_ori'
-  end
-  local teLmdb2 = teLmdb:gsub(paths.home, '/workplace/feng')
-  if paths.dirp(teLmdb2)  then
-    teLmdb = teLmdb2
-    lib.pr('local te lmdb: %s', teLmdb)
-  end
-
-  lib.prOut()
-end
-
-----------------------------------------------------------------------
 -- Normalize the data by subtracting the mean and dividing the scale.
 --
 -- Input
@@ -180,6 +129,66 @@ local function ExtractFromLMDBTest(key, data)
   img = img:narrow(nDim, start_x, InputSize):narrow(nDim - 1, start_y, InputSize)
 
   return img:float(), class
+end
+
+----------------------------------------------------------------------
+-- Initialize data-loader.
+--
+-- Input
+--   opt      -  option
+--   solConf  -  solver configuration
+--
+-- Output
+--   trDB     -  train DB
+--   teDB     -  test DB
+function provider.init(opt, solConf)
+  local lib = require('lua_lib')
+  lib.prIn('data_load init')
+
+  -- compress
+  if solConf.cmp == nil then
+    cmp = true
+  else
+    cmp = solConf.cmp
+  end
+
+  -- dimension
+  sampleSiz = solConf.smpSiz or {3, 224, 224}
+  InputSize = sampleSiz[2]
+
+  -- mean
+  meanInfo = torch.load(opt.PATH.meanPath)
+  DataMean = meanInfo.me
+  DataStd = meanInfo.std
+
+  -- train
+  trLmdb = opt.PATH.trLmdb
+  if not cmp then
+    trLmdb = trLmdb .. '_ori'
+  end
+  local trLmdb2 = trLmdb:gsub(paths.home, '/workplace/feng')
+  if paths.dirp(trLmdb2) then
+    trLmdb = trLmdb2
+    lib.pr('local tr lmdb: %s', trLmdb)
+  end
+
+  -- test
+  teLmdb = opt.PATH.teLmdb
+  if not cmp then
+    teLmdb = teLmdb .. '_ori'
+  end
+  local teLmdb2 = teLmdb:gsub(paths.home, '/workplace/feng')
+  if paths.dirp(teLmdb2)  then
+    teLmdb = teLmdb2
+    lib.pr('local te lmdb: %s', teLmdb)
+  end
+
+  -- create threads for dataloader
+  local trDB = provider.newTr()
+  local teDB = provider.newTe()
+
+  lib.prOut()
+  return trDB, teDB
 end
 
 ----------------------------------------------------------------------
