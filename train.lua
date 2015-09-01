@@ -82,8 +82,6 @@ local function ford(DB, train, epo)
     if opt.deb and (iBat - 1) % 100 == 0 then
       tr_deb.debStn(model, tmpFold, epo, iBat, train, opt, con, dp.denormalize)
       tr_deb.debStnGrad(model, tmpFold, epo, iBat, train, opt, con, dp.denormalize)
-      local debugger = require('fb.debugger')
-      debugger.enter()
     end
 
     -- update

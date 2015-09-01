@@ -108,7 +108,9 @@ function tr_deb.debStnGrad(model, tmpFold, epo, iMini, train, opt, con, denormal
     -- grid
     local gridMod = model:findModules('nn.AffineGridGeneratorBHWD')[iStn]
     gridOuts[iStn] = gridMod.output
-    gridGrads[iStn] = gridMod.gradInput
+
+    local smpMod = model:findModules('nn.BilinearSamplerBHWD')[iStn]
+    gridGrads[iStn] = smpMod.gradInput[2]
   end
 
   -- hdf handler
