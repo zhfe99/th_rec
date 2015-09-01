@@ -3,9 +3,10 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
---   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-09
 
 require 'stn'
+local th = require('lua_th')
 
 local stn = {}
 
@@ -103,7 +104,7 @@ end
 ----------------------------------------------------------------------
 -- Create the stn model.
 --
--- In:  1 image
+-- In:  d x inSiz x inSiz image
 -- Out: m images
 --
 -- Input
@@ -162,6 +163,9 @@ function stn.new(locNet, tran, k, inSiz, m)
 
     -- transpose back to standard BDHW format
     smpNet:add(nn.Transpose({3, 4}, {2, 3}))
+
+    -- batch normalization
+    th.addSBN(smpNet, 3, 2)
   end
 
   return spaNet, tranMods

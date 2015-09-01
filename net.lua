@@ -1,9 +1,9 @@
 #!/usr/bin/env th
--- Provide the net.
+-- Create network.
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
---   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-09
 
 local lib = require('lua_lib')
 local th = require('lua_th')
@@ -16,7 +16,7 @@ local net = {}
 ----------------------------------------------------------------------
 -- Create the STN model with fine-tuning.
 --
--- In: 1 image
+-- In: d x h x w image
 -- Out: nC x softmax scores
 --
 -- Input
@@ -30,113 +30,112 @@ local net = {}
 --
 -- Output
 --   model  -  model
---   mods   -  module needed to be update, m x
---   modSs  -  module needed to be update, m x
+--   modss  -  sub-modules, two-level table
 function net.newStn(base, nC, bn, ini, tran, loc, m)
-  assert(tran)
-  assert(loc)
-  assert(m)
-
   -- concat
   local model = nn.Sequential()
 
   -- localization net
-  local locNet, modLs, k
+  local locNet, locMods, k, inSiz
   if base == 'alx' then
-    locNet, modLs, k = alx.newStnLoc(bn, ini, loc)
+    locNet, locMods, k = alx.newStnLoc(bn, ini, loc)
+    inSiz = 224
   elseif base == 'goo' then
-    locNet, modLs, k = goo.newStnLoc(bn, ini, loc)
+    locNet, locMods, k = goo.newStnLoc(bn, ini, loc)
+    inSiz = 224
+  elseif base == 'len' then
+    locNet, locMods, k = len.newStnLoc(ini)
+    inSiz = 32
   else
     assert(nil, string.format('unknown base: %s', base))
   end
 
   -- stn net: 1 image => m images
-  local inSiz = 224
-  local stnNet, modSs = stn.new(locNet, tran, k, inSiz, m)
+  local stnNet, stnMods = stn.new(locNet, tran, k, inSiz, m)
   model:add(stnNet)
 
   -- classify net: m images => nC x softmax scores
-  local clfyNet, modAs
+  local clfyNet, clfyMods
   if base == 'alx' then
-    clfyNet, modAs = alx.newStnClfy(nC, ini, m)
+    clfyNet, clfyMods = alx.newStnClfy(nC, ini, m)
   elseif base == 'goo' then
-    clfyNet, modAs = goo.newStnClfy(nC, ini, m)
+    clfyNet, clfyMods = goo.newStnClfy(nC, ini, m)
+  elseif base == 'len' then
+    clfyNet, clfyMods = len.newStnClfy(nC, ini, m)
   else
     assert(nil, string.format('unknown base: %s', base))
   end
   model:add(clfyNet)
 
-  -- model needed to re-train
-  local mods = lib.tabCon(modLs, modSs, modAs)
-
-  return model, mods, modSs
+  return model, {clfyMods, {locNet}, locMods, stnMods}
 end
 
 ----------------------------------------------------------------------
 -- Create a new model.
 --
 -- Input
---   solConf  -  solver configuration
+--   con      -  solver configuration
 --   opt      -  options
 --
 -- Output
 --   model    -  model
 --   loss     -  loss
 --   modelSv  -  model for saving
---   mod1s    -  modules (level 1)
---   mod2s    -  modules (level 2)
+--   modss    -  modules of different levels
 --   optStat  -  optimize state
-function net.new(solConf, opt)
+function net.new(con, opt)
   lib.prIn('net.new')
 
   -- default parameter
-  local ini = solConf.ini or 'xavier_caffe'
-  local nStn = solConf.nStn or 1
-  local bn = solConf.bn or 1
-  local nC = solConf.nC or #opt.DATA.cNms
-  local tran = solConf.tran or 'aff'
-  local loc = solConf.loc or 'type1'
+  local ini = con.ini or 'xavier_caffe'
+  local nStn = con.nStn or 1
+  local bn = con.bn or 1
+  local nC = con.nC or #opt.DATA.cNms
+  local tran = con.tran or 'aff'
+  local loc = con.loc or 'type1'
 
   -- model & sub-modules
-  local model, mod1s, mod2s
-  if lib.startswith(solConf.netNm, 'alxS') then
-    model, mod1s, mod2s = net.newStn('alx', nC, bn, ini, tran, loc, nStn)
+  local model, modss
+  if lib.startswith(con.netNm, 'alxS') then
+    model, modss = net.newStn('alx', nC, bn, ini, tran, loc, nStn)
 
-  elseif lib.startswith(solConf.netNm, 'gooS') then
-    model, mod1s, mod2s = net.newStn('goo', nC, bn, ini, tran, loc, nStn)
+  elseif lib.startswith(con.netNm, 'gooS') then
+    model, modss = net.newStn('goo', nC, bn, ini, tran, loc, nStn)
 
-  elseif lib.startswith(solConf.netNm, 'alxT') then
-    model, mod1s = alx.newT(nC, bn, ini)
+  elseif lib.startswith(con.netNm, 'lenS') then
+    model, modss = net.newStn('len', nC, bn, ini, tran, loc, nStn)
 
-  elseif lib.startswith(solConf.netNm, 'alxd') then
-    model, mod1s = alx.newd(nC, bn, ini)
+  elseif lib.startswith(con.netNm, 'alxT') then
+    model, modss = alx.newT(nC, bn, ini)
 
-  elseif lib.startswith(solConf.netNm, 'alxc') then
-    model, mod1s = alx.newc(nC, bn, ini)
+  elseif lib.startswith(con.netNm, 'alxd') then
+    model, modss = alx.newd(nC, bn, ini)
 
-  elseif lib.startswith(solConf.netNm, 'alx') then
-    model, mod1s = alx.new(nC, bn, ini)
+  elseif lib.startswith(con.netNm, 'alxc') then
+    model, modss = alx.newc(nC, bn, ini)
 
-  elseif lib.startswith(solConf.netNm, 'gooT') then
-    model, mod1s = goo.newT(nC, bn, ini)
+  elseif lib.startswith(con.netNm, 'alx') then
+    model, modss = alx.new(nC, bn, ini)
 
-  elseif lib.startswith(solConf.netNm, 'gooc') then
-    model, mod1s = goo.newc(nC, bn, ini)
+  elseif lib.startswith(con.netNm, 'gooT') then
+    model, modss = goo.newT(nC, bn, ini)
 
-  elseif lib.startswith(solConf.netNm, 'goo') then
-    model, mod1s = goo.new(nC, bn, ini)
+  elseif lib.startswith(con.netNm, 'gooc') then
+    model, modss = goo.newc(nC, bn, ini)
+
+  elseif lib.startswith(con.netNm, 'goo') then
+    model, modss = goo.new(nC, bn, ini)
 
   else
-    assert(nil, string.format('unknown net: %s', solConf.netNm))
+    assert(nil, string.format('unknown net: %s', con.netNm))
   end
 
   -- index of sub-modules
-  local idx1 = th.idxMod(model, mod1s)
-  local idx2 = th.idxMod(model, mod2s)
+  local idxs = th.idxMod(model, modss)
 
   -- loss
   local loss
-  if lib.startswith(solConf.netNm, 'gooc') then
+  if lib.startswith(con.netNm, 'gooc') then
     local NLL = nn.ClassNLLCriterion()
     loss = nn.ParallelCriterion(true):add(NLL):add(NLL,0.3):add(NLL,0.3)
   else
@@ -153,23 +152,22 @@ function net.new(solConf, opt)
   loss:cuda()
 
   -- re-locate sub-module
-  mod1s = th.subMod(model, idx1)
-  mod2s = th.subMod(model, idx2)
+  modss = th.subMod(model, idxs)
 
   -- save model
   local modelSv = th.getModSv(model, opt.nGpu)
 
   -- init optimization state
   local optStat = {
-    learningRate = solConf.lrs[1][3],
-    weightDecay = solConf.lrs[1][4],
+    learningRate = con.lrs[1][3],
+    weightDecay = con.lrs[1][4],
     momentum = 0.9,
     learningRateDecay = 0.0,
     dampening = 0.0
   }
 
   lib.prOut()
-  return model, loss, modelSv, mod1s, mod2s, optStat
+  return model, loss, modelSv, modss, optStat
 end
 
 return net

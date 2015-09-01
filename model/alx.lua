@@ -15,8 +15,8 @@ local modPath0 = paths.concat(paths.home, 'save/imgnet/torch/model/imgnet_v2_alx
 ----------------------------------------------------------------------
 -- Create the basic alexnet model.
 --
--- In: an image
--- Output: a nC-dimension softmax vector
+-- In: 3 x 224 x 224 image
+-- Output: nC-dimension softmax vector
 --
 -- Input
 --   nC     -  #classes
@@ -25,7 +25,7 @@ local modPath0 = paths.concat(paths.home, 'save/imgnet/torch/model/imgnet_v2_alx
 --
 -- Output
 --   model  -  model
---   mods   -  {}
+--   mods   -  modules
 function alx.newd(nC, bn, ini)
   -- conv1
   local features = nn.Sequential()
@@ -79,13 +79,13 @@ function alx.newd(nC, bn, ini)
   -- init
   th.iniMod(model, ini)
 
-  return model, {}
+  return model, {{}}
 end
 
 ----------------------------------------------------------------------
 -- Create the basic alxnet model.
 --
--- In: an image
+-- In: 3 x 224 x 224 image
 -- Output: a nC-dimension softmax vector
 --
 -- Input
@@ -151,13 +151,13 @@ function alx.new(nC, bn, ini)
   -- init
   th.iniMod(model, ini)
 
-  return model, {}
+  return model, {{}}
 end
 
 ----------------------------------------------------------------------
 -- Create alxnet model for fine-tuning.
 --
--- In: 1 image
+-- In: 3 x 224 x 224 image
 -- Output: nC x softmax
 --
 -- Input
@@ -167,7 +167,7 @@ end
 --
 -- Output
 --   model  -  pre-trained model
---   mods   -  sub-modules needed to re-train, m x
+--   mods   -  sub-modules
 function alx.newT(nC, bn, ini)
   local model = torch.load(modPath0)
 
@@ -181,13 +181,13 @@ function alx.newT(nC, bn, ini)
   -- init
   th.iniMod(mod, ini)
 
-  return model, {mod}
+  return model, {{mod}}
 end
 
 ----------------------------------------------------------------------
 -- Create alexnet model for fine-tuning.
 --
--- In: m images
+-- In: m, 3 x 224 x 224 image
 -- Out: nC x softmax
 --
 -- Input
@@ -233,7 +233,7 @@ end
 ----------------------------------------------------------------------
 -- Create the localization net for STN.
 --
--- In: 1 image
+-- In: 3 x 224 x 224 image
 -- Out: k x vector
 --
 -- Input
@@ -245,7 +245,7 @@ end
 --
 -- Output
 --   model  -  model
---   mods   -  sub-modules needed to re-train, m x
+--   mods   -  sub-modules, a Linear layer
 --   k      -  k
 function alx.newStnLoc(bn, ini, loc)
   -- load old model
@@ -257,17 +257,15 @@ function alx.newStnLoc(bn, ini, loc)
     model:remove(2)
 
     -- add a new classifier layer
-    k = 128
     local classifier = nn.Sequential()
-    classifier:add(nn.View(256 * 6 * 6))
+    model:add(classifier)
 
+    k = 128
+    classifier:add(nn.View(256 * 6 * 6))
     mod = nn.Linear(256 * 6 * 6, k)
     classifier:add(mod)
     th.addBN(classifier, k, bn)
-    -- classifier:add(nn.Threshold(0, 1e-6))
     classifier:add(cudnn.ReLU(true))
-
-    model:add(classifier)
 
     -- init
     th.iniMod(classifier, ini)

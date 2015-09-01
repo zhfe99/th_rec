@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
---   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-09
 
 require 'eladtools'
 require 'xlua'
@@ -122,7 +122,7 @@ local function ExtractFromLMDBTest(key, data)
     img = data.img:float() / 255
   end
 
-  -- crop
+  -- crop the center
   local nDim = img:dim()
   local start_x = math.ceil((img:size(nDim) - InputSize) / 2)
   local start_y = math.ceil((img:size(nDim - 1) - InputSize) / 2)

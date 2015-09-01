@@ -3,24 +3,23 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
---   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-09
 
 local lib = require('lua_lib')
 
-local M = {}
+local opts = {}
 
 ----------------------------------------------------------------------
 -- Parse options.
 --
 -- Input
---   arg      -  input
---   mode     -  mode, 'train' | 'test' | 'demo'
+--   arg   -  input
+--   mode  -  mode, 'train' | 'test' | 'demo'
 --
 -- Output
---   opt      -  option
---   solConf  -  solver configuration
-function M.parse(arg, mode)
-  lib.prIn('parse')
+--   opt   -  option
+--   con   -  configuration
+function opts.parse(arg, mode)
 
   local cmd = torch.CmdLine()
   cmd:text()
@@ -29,6 +28,7 @@ function M.parse(arg, mode)
   cmd:text('Options:')
   cmd:addTime()
   cmd:option('-seed', 2, 'manually set RNG seed')
+  cmd:option('-prL', 4, 'prompt level')
   cmd:option('-dbe', 'bird', 'database name')
   cmd:option('-ver', 'v1', 'version')
   cmd:option('-con', 'alx', 'configuration')
@@ -38,27 +38,31 @@ function M.parse(arg, mode)
   cmd:option('-cmp', true, 'using compressed data or not')
   cmd:option('-local', true, 'using local data or not')
   cmd:option('-deb', false, 'debug mode')
+  cmd:option('-test-epo', 1, 'test epoch')
   opt = cmd:parse(arg or {})
+
+  lib.prSet(opt.prL)
+  lib.prIn('parse')
 
   local dbe = opt.dbe
   local ver = opt.ver
-  local con = opt.con
+  local conNm = opt.con
 
   -- data
   local th_lst = require('lua_th.th_lst')
   opt.PATH = th_lst.dbeInfoPath(dbe, ver)
   opt.DATA = th_lst.dbeInfoData(opt.PATH)
-  opt.CONF = th_lst.dbeInfoConf(opt.PATH, con)
+  opt.CONF = th_lst.dbeInfoConf(opt.PATH, conNm)
 
   -- configuration
-  local solConf = dofile(opt.CONF.protTr)
+  local con = dofile(opt.CONF.protTr)
 
   -- log
   cmd:log(opt.CONF.logPath .. '_' .. mode)
 
   -- gpu
-  if solConf.nGpu then
-    opt.nGpu = solConf.nGpu
+  if con.nGpu then
+    opt.nGpu = con.nGpu
   end
   cutorch.setDevice(1)
 
@@ -68,10 +72,10 @@ function M.parse(arg, mode)
   torch.manualSeed(opt.seed)
 
   lib.prTab(opt, 'opt')
-  lib.prTab(solConf, 'solConf')
+  lib.prTab(con, 'con')
 
   lib.prOut()
-  return opt, solConf
+  return opt, con
 end
 
-return M
+return opts

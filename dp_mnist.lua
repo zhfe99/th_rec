@@ -13,6 +13,64 @@ local sampleSiz, InputSize, meanInfo, trLmdb, teLmdb, DataMean, DataStd, cmp
 local provider = {}
 
 ----------------------------------------------------------------------
+-- De-normalize the data.
+--
+-- Input
+--   data  -  b x d x h x w
+--
+-- Output
+--   data  -  b x d x h x w
+function provider.denormalize(data)
+  local data = data:float()
+  data:mul(DataStd)
+  data:add(DataMean)
+  return data
+end
+
+----------------------------------------------------------------------
+-- Distort image.
+--
+-- Input
+--   foo  -  foo, n x d x h x w
+--
+-- Output
+--   res  -  distorted image, n x d x h x w
+local function distortData32(foo)
+  local hNew = 60
+  local res = torch.FloatTensor(foo:size(1), 1, 32, 32):fill(0)
+
+  -- each image
+  for i = 1, foo:size(1) do
+    -- original
+    baseImg = foo:select(1, i)
+
+    -- rotate
+    r = image.rotate(baseImg, torch.uniform(-3.14 / 4, 3.14 / 4))
+
+    -- scale
+    scale = torch.uniform(0.7, 1.2)
+    sz = torch.floor(scale * 32)
+    s = image.scale(r, sz, sz)
+
+    -- translate
+    rest = hNew - sz
+    offsetx = torch.random(1, 1 + rest)
+    offsety = torch.random(1, 1 + rest)
+
+    local distImg = torch.FloatTensor(1, hNew, hNew):fill(0)
+    distImg:narrow(2, offsety, sz):narrow(3, offsetx, sz):copy(s)
+
+    -- image.save('s.jpg', s)
+    -- image.save('distImg.jpg', distImg)
+    -- local debugger = require('fb.debugger')
+    -- debugger.enter()
+
+    res:select(1, i):copy(image.scale(distImg, 32, 32))
+  end
+  return res
+end
+
+----------------------------------------------------------------------
 -- Initialize data-loader.
 --
 -- Input
@@ -37,15 +95,19 @@ function provider.init(opt, solConf)
   local trBin = torch.load(trBinPath, 'ascii')
   local teBin = torch.load(teBinPath, 'ascii')
   trBin.data = trBin.data:float()
-  teBin.data = tBin.data:float()
+  teBin.data = teBin.data:float()
   trBin.labels = trBin.labels:float()
   teBin.labels = teBin.labels:float()
 
+  -- distort
+  trBin.data = distortData32(trBin.data)
+  teBin.data = distortData32(teBin.data)
+
   -- normalize
-  mean = trBin.data:mean()
-  std = trBin.data:std()
-  trBin.data:add(-mean):div(std)
-  teBin.data:add(-mean):div(std)
+  DataMean = trBin.data:mean()
+  DataStd = trBin.data:std()
+  trBin.data:add(-DataMean):div(DataStd)
+  teBin.data:add(-DataMean):div(DataStd)
 
   -- create
   -- local trDB = {}
@@ -112,10 +174,8 @@ function provider.fordNextBatch(bin, train, opt)
     bin.iMini = 1
   end
 
-  return data, labels
-
   lib.prOut()
-  return data, labels
+  return data:cuda(), labels:cuda()
 end
 
 return provider

@@ -44,7 +44,7 @@ end
 ----------------------------------------------------------------------
 -- Create alexnet model for fine-tuning.
 --
--- In: m images
+-- In: m, 1 x 32 x 32 images
 -- Out: nC x softmax
 --
 -- Input
@@ -60,22 +60,22 @@ function len.newStnClfy(nC, ini, m)
   local model = nn.Sequential()
 
   -- feature extraction
-  local alxNets = nn.ParallelTable()
-  model:add(alxNets)
+  local lenNets = nn.ParallelTable()
+  model:add(lenNets)
   for i = 1, m do
-    local alxNet = torch.load(modPath0)
-    alxNets:add(alxNet)
+    local lenNet = len.new(nC, ini)
+    lenNets:add(lenNet)
 
     -- remove last fully connected layer
-    alxNet.modules[2]:remove(11)
-    alxNet.modules[2]:remove(10)
+    lenNet:remove(7)
+    lenNet:remove(6)
   end
 
   -- concate the output
   model:add(nn.JoinTable(2))
 
   -- insert a new fully connected layer
-  local mod = nn.Linear(4096 * m, nC)
+  local mod = nn.Linear(128 * m, nC)
   model:add(mod)
 
   -- soft-max
@@ -84,7 +84,7 @@ function len.newStnClfy(nC, ini, m)
   -- init
   th.iniMod(mod, ini)
 
-  return model, {mod}
+  return model, {}
 end
 
 ----------------------------------------------------------------------
@@ -94,14 +94,13 @@ end
 -- Out: k x vector
 --
 -- Input
---   bn     -  type of BN
 --   ini    -  init method
 --
 -- Output
 --   model  -  model
 --   mods   -  sub-modules needed to re-train, m x
 --   k      -  k
-function len.newStnLoc(bn, ini, loc)
+function len.newStnLoc(ini)
   local model = nn.Sequential()
   local k = 20
 

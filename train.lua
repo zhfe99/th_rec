@@ -3,36 +3,32 @@
 --
 -- Example
 --   export CUDA_VISIBLE_DEVICES=0,1,2,3
---   ./train.lua -dbe imgnet -ver v2 -con alex
+--   ./train.lua -dbe imgnet -ver v2 -con alx
 --   ./train.lua -ver v1 -con alexS1 -deb
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
---   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-09
 
 require('torch')
-require('xlua')
 require('optim')
-require('pl')
-require('cunn')
-require('trepl')
+-- require('cunn')
 local th = require('lua_th')
 local lib = require('lua_lib')
 local opts = require('opts')
 local net = require('net')
-local dp = require('dp_lmdb')
+local dp = require('dp_load')
 local tr_deb = require('tr_deb')
-lib.prSet(5)
 
--- argument
-opt, solConf = opts.parse(arg, 'train')
+-- option
+local opt, con = opts.parse(arg, 'train')
 
 -- network
-local model, loss, modelSv, mod1s, mod2s, optStat = net.new(solConf, opt)
+local model, loss, modelSv, modss, optStat = net.new(con, opt)
 local optimator
 
 -- data provider
-local trDB, teDB = dp.init(opt, solConf)
+local trDB, teDB = dp.init(opt, con)
 
 ----------------------------------------------------------------------
 -- Update one epoch.
@@ -49,20 +45,20 @@ local function ford(DB, train, epo)
 
   -- optimizer
   if train then
-    optimator = th.optim(optimator, model, mod1s, mod2s, optStat, epo, solConf.lrs)
+    optimator = th.optim(optimator, model, modss, optStat, epo, con.lrs)
   end
 
   -- init data provider
-  local nImg, batchSiz, nMini = dp.fordInit(DB, train, epo, opt, solConf)
+  local nImg, nBat = dp.fordInit(DB, train, epo, opt, con)
 
-  -- each mini batch
+  -- each batch
   local lossVal = 0
-  lib.prCIn('mini', nMini, .2)
-  for iMini = 1, nMini do
-    lib.prC(iMini)
-    local x, yt = dp.fordNextBatch(DB, train, opt)
+  lib.prCIn('batch', nBat, .2)
+  for iBat = 1, nBat do
+    lib.prC(iBat)
+    local x, yt = dp.fordNext(DB, train, opt)
     local y = torch.Tensor()
-    local currLoss = 0
+    local lossVali = 0
 
     -- do somthing
     if train then
@@ -71,12 +67,11 @@ local function ford(DB, train, epo)
         model:syncParameters()
       end
 
-      currLoss, y = optimator:optimize(optim.sgd, x, yt, loss)
+      lossVali, y = optimator:optimize(optim.sgd, x, yt, loss)
     else
       y = model:forward(x)
-      currLoss = loss:forward(y, yt)
+      lossVali = loss:forward(y, yt)
     end
-    lossVal = currLoss + lossVal
 
     -- table results
     if type(y) == 'table' then
@@ -84,22 +79,26 @@ local function ford(DB, train, epo)
     end
 
     -- debug
-    if opt.deb and (iMini - 1) % 100 == 0 then
-      tr_deb.debStn(model, tmpFold, epo, iMini, train, opt, solConf, dp.denormalize)
+    if opt.deb and (iBat - 1) % 100 == 0 then
+      tr_deb.debStn(model, tmpFold, epo, iBat, train, opt, con, dp.denormalize)
+      tr_deb.debStnGrad(model, tmpFold, epo, iBat, train, opt, con, dp.denormalize)
+      local debugger = require('fb.debugger')
+      debugger.enter()
     end
 
     -- update
+    lossVal = lossVal + lossVali
     confusion:batchAdd(y, yt)
     collectgarbage()
   end
-  lib.prCOut(nMini)
+  lib.prCOut(nBat)
 
   -- print to log
-  local loss = lossVal / nMini
+  local loss = lossVal / nBat
   confusion:updateValids()
   local acc = confusion.totalValid
   if train then
-    lib.pr('epoch %d/%d, lr %f, wd %f', epo, solConf.nEpo, optimator.originalOptState.learningRate, optimator.originalOptState.weightDecay)
+    lib.pr('epoch %d/%d, lr %f, wd %f', epo, con.nEpo, optimator.originalOptState.learningRate, optimator.originalOptState.weightDecay)
     lib.pr('tr, loss %f, acc %f', loss, acc)
   else
     lib.pr('te, loss %f, acc %f', loss, acc)
@@ -109,8 +108,8 @@ local function ford(DB, train, epo)
 end
 
 -- each epo
-lib.prCIn('epo', solConf.nEpo, 1)
-for epo = 1, solConf.nEpo do
+lib.prCIn('epo', con.nEpo, 1)
+for epo = 1, con.nEpo do
   lib.prC(epo)
 
   -- train
@@ -118,7 +117,7 @@ for epo = 1, solConf.nEpo do
   ford(trDB, true, epo)
 
   -- save
-  if epo % solConf.nEpoSv == 0 then
+  if epo % con.nEpoSv == 0 then
     torch.save(opt.CONF.modPath .. '_' .. epo .. '.t7', modelSv)
   end
 
@@ -126,4 +125,4 @@ for epo = 1, solConf.nEpo do
   model:evaluate()
   ford(teDB, false, epo)
 end
-lib.prCOut(solConf.nEpo)
+lib.prCOut(con.nEpo)

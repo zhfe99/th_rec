@@ -3,11 +3,11 @@
 Visualize the transformation.
 
 Example
-  ./vis_trans.py bird v1 alexS1S2 --nstn 1 --epo 1:2
+  ./vis_tran.py bird v1 alexS1S2 --nstn 1 --epo 1:2
 
 History
   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
-  modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
+  modify  -  Feng Zhou (zhfe99@gmail.com), 2015-09
 """
 import matplotlib as mpl
 mpl.use('Agg')
@@ -17,10 +17,9 @@ import py_lib as lib
 lib.prSet(3)
 
 
-# fold
 def shEpoTran(dbe, ver, con, nStn, epo):
     """
-    Show the transformation for each epoch.
+    Show the transformation of each epoch.
 
     Input
       dbe   -  database
@@ -31,10 +30,98 @@ def shEpoTran(dbe, ver, con, nStn, epo):
     """
     tmpFold = os.path.join(os.environ['HOME'],
                            'save/{}/torch/tmp/{}_{}_{}'.format(dbe, dbe, ver, con))
+    pdfFold = os.path.join(os.environ['HOME'],
+                           'save/{}/torch/deb_stn/{}_{}_{}'.format(dbe, dbe, ver, con))
+    lib.mkDir(pdfFold)
 
     # path
     h5Path = '{}/test_{}_{}.h5'.format(tmpFold, epo, 1)
-    pdfPath = '{}/test_{}_{}.pdf'.format(tmpFold, epo, 1)
+    pdfPath = '{}/test_{}_{}.pdf'.format(pdfFold, epo, 1)
+
+    # read from hdf
+    ha = lib.hdfRIn(h5Path)
+    inputs, grids = [], []
+    for iStn in range(nStn):
+        gridi = lib.hdfR(ha, 'grid{}'.format(iStn + 1))
+        inputi = lib.hdfR(ha, 'input{}'.format(iStn + 1))
+        grids.append(gridi)
+        inputs.append(inputi)
+    input0 = lib.hdfR(ha, 'input0')
+    # bias = lib.hdfR(ha, 'bias')
+    # weight = lib.hdfR(ha, 'weight')
+    lib.hdfROut(ha)
+
+    # dimension
+    n, h, w, _ = grids[0].shape
+    nTop = min(input0.shape[0], 7)
+
+    # show
+    cols = nTop + 1
+    Ax = lib.iniAx(1, nStn * 2, cols, [3 * nStn * 2, 3 * cols], flat=False)
+
+    lib.setAx(Ax[0, nTop])
+    lib.plt.axis('off')
+
+    # each transformer
+    for iStn in range(nStn):
+        input = inputs[iStn]
+        grid = grids[iStn]
+
+        # each example
+        for iTop in range(nTop):
+            col = iTop
+
+            # original input
+            input0New = input0[iTop].transpose((1, 2, 0))
+            lib.shImg(input0New, ax=Ax[iStn * 2, col])
+
+            idxYs = [0, 0, h - 1, h - 1, 0]
+            idxXs = [0, w - 1, w - 1, 0, 0]
+            xs, ys = lib.zeros(5, n=2)
+            for i in range(5):
+                idxY = idxYs[i]
+                idxX = idxXs[i]
+
+                ys[i] = (grid[iTop, idxY, idxX, 0] + 1) / 2 * h
+                xs[i] = (grid[iTop, idxY, idxX, 1] + 1) / 2 * w
+            lib.plt.plot(xs, ys, 'r-')
+            lib.plt.axis('image')
+
+            # input
+            inputNew = input[iTop].transpose((1, 2, 0))
+            lib.shImg(inputNew, ax=Ax[iStn * 2 + 1, col])
+
+        # mean
+        inMe0 = input0.mean(0)
+        inMe = input.mean(0)
+        lib.shImg(inMe0.transpose((1, 2, 0)), ax=Ax[iStn * 2, nTop])
+        lib.shImg(inMe.transpose((1, 2, 0)), ax=Ax[iStn * 2 + 1, nTop])
+
+    # save
+    # lib.show()
+    lib.shSvPath(pdfPath)
+
+
+def shEpoGrad(dbe, ver, con, nStn, epo):
+    """
+    Show the gradient of each epoch.
+
+    Input
+      dbe   -  database
+      ver   -  version
+      con   -  configuration
+      nStn  -  #stn
+      epo   -  epoch id
+    """
+    tmpFold = os.path.join(os.environ['HOME'],
+                           'save/{}/torch/tmp/{}_{}_{}'.format(dbe, dbe, ver, con))
+    pdfFold = os.path.join(os.environ['HOME'],
+                           'save/{}/torch/deb_stn/{}_{}_{'.format(dbe, dbe, ver, con))
+    lib.mkDir(pdfFold)
+
+    # path
+    h5Path = '{}/train_{}_{}.h5'.format(tmpFold, epo, 1)
+    pdfPath = '{}/train_{}_{}_grad.pdf'.format(pdfFold, epo, 1)
 
     # read from hdf
     ha = lib.hdfRIn(h5Path)

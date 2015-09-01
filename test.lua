@@ -2,22 +2,18 @@
 -- Test using Torch.
 --
 -- History
---   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-20-2015
+--   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
 
 require('torch')
-require('xlua')
 require('optim')
-require('pl')
-require('eladtools')
-require('trepl')
-require('net.alex')
 local th = require('lua_th')
 local lib = require('lua_lib')
-
--- argument
 local opts = require('opts')
-opt = opts.parse(arg, 'test')
+local net = require('net')
+
+-- option
+local opt, con = opts.parse(arg, 'train')
 
 -- data
 local dat = ThDat(opt.dbe, opt.ver)
