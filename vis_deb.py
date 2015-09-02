@@ -309,19 +309,22 @@ if __name__ == '__main__':
 
     epos = lib.str2ran(args.epos)
     bats = lib.str2ran(args.bats)
-    import pdb; pdb.set_trace()
 
     nEpo = len(epos)
+    nBat = len(bats)
     nStn = args.nStn
 
     # each epoch
     lib.prCIn('epo', nEpo, 1)
     for iEpo in range(nEpo):
         lib.prC(iEpo)
-        epo = epos[iEpo]
 
         # shEpoTran(dbe, ver, con, nStn, epo)
         # shEpoGrad(dbe, ver, con, nStn, epo)
-        iBat = 1
-        shEpoTranCmp(dbe, ver, con, nStn, epo, iBat)
+
+        lib.prCIn('bat', nBat, 1)
+        for iBat in range(nBat):
+            lib.prC(iBat)
+            shEpoTranCmp(dbe, ver, con, nStn, epos[iEpo], bats[iBat])
+        lib.prCOut(nBat)
     lib.prCOut(nEpo)
