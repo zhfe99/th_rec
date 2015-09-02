@@ -3,14 +3,15 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
---   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-09
 
 require 'cudnn'
 require 'cunn'
 local lib = require('lua_lib')
 local th = require('lua_th')
 local alx = {}
-local modPath0 = paths.concat(paths.home, 'save/imgnet/torch/model/imgnet_v2_alxbn_2gpu.t7')
+-- local modPath0 = paths.concat(paths.home, 'save/imgnet/torch/model/imgnet_v2_alxbn_2gpu.t7')
+local modPath0 = paths.concat(paths.home, 'save/imgnet/torch/model/imgnet_v2_alexd_2gpu.t7_40.t7')
 
 ----------------------------------------------------------------------
 -- Create the basic alexnet model.
@@ -172,11 +173,20 @@ function alx.newT(nC, bn, ini)
   local model = torch.load(modPath0)
 
   -- remove last fully connected layer
-  model.modules[2]:remove(10)
+  -- old alex model
+  -- model.modules[2]:remove(10)
+
+  -- new alex model
+  model.modules[2]:remove(8)
 
   -- insert a new one
   local mod = nn.Linear(4096, nC)
-  model.modules[2]:insert(mod, 10)
+
+  -- old alex model
+  -- model.modules[2]:insert(mod, 10)
+
+  -- new alex model
+  model.modules[2]:insert(mod, 8)
 
   -- init
   th.iniMod(mod, ini)
@@ -210,8 +220,13 @@ function alx.newStnClfy(nC, ini, m)
     alxNets:add(alxNet)
 
     -- remove last fully connected layer
-    alxNet.modules[2]:remove(11)
-    alxNet.modules[2]:remove(10)
+    -- old alex model
+    -- alxNet.modules[2]:remove(11)
+    -- alxNet.modules[2]:remove(10)
+
+    -- new alex model
+    alxNet.modules[2]:remove(9)
+    alxNet.modules[2]:remove(8)
   end
 
   -- concate the output
