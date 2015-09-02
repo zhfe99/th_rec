@@ -129,35 +129,26 @@ def shEpoTrGrid(dbe, ver, con, nStn, epo, iBat=1):
 
     # read from hdf
     ha = lib.hdfRIn(h5Path)
-    gridCorns = lib.cells(nStn)
+    gridCorns, gridGrads = lib.cells(nStn, n=2)
     for iStn in range(nStn):
         gridCorns[iStn] = lib.hdfR(ha, 'gridCorn{}'.format(iStn + 1))
+        gridGrads[iStn] = lib.hdfR(ha, 'gridGrad{}'.format(iStn + 1))
     lib.hdfROut(ha)
 
     # dimension
-    n, h, w, _ = gridCorns[0].shape
-    h = 224
-    w = 224
-    nTop = min(n, 7)
+    n, _, _, _ = gridCorns[0].shape
+    _, h, w, _ = gridGrads[0].shape
 
     # show
     rows = 1
-    cols = 1
+    cols = 2
     Ax = lib.iniAx(1, nStn * rows, cols, [3 * nStn * rows, 3 * cols], flat=False)
 
     # each transformer
     for iStn in range(nStn):
-        # input = inputs[iStn]
-        grid = gridCorns[iStn]
-
-        # each example
-        for iTop in range(nTop):
-
-            # original input
-            # input0New = input0[iTop].transpose((1, 2, 0))
-            # lib.shImg(input0New, ax=Ax[iStn * 2, col])
-            lib.setAx(Ax[iStn, 0])
-
+        # show grid
+        lib.setAx(Ax[iStn, 0])
+        for iExp in range(n):
             idxYs = [0, 0, 1, 1, 0]
             idxXs = [0, 1, 1, 0, 0]
             xs, ys = lib.zeros(5, n=2)
@@ -165,13 +156,24 @@ def shEpoTrGrid(dbe, ver, con, nStn, epo, iBat=1):
                 idxY = idxYs[i]
                 idxX = idxXs[i]
 
-                ys[i] = (grid[iTop, idxY, idxX, 0] + 1) / 2 * h
-                xs[i] = (grid[iTop, idxY, idxX, 1] + 1) / 2 * w
+                ys[i] = (gridCorns[iStn][iExp, idxY, idxX, 0] + 1) / 2 * h
+                xs[i] = (gridCorns[iStn][iExp, idxY, idxX, 1] + 1) / 2 * w
             lib.plt.plot(xs, ys, 'r-')
-            # lib.plt.axis('image')
+        lib.plt.axis('equal')
+        lib.plt.axis([0, 32, 0, 32])
+        lib.plt.gca().invert_yaxis()
 
-            # input
-            # inputNew = input[iTop].transpose((1, 2, 0))
+        # show gradient
+        lib.setAx(Ax[iStn, 1])
+        GX = gridGrads[iStn][0][:, :, 0]
+        GY = gridGrads[iStn][0][:, :, 1]
+        Q = lib.plt.quiver(GX, GY)
+        lib.plt.quiverkey(Q, 0.5, 0.92, 2, '', labelpos='W')
+        # lib.plt.axis('image')
+        lib.plt.gca().invert_yaxis()
+
+        # input
+        # inputNew = input[iTop].transpose((1, 2, 0))
             # lib.shImg(inputNew, ax=Ax[iStn * 2 + 1, col])
 
         # mean
@@ -493,8 +495,8 @@ if __name__ == '__main__':
         lib.prCIn('bat', nBat, 1)
         for iBat in range(nBat):
             lib.prC(iBat)
-            shEpoTrImg(dbe, ver, con, nStn, epos[iEpo], bats[iBat])
-            # shEpoTrGrid(dbe, ver, con, nStn, epos[iEpo], bats[iBat])
+            # shEpoTrImg(dbe, ver, con, nStn, epos[iEpo], bats[iBat])
+            shEpoTrGrid(dbe, ver, con, nStn, epos[iEpo], bats[iBat])
             # shEpoTran(dbe, ver, con, nStn, epos[iEpo], bats[iBat])
         lib.prCOut(nBat)
     lib.prCOut(nEpo)
