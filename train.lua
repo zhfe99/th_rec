@@ -11,14 +11,12 @@
 --   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-09
 
 require('torch')
-require('optim')
--- require('cunn')
 local th = require('lua_th')
 local lib = require('lua_lib')
 local opts = require('opts')
 local net = require('net')
 local dp = require('dp_load')
-local tr_deb = require('tr_deb')
+local th_step = require('lua_th.th_step')
 
 -- option
 local opt, con = opts.parse(arg, 'train')
@@ -30,81 +28,6 @@ local optimator
 -- data provider
 local trDB, teDB = dp.init(opt, con)
 
-----------------------------------------------------------------------
--- Update one epoch.
---
--- Input
---   DB     -  data provider
---   train  -  train or test
---   epo    -  epoch
-local function ford(DB, train, epo)
-  lib.prIn('ford', 'train %s, epo %d', train, epo)
-
-  -- confusion
-  local confusion = optim.ConfusionMatrix(opt.DATA.cNms)
-
-  -- optimizer
-  if train then
-    optimator = th.optim(optimator, model, modss, optStat, epo, con.lrs)
-  end
-
-  -- init data provider
-  local nImg, nBat = dp.fordInit(DB, train, epo, opt, con)
-
-  -- each batch
-  local lossVal = 0
-  lib.prCIn('batch', nBat, .2)
-  for iBat = 1, nBat do
-    lib.prC(iBat)
-    local x, yt = dp.fordNext(DB, train, opt)
-    local y = torch.Tensor()
-    local lossVali = 0
-
-    -- do somthing
-    if train then
-      if opt.nGpu > 1 then
-        model:zeroGradParameters()
-        model:syncParameters()
-      end
-
-      lossVali, y = optimator:optimize(optim.sgd, x, yt, loss)
-    else
-      y = model:forward(x)
-      lossVali = loss:forward(y, yt)
-    end
-
-    -- table results
-    if type(y) == 'table' then
-      y = y[1]
-    end
-
-    -- debug
-    if opt.deb and (iBat - 1) % 100 == 0 then
-      tr_deb.debStn(model, tmpFold, epo, iBat, train, opt, con, dp.denormalize)
-      tr_deb.debStnGrad(model, tmpFold, epo, iBat, train, opt, con, dp.denormalize)
-    end
-
-    -- update
-    lossVal = lossVal + lossVali
-    confusion:batchAdd(y, yt)
-    collectgarbage()
-  end
-  lib.prCOut(nBat)
-
-  -- print to log
-  local loss = lossVal / nBat
-  confusion:updateValids()
-  local acc = confusion.totalValid
-  if train then
-    lib.pr('epoch %d/%d, lr %f, wd %f', epo, con.nEpo, optimator.originalOptState.learningRate, optimator.originalOptState.weightDecay)
-    lib.pr('tr, loss %f, acc %f', loss, acc)
-  else
-    lib.pr('te, loss %f, acc %f', loss, acc)
-  end
-
-  lib.prOut()
-end
-
 -- each epo
 lib.prCIn('epo', con.nEpo, 1)
 for epo = 1, con.nEpo do
@@ -112,7 +35,7 @@ for epo = 1, con.nEpo do
 
   -- train
   model:training()
-  ford(trDB, true, epo)
+  optimator = th_step.ford(trDB, true, epo, opt, con, model, loss, modss, optStat, optimator)
 
   -- save
   if epo % con.nEpoSv == 0 then
@@ -121,6 +44,6 @@ for epo = 1, con.nEpo do
 
   -- test
   model:evaluate()
-  ford(teDB, false, epo)
+  optimator = th_step.ford(teDB, false, epo, opt, con, model, loss, modss, optStat, optimator)
 end
 lib.prCOut(con.nEpo)
