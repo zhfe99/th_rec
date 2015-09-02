@@ -116,6 +116,8 @@ def shEpoTranCmp(dbe, ver, con, nStn, epo, iBat=1, rows=2, cols=5):
       nStn  -  #stn
       epo   -  epoch id
       iBat  -  batch id
+      rows  -  #row, {2}
+      cols  -  #col, {5}
     """
     # fold
     nm = '{}_{}_{}'.format(dbe, ver, con)
@@ -127,7 +129,6 @@ def shEpoTranCmp(dbe, ver, con, nStn, epo, iBat=1, rows=2, cols=5):
 
     # path
     h5Path = '{}/test_{}_{}.h5'.format(tmpFold, epo, iBat)
-    pdfPath = '{}/test_{}_{}.pdf'.format(pdfFold, epo, iBat)
 
     # read from hdf
     ha = lib.hdfRIn(h5Path)
@@ -142,52 +143,58 @@ def shEpoTranCmp(dbe, ver, con, nStn, epo, iBat=1, rows=2, cols=5):
 
     # dimension
     n, h, w, _ = grids[0].shape
-    nTop = min(input0.shape[0], 7)
+    nGrp = n / (rows * cols)
 
-    # show
-    Ax = lib.iniAx(1, nStn * 2, cols, [3 * rows, 3 * cols], flat=False)
+    # each group
+    for iGrp in range(nGrp):
+        # group path
+        pdfPath = '{}/test_{}_{}_{}.pdf'.format(pdfFold, epo, iBat, iGrp)
 
-    lib.setAx(Ax[0, nTop])
-    lib.plt.axis('off')
-
-    # each transformer
-    for iStn in range(nStn):
-        input = inputs[iStn]
-        grid = grids[iStn]
+        # show
+        Ax = lib.iniAx(1, rows, cols, [3 * rows, 3 * cols], flat=False)
 
         # each example
-        for iTop in range(nTop):
-            col = iTop
+        for iExp in range(rows * cols):
+            # position
+            pExp = iGrp * rows * cols + iExp
+            row = iExp / cols
+            col = iExp % cols
 
             # original input
-            input0New = input0[iTop].transpose((1, 2, 0))
-            lib.shImg(input0New, ax=Ax[iStn * 2, col])
+            input0New = input0[pExp].transpose((1, 2, 0))
+            lib.shImg(input0New, ax=Ax[row, col])
 
-            idxYs = [0, 0, h - 1, h - 1, 0]
-            idxXs = [0, w - 1, w - 1, 0, 0]
-            xs, ys = lib.zeros(5, n=2)
-            for i in range(5):
-                idxY = idxYs[i]
-                idxX = idxXs[i]
+            # each transformer
+            for iStn in range(nStn):
+                grid = grids[iStn]
 
-                ys[i] = (grid[iTop, idxY, idxX, 0] + 1) / 2 * h
-                xs[i] = (grid[iTop, idxY, idxX, 1] + 1) / 2 * w
-            lib.plt.plot(xs, ys, 'r-')
-            lib.plt.axis('image')
+                idxYs = [0, 0, h - 1, h - 1, 0]
+                idxXs = [0, w - 1, w - 1, 0, 0]
+                xs, ys = lib.zeros(5, n=2)
+                for i in range(5):
+                    idxY = idxYs[i]
+                    idxX = idxXs[i]
 
-            # input
-            inputNew = input[iTop].transpose((1, 2, 0))
-            lib.shImg(inputNew, ax=Ax[iStn * 2 + 1, col])
+                    ys[i] = (grid[pExp, idxY, idxX, 0] + 1) / 2 * h
+                    xs[i] = (grid[pExp, idxY, idxX, 1] + 1) / 2 * w
 
-        # mean
-        inMe0 = input0.mean(0)
-        inMe = input.mean(0)
-        lib.shImg(inMe0.transpose((1, 2, 0)), ax=Ax[iStn * 2, nTop])
-        lib.shImg(inMe.transpose((1, 2, 0)), ax=Ax[iStn * 2 + 1, nTop])
+                _, cl = lib.genMkCl(iStn)
+                lib.plt.plot(xs, ys, '-', color=cl)
+                lib.plt.axis('image')
 
-    # save
-    # lib.show()
-    lib.shSvPath(pdfPath)
+                # input
+                # inputNew = input[iTop].transpose((1, 2, 0))
+                # lib.shImg(inputNew, ax=Ax[iStn * 2 + 1, col])
+
+            # mean
+            # inMe0 = input0.mean(0)
+            # inMe = input.mean(0)
+            # lib.shImg(inMe0.transpose((1, 2, 0)), ax=Ax[iStn * 2, nTop])
+            # lib.shImg(inMe.transpose((1, 2, 0)), ax=Ax[iStn * 2 + 1, nTop])
+
+        # save
+        # lib.show()
+        lib.shSvPath(pdfPath)
 
 
 def shEpoGrad(dbe, ver, con, nStn, epo):
@@ -293,6 +300,7 @@ if __name__ == '__main__':
     parser.add_argument('inputs', nargs='+', help='dbe ver con')
     parser.add_argument('--nstn', help='#stn', default=1, dest='nStn', type=int)
     parser.add_argument('--epo', help='epo range', default='1:2', dest='epos')
+    parser.add_argument('--bat', help='batch range', default='1:2', dest='bats')
     args = parser.parse_args()
 
     dbe = args.inputs[0]
@@ -300,6 +308,9 @@ if __name__ == '__main__':
     con = args.inputs[2]
 
     epos = lib.str2ran(args.epos)
+    bats = lib.str2ran(args.bats)
+    import pdb; pdb.set_trace()
+
     nEpo = len(epos)
     nStn = args.nStn
 
@@ -309,6 +320,8 @@ if __name__ == '__main__':
         lib.prC(iEpo)
         epo = epos[iEpo]
 
-        shEpoTran(dbe, ver, con, nStn, epo)
-        shEpoGrad(dbe, ver, con, nStn, epo)
+        # shEpoTran(dbe, ver, con, nStn, epo)
+        # shEpoGrad(dbe, ver, con, nStn, epo)
+        iBat = 1
+        shEpoTranCmp(dbe, ver, con, nStn, epo, iBat)
     lib.prCOut(nEpo)
