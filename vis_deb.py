@@ -33,13 +33,13 @@ def shEpoTran(dbe, ver, con, nStn, epo, iBat=1):
     nm = '{}_{}_{}'.format(dbe, ver, con)
     tmpFold = os.path.join(os.environ['HOME'],
                            'save/{}/torch/tmp/{}'.format(dbe, nm))
-    pdfFold = os.path.join(os.environ['HOME'],
+    outFold = os.path.join(os.environ['HOME'],
                            'save/{}/torch/deb_stn/{}'.format(dbe, nm))
-    lib.mkDir(pdfFold)
+    lib.mkDir(outFold)
 
     # path
     h5Path = '{}/test_{}_{}.h5'.format(tmpFold, epo, iBat)
-    pdfPath = '{}/test_{}_{}.pdf'.format(pdfFold, epo, iBat)
+    outPath = '{}/test_{}_{}.jpg'.format(outFold, epo, iBat)
 
     # read from hdf
     ha = lib.hdfRIn(h5Path)
