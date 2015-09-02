@@ -17,6 +17,174 @@ import py_lib as lib
 lib.prSet(3)
 
 
+def shEpoTrImg(dbe, ver, con, nStn, epo, iBat=1):
+    """
+    Show the transformation of each epoch.
+
+    Input
+      dbe   -  database
+      ver   -  version
+      con   -  configuration
+      nStn  -  #stn
+      epo   -  epoch id
+      iBat  -  batch id
+    """
+    # fold
+    nm = '{}_{}_{}'.format(dbe, ver, con)
+    tmpFold = os.path.join(os.environ['HOME'],
+                           'save/{}/torch/tmp/{}'.format(dbe, nm))
+    outFold = os.path.join(os.environ['HOME'],
+                           'save/{}/torch/deb_stn/{}'.format(dbe, nm))
+    lib.mkDir(outFold)
+
+    # path
+    outPath = '{}/tr_{}_{}_img.jpg'.format(outFold, epo, iBat)
+
+    # read from hdf
+    h5Path = '{}/tr_{}_{}_grid.h5'.format(tmpFold, epo, iBat)
+    ha = lib.hdfRIn(h5Path)
+    gridCorns = lib.cells(nStn)
+    for iStn in range(nStn):
+        gridCorns[iStn] = lib.hdfR(ha, 'gridCorn{}'.format(iStn + 1))
+    lib.hdfROut(ha)
+
+    # read from hdf
+    h5Path = '{}/tr_{}_{}_img_in.h5'.format(tmpFold, epo, iBat)
+    ha = lib.hdfRIn(h5Path)
+    imgIn0 = lib.hdfR(ha, 'imgIn0')
+    imgIns = lib.cells(nStn)
+    for iStn in range(nStn):
+        imgIns[iStn] = lib.hdfR(ha, 'imgIn{}'.format(iStn + 1))
+    lib.hdfROut(ha)
+
+    # dimension
+    n, _, h, w = imgIn0.shape
+    nTop = min(n, 7)
+
+    # show
+    rows = 2
+    cols = nTop
+    Ax = lib.iniAx(1, nStn * rows, cols, [3 * nStn * rows, 3 * cols], flat=False)
+
+    # each transformer
+    for iStn in range(nStn):
+        grid = gridCorns[iStn]
+
+        # each example
+        for iTop in range(nTop):
+            col = iTop
+
+            # original input
+            lib.shImg(imgIn0[iTop].transpose((1, 2, 0)), ax=Ax[iStn * 2, col])
+
+            idxYs = [0, 0, 1, 1, 0]
+            idxXs = [0, 1, 1, 0, 0]
+            xs, ys = lib.zeros(5, n=2)
+            for i in range(5):
+                idxY = idxYs[i]
+                idxX = idxXs[i]
+
+                ys[i] = (grid[iTop, idxY, idxX, 0] + 1) / 2 * h
+                xs[i] = (grid[iTop, idxY, idxX, 1] + 1) / 2 * w
+            lib.plt.plot(xs, ys, 'r-')
+            # lib.plt.axis('image')
+
+            # input
+            lib.shImg(imgIns[iStn][iTop].transpose((1, 2, 0)), ax=Ax[iStn * 2 + 1, col])
+
+        # mean
+        # inMe0 = input0.mean(0)
+        # inMe = input.mean(0)
+        # lib.shImg(inMe0.transpose((1, 2, 0)), ax=Ax[iStn * 2, nTop])
+        # lib.shImg(inMe.transpose((1, 2, 0)), ax=Ax[iStn * 2 + 1, nTop])
+
+    # save
+    # lib.show()
+    lib.shSvPath(outPath, type='jpg')
+
+
+def shEpoTrGrid(dbe, ver, con, nStn, epo, iBat=1):
+    """
+    Show the transformation of each epoch.
+
+    Input
+      dbe   -  database
+      ver   -  version
+      con   -  configuration
+      nStn  -  #stn
+      epo   -  epoch id
+      iBat  -  batch id
+    """
+    # fold
+    nm = '{}_{}_{}'.format(dbe, ver, con)
+    tmpFold = os.path.join(os.environ['HOME'],
+                           'save/{}/torch/tmp/{}'.format(dbe, nm))
+    outFold = os.path.join(os.environ['HOME'],
+                           'save/{}/torch/deb_stn/{}'.format(dbe, nm))
+    lib.mkDir(outFold)
+
+    # path
+    h5Path = '{}/tr_{}_{}_grid.h5'.format(tmpFold, epo, iBat)
+    outPath = '{}/tr_{}_{}_grid.jpg'.format(outFold, epo, iBat)
+
+    # read from hdf
+    ha = lib.hdfRIn(h5Path)
+    gridCorns = lib.cells(nStn)
+    for iStn in range(nStn):
+        gridCorns[iStn] = lib.hdfR(ha, 'gridCorn{}'.format(iStn + 1))
+    lib.hdfROut(ha)
+
+    # dimension
+    n, h, w, _ = gridCorns[0].shape
+    h = 224
+    w = 224
+    nTop = min(n, 7)
+
+    # show
+    rows = 1
+    cols = 1
+    Ax = lib.iniAx(1, nStn * rows, cols, [3 * nStn * rows, 3 * cols], flat=False)
+
+    # each transformer
+    for iStn in range(nStn):
+        # input = inputs[iStn]
+        grid = gridCorns[iStn]
+
+        # each example
+        for iTop in range(nTop):
+
+            # original input
+            # input0New = input0[iTop].transpose((1, 2, 0))
+            # lib.shImg(input0New, ax=Ax[iStn * 2, col])
+            lib.setAx(Ax[iStn, 0])
+
+            idxYs = [0, 0, 1, 1, 0]
+            idxXs = [0, 1, 1, 0, 0]
+            xs, ys = lib.zeros(5, n=2)
+            for i in range(5):
+                idxY = idxYs[i]
+                idxX = idxXs[i]
+
+                ys[i] = (grid[iTop, idxY, idxX, 0] + 1) / 2 * h
+                xs[i] = (grid[iTop, idxY, idxX, 1] + 1) / 2 * w
+            lib.plt.plot(xs, ys, 'r-')
+            # lib.plt.axis('image')
+
+            # input
+            # inputNew = input[iTop].transpose((1, 2, 0))
+            # lib.shImg(inputNew, ax=Ax[iStn * 2 + 1, col])
+
+        # mean
+        # inMe0 = input0.mean(0)
+        # inMe = input.mean(0)
+        # lib.shImg(inMe0.transpose((1, 2, 0)), ax=Ax[iStn * 2, nTop])
+        # lib.shImg(inMe.transpose((1, 2, 0)), ax=Ax[iStn * 2 + 1, nTop])
+
+    # save
+    # lib.show()
+    lib.shSvPath(outPath)
+
+
 def shEpoTran(dbe, ver, con, nStn, epo, iBat=1):
     """
     Show the transformation of each epoch.
@@ -325,6 +493,8 @@ if __name__ == '__main__':
         lib.prCIn('bat', nBat, 1)
         for iBat in range(nBat):
             lib.prC(iBat)
-            shEpoTranCmp(dbe, ver, con, nStn, epos[iEpo], bats[iBat])
+            shEpoTrImg(dbe, ver, con, nStn, epos[iEpo], bats[iBat])
+            # shEpoTrGrid(dbe, ver, con, nStn, epos[iEpo], bats[iBat])
+            # shEpoTran(dbe, ver, con, nStn, epos[iEpo], bats[iBat])
         lib.prCOut(nBat)
     lib.prCOut(nEpo)
