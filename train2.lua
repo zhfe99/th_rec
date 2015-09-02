@@ -26,11 +26,24 @@ local model, loss, modelSv, modss, optStat = net.new(con, opt)
 local optimator
 
 -- data provider
-local _, teDB = dp.init(opt, con)
+local trDB, teDB = dp.init(opt, con)
 
--- load
-model = torch.load(opt.CONF.modPath .. '_' .. opt.epo .. '.t7')
+-- each epo
+lib.prCIn('epo', con.nEpo, 1)
+for epo = 1, con.nEpo do
+  lib.prC(epo)
 
--- test
-model:evaluate()
-optimator = th_step.ford(teDB, false, opt.epo, opt, con, model, loss, modss, optStat, optimator)
+  -- train
+  model:training()
+  optimator = th_step.ford(trDB, true, epo, opt, con, model, loss, modss, optStat, optimator)
+
+  -- save
+  if epo % con.nEpoSv == 0 then
+    torch.save(opt.CONF.modPath .. '_' .. epo .. '.t7', modelSv)
+  end
+
+  -- test
+  model:evaluate()
+  optimator = th_step.ford(teDB, false, epo, opt, con, model, loss, modss, optStat, optimator)
+end
+lib.prCOut(con.nEpo)

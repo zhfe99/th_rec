@@ -38,7 +38,7 @@ function opts.parse(arg, mode)
   cmd:option('-cmp', true, 'using compressed data or not')
   cmd:option('-local', true, 'using local data or not')
   cmd:option('-deb', false, 'debug mode')
-  cmd:option('-test-epo', 1, 'test epoch')
+  cmd:option('-epo', 1, 'epoch id for testing')
   opt = cmd:parse(arg or {})
 
   lib.prSet(opt.prL)

@@ -165,7 +165,7 @@ function stn.new(locNet, tran, k, inSiz, m)
     smpNet:add(nn.Transpose({3, 4}, {2, 3}))
 
     -- batch normalization
-    th.addSBN(smpNet, 3, 2)
+    -- th.addSBN(smpNet, 3, 2)
   end
 
   return spaNet, tranMods
