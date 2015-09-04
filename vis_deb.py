@@ -130,10 +130,11 @@ def shEpoTrGrid(dbe, ver, con, nStn, epo, iBat=1):
 
     # read from hdf
     ha = lib.hdfRIn(h5Path)
-    gridCorns, gridGrads = lib.cells(nStn, n=2)
+    gridCorns, gridGrads, imgOuts = lib.cells(nStn, n=3)
     for iStn in range(nStn):
         gridCorns[iStn] = lib.hdfR(ha, 'gridCorn{}'.format(iStn + 1))
         gridGrads[iStn] = lib.hdfR(ha, 'gridGrad{}'.format(iStn + 1))
+        imgOuts[iStn] = lib.hdfR(ha, 'imgOut{}'.format(iStn + 1))
     lib.hdfROut(ha)
 
     # dimension
@@ -142,8 +143,9 @@ def shEpoTrGrid(dbe, ver, con, nStn, epo, iBat=1):
 
     # show
     rows = 1
-    cols = 2
-    Ax = lib.iniAx(1, nStn * rows, cols, [3 * nStn * rows, 3 * cols], flat=False)
+    cols = 3
+    Ax = lib.iniAx(1, nStn * rows, cols,
+                   [3 * nStn * rows, 3 * cols], flat=False)
 
     # each transformer
     for iStn in range(nStn):
