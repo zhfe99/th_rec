@@ -205,7 +205,7 @@ function goo.newc(nC, bn, ini)
   -- init
   th.iniMod(model, ini)
 
-  return model, {}
+  return model, {{}}
 end
 
 ----------------------------------------------------------------------
@@ -326,7 +326,7 @@ function goo.new(nC, bn, ini)
   -- init
   th.iniMod(model, ini)
 
-  return model, {}
+  return model, {{}}
 end
 
 ----------------------------------------------------------------------
@@ -354,7 +354,7 @@ function goo.newT(nC, bn, ini)
   -- init
   th.iniMod(mod, ini)
 
-  return model, {mod}
+  return model, {{mod}}
 end
 
 ----------------------------------------------------------------------
