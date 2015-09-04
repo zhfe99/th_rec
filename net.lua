@@ -80,9 +80,6 @@ function net.newStn(base, nC, bn, ini, parStn)
   end
   model:add(clfyNet)
 
-  local debugger = require('fb.debugger')
-  debugger.enter()
-
   lib.prOut()
   return model, {clfyMods, {locNet}, locMods, stnMods}
 end
