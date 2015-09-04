@@ -257,15 +257,20 @@ end
 --   loc    -  localization network, 'type1' | 'type2'
 --               'type1': k = 128, new Linear layer
 --               'type2': k = 128, no Linear layer
+--   k      -  #dimension
 --
 -- Output
 --   model  -  model
 --   mods   -  sub-modules, a Linear layer
---   k      -  k
-function alx.newStnLoc(bn, ini, loc)
+function alx.newStnLoc(bn, ini, loc, k)
+  assert(bn)
+  assert(ini)
+  assert(loc)
+  assert(k)
+
   -- load old model
   local model = torch.load(modPath0)
-  local mod, k
+  local mod
 
   if loc == 'type1' then
     -- remove the classifier layer
@@ -275,7 +280,6 @@ function alx.newStnLoc(bn, ini, loc)
     local classifier = nn.Sequential()
     model:add(classifier)
 
-    k = 128
     classifier:add(nn.View(256 * 6 * 6))
     mod = nn.Linear(256 * 6 * 6, k)
     classifier:add(mod)
@@ -290,7 +294,6 @@ function alx.newStnLoc(bn, ini, loc)
     model:remove(2)
 
     -- add a new classifier layer
-    k = 64
     local classifier = nn.Sequential()
     classifier:add(nn.View(256 * 6 * 6))
     classifier:add(nn.Dropout(0.5))
@@ -310,7 +313,7 @@ function alx.newStnLoc(bn, ini, loc)
     assert(nil, string.format('unknown loc: %s', loc))
   end
 
-  return model, {mod}, k
+  return model, {mod}
 end
 
 return alx

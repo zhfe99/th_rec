@@ -408,14 +408,20 @@ end
 --   bn     -  type of BN
 --   ini    -  init method
 --   loc    -  localization network
+--   k      -  #dimension
 --
 -- Output
 --   model  -  model
 --   mods   -  sub-modules needed to re-train, m x
-function goo.newStnLoc(bn, ini, loc)
+function goo.newStnLoc(bn, ini, loc, k)
+  assert(bn)
+  assert(ini)
+  assert(loc)
+  assert(k)
+
   -- load old model
   local model = torch.load(modPath0)
-  local mod1, mod2, k
+  local mod1, mod2
 
   if loc == 'type1' then
     local main = model.modules[2]
@@ -427,7 +433,6 @@ function goo.newStnLoc(bn, ini, loc)
     main:remove(6)
 
     -- add a new 1x1 convolutional layer
-    k = 128
     mod1 = cudnn.SpatialConvolution(1024, 128, 1, 1, 1, 1)
     main:add(mod1)
     th.addSBN(main, 128, bn)
@@ -448,7 +453,7 @@ function goo.newStnLoc(bn, ini, loc)
     assert(nil, string.format('unknown loc: %s', loc))
   end
 
-  return model, {mod1, mod2}, k
+  return model, {mod1, mod2}
 end
 
 return goo

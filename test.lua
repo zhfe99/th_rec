@@ -32,5 +32,4 @@ local _, teDB = dp.init(opt, con)
 model = torch.load(opt.CONF.modPath .. '_' .. opt.epo .. '.t7')
 
 -- test
-model:evaluate()
-optimator = th_step.ford(teDB, false, opt.epo, opt, con, model, loss, modss, optStat, optimator)
+th_step.ford(teDB, false, opt.epo, opt, con, model, loss, modss, optStat, optimator)

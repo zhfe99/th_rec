@@ -34,7 +34,6 @@ for epo = 1, con.nEpo do
   lib.prC(epo)
 
   -- train
-  model:training()
   optimator = th_step.ford(trDB, true, epo, opt, con, model, loss, modss, optStat, optimator)
 
   -- save
@@ -43,7 +42,6 @@ for epo = 1, con.nEpo do
   end
 
   -- test
-  model:evaluate()
   optimator = th_step.ford(teDB, false, epo, opt, con, model, loss, modss, optStat, optimator)
 end
 lib.prCOut(con.nEpo)

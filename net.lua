@@ -20,53 +20,67 @@ local net = {}
 -- Out: nC x softmax scores
 --
 -- Input
---   base   -  base net name
---   nC     -  #classes
---   bn     -  type of BN
---   ini    -  init method
---   tran   -  transformation name
---   loc    -  locnet name
---   m      -  #transformation
+--   base     -  base net name
+--   nC       -  #classes
+--   bn       -  type of BN
+--   ini      -  init method
+--   parStn   -  parameter
+--     tran   -  transformation name
+--     loc    -  locnet name
+--     nStn   -  #transformation
+--     bnSmp  -  #transformation
 --
 -- Output
---   model  -  model
---   modss  -  sub-modules, two-level table
-function net.newStn(base, nC, bn, ini, tran, loc, m)
+--   model    -  model
+--   modss    -  sub-modules, two-level table
+function net.newStn(base, nC, bn, ini, parStn)
+  -- option
+  local tran = lib.ps(parStn, 'tran', 'tras2')
+  local loc = lib.ps(parStn, 'loc', 'type1')
+  local nStn = lib.ps(parStn, 'nStn', 1)
+  local bnSmp = lib.ps(parStn, 'bnSmp', 0)
+  local k = lib.ps(parStn, 'k', 128)
+  lib.prIn('net.newStn', 'base %s, tran %s, loc %s, nStn %d, bnSmp %d, k %d', base, tran, loc, nStn, bnSmp, k)
+
   -- concat
   local model = nn.Sequential()
 
   -- localization net
-  local locNet, locMods, k, inSiz
+  local locNet, locMods, inSiz, d
   if base == 'alx' then
-    locNet, locMods, k = alx.newStnLoc(bn, ini, loc)
+    locNet, locMods = alx.newStnLoc(bn, ini, loc, k)
     inSiz = 224
+    d = 3
   elseif base == 'goo' then
-    locNet, locMods, k = goo.newStnLoc(bn, ini, loc)
+    locNet, locMods = goo.newStnLoc(bn, ini, loc, k)
     inSiz = 224
+    d = 3
   elseif base == 'len' then
-    locNet, locMods, k = len.newStnLoc(ini)
+    locNet, locMods = len.newStnLoc(ini, k)
     inSiz = 32
+    d = 1
   else
     assert(nil, string.format('unknown base: %s', base))
   end
 
   -- stn net: 1 image => m images
-  local stnNet, stnMods = stn.new(locNet, tran, k, inSiz, m)
+  local stnNet, stnMods = stn.new(locNet, tran, k, inSiz, nStn, d, bnSmp)
   model:add(stnNet)
 
   -- classify net: m images => nC x softmax scores
   local clfyNet, clfyMods
   if base == 'alx' then
-    clfyNet, clfyMods = alx.newStnClfy(nC, ini, m)
+    clfyNet, clfyMods = alx.newStnClfy(nC, ini, nStn)
   elseif base == 'goo' then
-    clfyNet, clfyMods = goo.newStnClfy(nC, ini, m)
+    clfyNet, clfyMods = goo.newStnClfy(nC, ini, nStn)
   elseif base == 'len' then
-    clfyNet, clfyMods = len.newStnClfy(nC, ini, m)
+    clfyNet, clfyMods = len.newStnClfy(nC, ini, nStn)
   else
     assert(nil, string.format('unknown base: %s', base))
   end
   model:add(clfyNet)
 
+  lib.prOut()
   return model, {clfyMods, {locNet}, locMods, stnMods}
 end
 
@@ -84,26 +98,23 @@ end
 --   modss    -  modules of different levels
 --   optStat  -  optimize state
 function net.new(con, opt)
-  lib.prIn('net.new')
-
-  -- default parameter
-  local ini = con.ini or 'xavier_caffe'
-  local nStn = con.nStn or 1
-  local bn = con.bn or 1
-  local nC = con.nC or #opt.DATA.cNms
-  local tran = con.tran or 'aff'
-  local loc = con.loc or 'type1'
+  -- option
+  local ini = lib.ps(con, 'ini', 'xavier_caffe')
+  local bn = lib.ps(con, 'bn', 1)
+  local parStn = lib.ps(con, 'parStn', {})
+  local nC = #opt.DATA.cNms
+  lib.prIn('net.new', 'ini %s, bn %d', ini, bn)
 
   -- model & sub-modules
   local model, modss
   if lib.startswith(con.netNm, 'alxS') then
-    model, modss = net.newStn('alx', nC, bn, ini, tran, loc, nStn)
+    model, modss = net.newStn('alx', nC, bn, ini, upparStn)
 
   elseif lib.startswith(con.netNm, 'gooS') then
-    model, modss = net.newStn('goo', nC, bn, ini, tran, loc, nStn)
+    model, modss = net.newStn('goo', nC, bn, ini, parStn)
 
   elseif lib.startswith(con.netNm, 'lenS') then
-    model, modss = net.newStn('len', nC, bn, ini, tran, loc, nStn)
+    model, modss = net.newStn('len', nC, bn, ini, parStn)
 
   elseif lib.startswith(con.netNm, 'alxT') then
     model, modss = alx.newT(nC, bn, ini)

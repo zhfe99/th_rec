@@ -113,12 +113,14 @@ end
 --   tran    -  transformation, 'aff' | 'sca' | 'tra' | 'rot' | 'tra2' | 'tras'
 --   k       -  #dimension of the output of the locnet
 --   inSiz   -  input size
---   m       -  #transformation
+--   nStn    -  #transformation
+--   d       -  #color channels, 1 | 3
+--   bnSmp   -  batch-normalization after sampling, 0 | 1 | 2
 --
 -- Output
 --   spaNet  -  model
 --   mods    -  module needed to be updated, m x
-function stn.new(locNet, tran, k, inSiz, m)
+function stn.new(locNet, tran, k, inSiz, nStn, d, bnSmp)
   local spaNet = nn.Sequential()
   local concat = nn.ConcatTable()
   spaNet:add(concat)
@@ -134,7 +136,7 @@ function stn.new(locNet, tran, k, inSiz, m)
   local tranNets = nn.ConcatTable()
   locNet:add(tranNets)
   local tranMods = {}
-  for i = 1, m do
+  for iStn = 1, nStn do
     local tranNet, tranMod = stn.newTran(tran, k, inSiz)
     tranNets:add(tranNet)
     table.insert(tranMods, tranMod)
@@ -143,7 +145,7 @@ function stn.new(locNet, tran, k, inSiz, m)
   -- sampler
   local smpNets = nn.ConcatTable()
   spaNet:add(smpNets)
-  for i = 1, m do
+  for iStn = 1, nStn do
     local smpNet = nn.Sequential()
     smpNets:add(smpNet)
 
@@ -156,7 +158,7 @@ function stn.new(locNet, tran, k, inSiz, m)
     -- select the grid
     local tmpNet = nn.Sequential()
     selNet:add(tmpNet)
-    tmpNet:add(nn.SelectTable(2)):add(nn.SelectTable(i))
+    tmpNet:add(nn.SelectTable(2)):add(nn.SelectTable(iStn))
 
     -- sample
     smpNet:add(nn.BilinearSamplerBHWD())
@@ -165,7 +167,7 @@ function stn.new(locNet, tran, k, inSiz, m)
     smpNet:add(nn.Transpose({3, 4}, {2, 3}))
 
     -- batch normalization
-    -- th.addSBN(smpNet, 3, 2)
+    th.addSBN(smpNet, d, bnSmp)
   end
 
   return spaNet, tranMods

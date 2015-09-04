@@ -3,14 +3,14 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
---   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-09
 
 local lib = require('lua_lib')
 
 -- upvalue set in function init
 local sampleSiz, InputSize, meanInfo, trLmdb, teLmdb, DataMean, DataStd, cmp
 
-local provider = {}
+local dp_mnist = {}
 
 ----------------------------------------------------------------------
 -- De-normalize the data.
@@ -20,7 +20,7 @@ local provider = {}
 --
 -- Output
 --   data  -  b x d x h x w
-function provider.denormalize(data)
+function dp_mnist.denormalize(data)
   local data = data:float()
   data:mul(DataStd)
   data:add(DataMean)
@@ -80,7 +80,7 @@ end
 -- Output
 --   trDB     -  train DB
 --   teDB     -  test DB
-function provider.init(opt, solConf)
+function dp_mnist.init(opt, solConf)
   lib.prIn('dp_mnist.init')
 
   -- dimension
@@ -134,7 +134,7 @@ local batchSize
 --   nImg     -  #total image
 --   batchSiz -  batch size
 --   nMini    -  #mini-batch
-function provider.fordInit(bin, train, epoch, opt, solConf)
+function dp_mnist.fordInit(bin, train, epoch, opt, solConf)
   lib.prIn('dp_mnist.fordInit')
   batchSize = 256
 
@@ -160,7 +160,7 @@ end
 -- Output
 --   data   -  data, n x d x h x w
 --   labels -  labels, n x
-function provider.fordNextBatch(bin, train, opt)
+function dp_mnist.fordNextBatch(bin, train, opt)
   lib.prIn('dp_mnist.fordNextBatch')
 
   -- fetch
@@ -178,4 +178,4 @@ function provider.fordNextBatch(bin, train, opt)
   return data:cuda(), labels:cuda()
 end
 
-return provider
+return dp_mnist

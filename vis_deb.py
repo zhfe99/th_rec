@@ -13,6 +13,7 @@ import matplotlib as mpl
 mpl.use('Agg')
 import argparse
 import os
+import numpy as np
 import py_lib as lib
 lib.prSet(3)
 
@@ -148,6 +149,7 @@ def shEpoTrGrid(dbe, ver, con, nStn, epo, iBat=1):
     for iStn in range(nStn):
         # show grid
         lib.setAx(Ax[iStn, 0])
+        co = 0
         for iExp in range(n):
             idxYs = [0, 0, 1, 1, 0]
             idxXs = [0, 1, 1, 0, 0]
@@ -158,10 +160,13 @@ def shEpoTrGrid(dbe, ver, con, nStn, epo, iBat=1):
 
                 ys[i] = (gridCorns[iStn][iExp, idxY, idxX, 0] + 1) / 2 * h
                 xs[i] = (gridCorns[iStn][iExp, idxY, idxX, 1] + 1) / 2 * w
+            if np.any(xs < 0) or np.any(xs > w) or np.any(ys < 0) or np.any(ys > h):
+                co += 1
             lib.plt.plot(xs, ys, 'r-')
         lib.plt.axis('equal')
-        lib.plt.axis([0, 32, 0, 32])
+        lib.plt.axis([0, h, 0, w])
         lib.plt.gca().invert_yaxis()
+        lib.plt.title('{}/{}'.format(co, n))
 
         # show gradient
         lib.setAx(Ax[iStn, 1])
@@ -169,22 +174,16 @@ def shEpoTrGrid(dbe, ver, con, nStn, epo, iBat=1):
         GY = gridGrads[iStn][0][:, :, 1]
         Q = lib.plt.quiver(GX, GY)
         lib.plt.quiverkey(Q, 0.5, 0.92, 2, '', labelpos='W')
-        # lib.plt.axis('image')
+        lib.plt.axis([0, h, 0, w])
         lib.plt.gca().invert_yaxis()
 
-        # input
-        # inputNew = input[iTop].transpose((1, 2, 0))
-            # lib.shImg(inputNew, ax=Ax[iStn * 2 + 1, col])
-
-        # mean
-        # inMe0 = input0.mean(0)
-        # inMe = input.mean(0)
-        # lib.shImg(inMe0.transpose((1, 2, 0)), ax=Ax[iStn * 2, nTop])
-        # lib.shImg(inMe.transpose((1, 2, 0)), ax=Ax[iStn * 2 + 1, nTop])
+        gX = gridGrads[iStn][0][:, :, 0].mean()
+        gY = gridGrads[iStn][0][:, :, 1].mean()
+        lib.plt.title('{:.2f} {:.3e}'.format(np.arctan2(gY, gX) * 180 / np.pi, np.linalg.norm([gX, gY])))
 
     # save
     # lib.show()
-    lib.shSvPath(outPath)
+    lib.shSvPath(outPath, type='jpg')
 
 
 def shEpoTran(dbe, ver, con, nStn, epo, iBat=1):
@@ -351,17 +350,6 @@ def shEpoTranCmp(dbe, ver, con, nStn, epo, iBat=1, rows=2, cols=5):
                 _, cl = lib.genMkCl(iStn)
                 lib.plt.plot(xs, ys, '-', color=cl)
                 lib.plt.axis('image')
-
-                # input
-                # inputNew = input[iTop].transpose((1, 2, 0))
-                # lib.shImg(inputNew, ax=Ax[iStn * 2 + 1, col])
-
-            # mean
-            # inMe0 = input0.mean(0)
-            # inMe = input.mean(0)
-            # lib.shImg(inMe0.transpose((1, 2, 0)), ax=Ax[iStn * 2, nTop])
-            # lib.shImg(inMe.transpose((1, 2, 0)), ax=Ax[iStn * 2 + 1, nTop])
-
         # save
         # lib.show()
         lib.shSvPath(pdfPath)

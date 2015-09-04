@@ -15,7 +15,7 @@ local ffi = require 'ffi'
 -- upvalue set in function init
 local sampleSiz, InputSize, meanInfo, trLmdb, teLmdb, DataMean, DataStd, cmp
 
-local provider = {}
+local dp_lmdb = {}
 
 ----------------------------------------------------------------------
 -- Normalize the data by subtracting the mean and dividing the scale.
@@ -40,7 +40,7 @@ end
 --
 -- Output
 --   data  -  b x d x h x w
-function provider.denormalize(data)
+function dp_lmdb.denormalize(data)
   local data = data:float()
   for j = 1, 3 do
     data[{{}, j, {}, {}}]:mul(DataStd[j])
@@ -141,7 +141,7 @@ end
 -- Output
 --   trDB     -  train DB
 --   teDB     -  test DB
-function provider.init(opt, solConf)
+function dp_lmdb.init(opt, solConf)
   local lib = require('lua_lib')
   lib.prIn('data_load init')
 
@@ -184,8 +184,8 @@ function provider.init(opt, solConf)
   end
 
   -- create threads for dataloader
-  local trDB = provider.newTr()
-  local teDB = provider.newTe()
+  local trDB = dp_lmdb.newTr()
+  local teDB = dp_lmdb.newTe()
 
   lib.prOut()
   return trDB, teDB
@@ -196,7 +196,7 @@ end
 --
 -- Output
 --   db  -  data provider
-function provider.newTr()
+function dp_lmdb.newTr()
   local db = eladtools.LMDBProvider {
     Source = lmdb.env({Path = trLmdb, RDONLY = true}),
     SampleSize = sampleSiz,
@@ -212,7 +212,7 @@ end
 --
 -- Output
 --   db  -  data provider
-function provider.newTe()
+function dp_lmdb.newTe()
   local db = eladtools.LMDBProvider {
     Source = lmdb.env({Path = teLmdb, RDONLY = true}),
     SampleSize = sampleSiz,
@@ -266,7 +266,7 @@ end
 --   nImg     -  #total image
 --   batchSiz -  batch size
 --   nMini    -  #mini-batch
-function provider.fordInit(DB, train, epoch, opt, solConf)
+function dp_lmdb.fordInit(DB, train, epoch, opt, solConf)
   lib.prIn('fordInit')
 
   -- dimension
@@ -327,7 +327,7 @@ end
 --   DB     -  lmdb provider
 --   train  -  train or test
 --   opt    -  option
-function provider.fordReset(DB, train, opt)
+function dp_lmdb.fordReset(DB, train, opt)
   DB:Synchronize()
   MiniBatch:Reset()
   MiniBatch.Source = bufSrcs[iBufSrc]
@@ -347,10 +347,10 @@ end
 --   DB     -  lmdb provider
 --   train  -  train or test
 --   opt    -  option
-function provider.fordNextBatch(DB, train, opt)
+function dp_lmdb.fordNextBatch(DB, train, opt)
   -- init
   if iBat == 1 then
-    provider.fordReset(DB, train, opt)
+    dp_lmdb.fordReset(DB, train, opt)
   end
 
   -- get next batch
@@ -366,4 +366,4 @@ function provider.fordNextBatch(DB, train, opt)
   return MiniBatch.Data, MiniBatch.Labels
 end
 
-return provider
+return dp_lmdb
