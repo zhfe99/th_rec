@@ -144,8 +144,7 @@ def shEpoTrGrid(dbe, ver, con, nStn, epo, iBat=1):
     # show
     rows = 1
     cols = 3
-    Ax = lib.iniAx(1, nStn * rows, cols,
-                   [3 * nStn * rows, 3 * cols], flat=False)
+    Ax = lib.iniAx(1, nStn * rows, cols, [3 * nStn * rows, 3 * cols], flat=False)
 
     # each transformer
     for iStn in range(nStn):
@@ -182,6 +181,9 @@ def shEpoTrGrid(dbe, ver, con, nStn, epo, iBat=1):
         gX = gridGrads[iStn][0][:, :, 0].mean()
         gY = gridGrads[iStn][0][:, :, 1].mean()
         lib.plt.title('{:.2f} {:.3e}'.format(np.arctan2(gY, gX) * 180 / np.pi, np.linalg.norm([gX, gY])))
+
+        # show average image
+        lib.shImg(imgOuts[iStn][0].transpose((1, 2, 0)), ax=Ax[iStn, 3])
 
     # save
     # lib.show()

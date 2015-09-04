@@ -80,6 +80,9 @@ function net.newStn(base, nC, bn, ini, parStn)
   end
   model:add(clfyNet)
 
+  local debugger = require('fb.debugger')
+  debugger.enter()
+
   lib.prOut()
   return model, {clfyMods, {locNet}, locMods, stnMods}
 end
@@ -108,7 +111,7 @@ function net.new(con, opt)
   -- model & sub-modules
   local model, modss
   if lib.startswith(con.netNm, 'alxS') then
-    model, modss = net.newStn('alx', nC, bn, ini, upparStn)
+    model, modss = net.newStn('alx', nC, bn, ini, parStn)
 
   elseif lib.startswith(con.netNm, 'gooS') then
     model, modss = net.newStn('goo', nC, bn, ini, parStn)

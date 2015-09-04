@@ -105,7 +105,7 @@ end
 -- Create the stn model.
 --
 -- In:  d x inSiz x inSiz image
--- Out: m images
+-- Out: nStn x, d x inSiz x inSiz images
 --
 -- Input
 --   locNet  -  localization network

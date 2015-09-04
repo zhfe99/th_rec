@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
---   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-09
 
 require 'cudnn'
 require 'cunn'
@@ -38,7 +38,7 @@ function len.new(nC, ini)
   -- init
   th.iniMod(model, ini)
 
-  return model, {}
+  return model, {{}}
 end
 
 ----------------------------------------------------------------------
@@ -99,10 +99,8 @@ end
 -- Output
 --   model  -  model
 --   mods   -  sub-modules needed to re-train, m x
---   k      -  k
-function len.newStnLoc(ini)
+function len.newStnLoc(ini, k)
   local model = nn.Sequential()
-  local k = 20
 
   model:add(cudnn.SpatialMaxPooling(2, 2, 2, 2))
   local mod1 = cudnn.SpatialConvolution(1, 20, 5, 5)
@@ -120,7 +118,7 @@ function len.newStnLoc(ini)
   -- init
   th.iniMod(model, ini)
 
-  return model, {mod1, mod2, mod3}, k
+  return model, {mod1, mod2, mod3}
 end
 
 return len
