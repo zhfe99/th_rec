@@ -21,6 +21,14 @@ local opts = {}
 --   con   -  configuration
 function opts.parse(arg, mode)
 
+  -- data
+  local dbe = arg[1]
+  local ver = arg[2]
+  local conNm = arg[3]
+  table.remove(arg, 1)
+  table.remove(arg, 1)
+  table.remove(arg, 1)
+
   local cmd = torch.CmdLine()
   cmd:text()
   cmd:text('Torch-7 Training / Testing script')
@@ -29,9 +37,6 @@ function opts.parse(arg, mode)
   cmd:addTime()
   cmd:option('-seed', 2, 'manually set RNG seed')
   cmd:option('-prL', 4, 'prompt level')
-  cmd:option('-dbe', 'bird', 'database name')
-  cmd:option('-ver', 'v1', 'version')
-  cmd:option('-con', 'alx', 'configuration')
   cmd:option('-threads', 8, '#threads')
   cmd:option('-nGpu', 1, '#GPUs')
   cmd:option('-shuffle', true, 'shuffle training samples')
@@ -41,13 +46,6 @@ function opts.parse(arg, mode)
   cmd:option('-debI', 0, 'debug image')
   cmd:option('-epo', 1, 'epoch id for testing')
   opt = cmd:parse(arg or {})
-
-  lib.prSet(opt.prL)
-  lib.prIn('parse')
-
-  local dbe = opt.dbe
-  local ver = opt.ver
-  local conNm = opt.con
 
   -- data
   local th_lst = require('lua_th.th_lst')
@@ -60,6 +58,8 @@ function opts.parse(arg, mode)
 
   -- log
   cmd:log(opt.CONF.logPath .. '_' .. mode)
+  lib.prSet(opt.prL)
+  lib.prIn('opts.parse', '%s %s %s', dbe, ver, conNm)
 
   -- gpu
   if con.nGpu then

@@ -131,8 +131,8 @@ function net.new(con, opt)
   elseif lib.startswith(con.netNm, 'gooT') then
     model, modss = goo.newT(nC, bn, ini)
 
-  elseif lib.startswith(con.netNm, 'gooc') then
-    model, modss = goo.newc(nC, bn, ini)
+  elseif lib.startswith(con.netNm, 'goob') then
+    model, modss = goo.newb(nC, bn, ini)
 
   elseif lib.startswith(con.netNm, 'goo') then
     model, modss = goo.new(nC, bn, ini)

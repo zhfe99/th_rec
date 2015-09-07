@@ -11,78 +11,8 @@ require 'nngraph'
 local lib = require('lua_lib')
 local th = require('lua_th')
 local goo = {}
--- local modPath0 = paths.concat(paths.home, 'save/imgnet/torch/model/imgnet_v2_goobn_4gpu.t7')
-local modPath0 = paths.concat(paths.home, 'save/imgnet/torch/model/imgnet_v2_goo_4gpu.t7_21.t7')
+local modPath0 = paths.concat(paths.home, 'save/imgnet/torch/model/imgnet_v2_goo_4gpu.t7_33.t7')
 
-----------------------------------------------------------------------
--- Create the inception component.
---
--- Input
---   input_size  -  input size
---   config      -  configuration
---   bn          -  type of BN
-local function inceptionc(input_size, config, bn)
-  local concat = nn.Concat(2)
-  -- 1x1
-  if config[1][1] ~= 0 then
-    local conv1 = nn.Sequential()
-    conv1:add(cudnn.SpatialConvolution(input_size, config[1][1], 1, 1, 1, 1))
-    conv1:add(cudnn.ReLU(true))
-    concat:add(conv1)
-  end
-
-  -- 3x3 a
-  local conv3 = nn.Sequential()
-  conv3:add(cudnn.SpatialConvolution(input_size, config[2][1],1,1,1,1))
-  conv3:add(cudnn.ReLU(true))
-
-  -- 3x3 b
-  if bn then
-    conv3:add(nn.SpatialBatchNormalization(config[2][1], nil, nil, false))
-  end
-  conv3:add(cudnn.SpatialConvolution(config[2][1], config[2][2],3,3,1,1,1,1))
-  conv3:add(cudnn.ReLU(true))
-  concat:add(conv3)
-
-  -- 3xx a
-  local conv3xx = nn.Sequential()
-  conv3xx:add(cudnn.SpatialConvolution(input_size, config[3][1],1,1,1,1))
-  conv3xx:add(cudnn.ReLU(true))
-
-  -- 3xx b
-  if bn then
-    conv3xx:add(nn.SpatialBatchNormalization(config[3][1], nil, nil, false))
-  end
-  conv3xx:add(cudnn.SpatialConvolution(config[3][1], config[3][2],3,3,1,1,1,1))
-  conv3xx:add(cudnn.ReLU(true))
-
-  -- 3xx c
-  if bn then
-    conv3xx:add(nn.SpatialBatchNormalization(config[3][2], nil, nil, false))
-  end
-  conv3xx:add(cudnn.SpatialConvolution(config[3][2], config[3][2],3,3,1,1,1,1))
-  conv3xx:add(cudnn.ReLU(true))
-  concat:add(conv3xx)
-
-  -- pool
-  local pool = nn.Sequential()
-  pool:add(nn.SpatialZeroPadding(1,1,1,1)) -- remove after getting cudnn R2 into fbcode
-  if config[4][1] == 'max' then
-    pool:add(cudnn.SpatialMaxPooling(3,3,1,1):ceil())
-  elseif config[4][1] == 'avg' then
-    pool:add(cudnn.SpatialAveragePooling(3,3,1,1):ceil())
-  else
-    error('Unknown pooling')
-  end
-
-  if config[4][2] ~= 0 then
-    pool:add(cudnn.SpatialConvolution(input_size,config[4][2],1,1,1,1))
-    pool:add(cudnn.ReLU(true))
-  end
-  concat:add(pool)
-
-  return concat
-end
 
 ----------------------------------------------------------------------
 -- Create the basic GoogLeNet model.
@@ -206,6 +136,118 @@ function goo.newc(nC, bn, ini)
   th.iniMod(model, ini)
 
   return model, {{}}
+end
+
+----------------------------------------------------------------------
+-- Create the inception component.
+--
+-- Input
+--   k0       -  input dimension
+--   config   -  configuration
+--   bn       -  type of BN
+--
+-- Output
+--   concat   -  inception module
+local function inceptionb(k0, config, bn)
+  local concat = nn.Concat(2)
+  if config[1][1] ~= 0 then
+    local conv1 = nn.Sequential()
+    conv1:add(cudnn.SpatialConvolution(k0, config[1][1], 1, 1, 1, 1))
+    th.addSBN(conv1, config[1][1], bn)
+    conv1:add(cudnn.ReLU(true))
+    concat:add(conv1)
+  end
+
+  local conv3 = nn.Sequential()
+  conv3:add(cudnn.SpatialConvolution(k0, config[2][1],1,1,1,1))
+  th.addSBN(conv3, config[2][1], bn)
+  conv3:add(cudnn.ReLU(true))
+  conv3:add(cudnn.SpatialConvolution(config[2][1], config[2][2],3,3,1,1,1,1))
+  th.addSBN(conv3, config[2][2], bn)
+  conv3:add(cudnn.ReLU(true))
+  concat:add(conv3)
+
+  local conv3xx = nn.Sequential()
+  conv3xx:add(cudnn.SpatialConvolution(k0, config[3][1],1,1,1,1))
+  th.addSBN(conv3xx, config[3][1], bn)
+  conv3xx:add(cudnn.ReLU(true))
+  conv3xx:add(cudnn.SpatialConvolution(config[3][1], config[3][2],3,3,1,1,1,1))
+  th.addSBN(conv3xx, config[3][2], bn)
+  conv3xx:add(cudnn.ReLU(true))
+  conv3xx:add(cudnn.SpatialConvolution(config[3][2], config[3][2],3,3,1,1,1,1))
+  th.addSBN(conv3xx, config[3][2], bn)
+  conv3xx:add(cudnn.ReLU(true))
+  concat:add(conv3xx)
+
+  local pool = nn.Sequential()
+  pool:add(nn.SpatialZeroPadding(1,1,1,1)) -- remove after getting cudnn R2 into fbcode
+  if config[4][1] == 'max' then
+    pool:add(cudnn.SpatialMaxPooling(3,3,1,1):ceil())
+  elseif config[4][1] == 'avg' then
+    pool:add(cudnn.SpatialAveragePooling(3,3,1,1):ceil())
+  else
+    error('Unknown pooling')
+  end
+  if config[4][2] ~= 0 then
+    pool:add(cudnn.SpatialConvolution(k0,config[4][2],1,1,1,1))
+    th.addSBN(pool, config[4][2], bn)
+    pool:add(cudnn.ReLU(true))
+  end
+  concat:add(pool)
+
+  return concat
+end
+
+----------------------------------------------------------------------
+-- Create the basic GoogLeNet model.
+--
+-- Input
+--   nC     -  #classes
+--   bn     -  type of BN
+--   ini    -  init method
+--
+-- Output
+--   model  -  model
+function goo.newb(nC, bn, ini)
+  local features = nn.Sequential()
+  features:add(cudnn.SpatialConvolution(3,64,7,7,2,2,3,3))
+  th.addSBN(features, 64, bn)
+  features:add(cudnn.ReLU(true))
+  features:add(cudnn.SpatialMaxPooling(3,3,2,2):ceil())
+  features:add(cudnn.SpatialConvolution(64,64,1,1))
+  th.addSBN(features, 64, bn)
+  features:add(cudnn.ReLU(true))
+  features:add(cudnn.SpatialConvolution(64,192,3,3,1,1,1,1))
+  th.addSBN(features, 192, bn)
+  features:add(cudnn.ReLU(true))
+  features:add(cudnn.SpatialMaxPooling(3,3,2,2):ceil())
+  features:add(inceptionb(192, {{ 64},{ 64, 64},{ 64, 96},{'avg', 32}}, bn)) -- 3(a)
+  features:add(inceptionb(256, {{ 64},{ 64, 96},{ 64, 96},{'avg', 64}}, bn)) -- 3(b)
+  features:add(inceptionb(320, {{  0},{128,160},{ 64, 96},{'max',  0}}, bn)) -- 3(c)
+  features:add(cudnn.SpatialConvolution(576,576,2,2,2,2))
+
+  features:add(inceptionb(576, {{224},{ 64, 96},{ 96,128},{'avg',128}}, bn)) -- 4(a)
+  features:add(inceptionb(576, {{192},{ 96,128},{ 96,128},{'avg',128}}, bn)) -- 4(b)
+  features:add(inceptionb(576, {{160},{128,160},{128,160},{'avg', 96}}, bn)) -- 4(c)
+  features:add(inceptionb(576, {{ 96},{128,192},{160,192},{'avg', 96}}, bn)) -- 4(d)
+
+  local main_branch = nn.Sequential()
+  main_branch:add(inceptionb(576, {{  0},{128,192},{192,256},{'max', 0}}, bn)) -- 4(e)
+  main_branch:add(cudnn.SpatialConvolution(1024,1024,2,2,2,2))
+
+  main_branch:add(inceptionb(1024, {{352},{192,320},{160,224},{'avg',128}}, bn)) -- 5(a)
+  main_branch:add(inceptionb(1024, {{352},{192,320},{192,224},{'max',128}}, bn)) -- 5(b)
+  main_branch:add(cudnn.SpatialAveragePooling(7,7,1,1))
+  main_branch:add(nn.View(1024):setNumInputDims(3))
+  main_branch:add(nn.Linear(1024, nC))
+  main_branch:add(nn.LogSoftMax())
+
+  local model = nn.Sequential():add(features):add(main_branch)
+
+  -- init
+  th.iniMod(model, ini)
+
+  return model, {}
 end
 
 ----------------------------------------------------------------------
