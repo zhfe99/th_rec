@@ -2,8 +2,8 @@
 -- Demo using Torch.
 --
 -- History
---   create  -  Feng Zhou (zhfe99@gmail.com), 08-03-2015
---   modify  -  Feng Zhou (zhfe99@gmail.com), 08-14-2015
+--   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-09
 
 require 'torch'
 require 'xlua'
@@ -25,7 +25,6 @@ PATH = dat.PATH
 
 -- network
 local model, loss, nEpo, nEpoSv, batchSiz, bufSiz, sampleSiz, optStat, parEpo = require(opt.network)
-
 local modPath = opt.modPath .. '_' .. 1 .. '.t7'
 local model1 = torch.load(modPath)
 
