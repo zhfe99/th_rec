@@ -1,13 +1,15 @@
 #!/usr/bin/env th
--- Generate lmdb.
---
--- Example
---   ./data_lmdb.lua -dbe car -ver v1c
---   ./data_lmdb.lua -dbe car -ver v1c -cmp
---
--- history
---   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
---   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
+--[[
+Generate lmdb.
+
+Example
+  ./data_lmdb.lua -dbe car -ver v1c
+  ./data_lmdb.lua -dbe car -ver v1c -cmp
+
+History
+  create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
+  modify  -  Feng Zhou (zhfe99@gmail.com), 2015-11
+]]--
 
 require 'eladtools'
 require 'image'

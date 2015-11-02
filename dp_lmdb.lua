@@ -1,9 +1,11 @@
 #!/usr/bin/env th
--- LMDP Data provider.
---
--- History
---   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
---   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-09
+--[[
+LMDP Data provider.
+
+History
+  create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
+  modify  -  Feng Zhou (zhfe99@gmail.com), 2015-11
+]]--
 
 require 'eladtools'
 require 'xlua'
