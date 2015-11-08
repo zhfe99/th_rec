@@ -7,7 +7,7 @@ Example
 
 History
   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
-  modify  -  Feng Zhou (zhfe99@gmail.com), 2015-09
+  modify  -  Feng Zhou (zhfe99@gmail.com), 2015-11
 """
 import matplotlib as mpl
 mpl.use('Agg')
@@ -16,7 +16,7 @@ import os
 import numpy as np
 import py_lib as lib
 lib.prSet(3)
-
+n
 
 def shEpoTrImg(dbe, ver, con, nStn, epo, iBat=1):
     """

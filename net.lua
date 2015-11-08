@@ -1,9 +1,11 @@
 #!/usr/bin/env th
--- Create network.
---
--- History
---   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
---   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-09
+--[[
+Create network.
+
+History
+  create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
+  modify  -  Feng Zhou (zhfe99@gmail.com), 2015-11
+]]--
 
 local lib = require('lua_lib')
 local th = require('lua_th')

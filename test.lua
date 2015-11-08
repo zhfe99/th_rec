@@ -1,14 +1,16 @@
 #!/usr/bin/env th
--- Train using Torch.
---
--- Example
---   export CUDA_VISIBLE_DEVICES=0,1,2,3
---   ./test.lua -dbe imgnet -ver v2 -con alx
---   ./test.lua -ver v1 -con alexS1 -deb
---
--- History
---   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
---   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-09
+--[[
+Train using Torch.
+
+Example
+  export CUDA_VISIBLE_DEVICES=0,1,2,3
+  ./test.lua -dbe imgnet -ver v2 -con alx
+  ./test.lua -ver v1 -con alexS1 -deb
+
+History
+  create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
+  modify  -  Feng Zhou (zhfe99@gmail.com), 2015-11
+]]--
 
 require('torch')
 local th = require('lua_th')

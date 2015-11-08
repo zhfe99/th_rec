@@ -1,9 +1,11 @@
 #!/usr/bin/env th
--- Data provider.
---
--- History
---   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
---   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-08
+--[[
+Data provider.
+
+History
+  create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
+  modify  -  Feng Zhou (zhfe99@gmail.com), 2015-11
+]]--
 
 local lib = require('lua_lib')
 local dp_dbe = {}

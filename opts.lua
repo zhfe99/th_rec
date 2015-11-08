@@ -1,9 +1,11 @@
 #!/usr/bin/env th
--- Parse the arguments.
---
--- History
---   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
---   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-09
+--[[
+Parse the arguments.
+
+History
+  create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
+  modify  -  Feng Zhou (zhfe99@gmail.com), 2015-11
+]]--
 
 local lib = require('lua_lib')
 

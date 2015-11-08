@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
---   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-09
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-11
 
 require 'cudnn'
 require 'nn'
@@ -12,7 +12,6 @@ local lib = require('lua_lib')
 local th = require('lua_th')
 local goo = {}
 local modPath0 = paths.concat(paths.home, 'save/imgnet/torch/model/imgnet_v2_goo_4gpu.t7_33.t7')
-
 
 ----------------------------------------------------------------------
 -- Create the basic GoogLeNet model.
