@@ -3,7 +3,7 @@
 --
 -- History
 --   create  -  Feng Zhou (zhfe99@gmail.com), 2015-08
---   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-11
+--   modify  -  Feng Zhou (zhfe99@gmail.com), 2015-12
 
 require 'cudnn'
 require 'nn'
@@ -371,7 +371,7 @@ function goo.new(nC, bn, ini)
 end
 
 ----------------------------------------------------------------------
--- Create alexnet model for fine-tuning.
+-- Create AlexNet model for fine-tuning.
 --
 -- Input
 --   nC     -  #classes
@@ -399,7 +399,7 @@ function goo.newT(nC, bn, ini)
 end
 
 ----------------------------------------------------------------------
--- Create goonet model for fine-tuning.
+-- Create GoogLeNet model for fine-tuning.
 --
 -- In: m images
 -- Out: nC x softmax
